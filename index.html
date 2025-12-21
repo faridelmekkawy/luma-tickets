@@ -1094,8 +1094,7 @@ option{ background-color: rgba(11,16,32,.98); }
             <h2 style="margin:0;font-size:18px">Welcome back</h2>
             <div class="muted small" style="margin-top:6px">Sign in to access your Events Hub.</div>
           </div>
-          <span class="badge info"><strong>Demo</strong> data included</span>
-        </div>
+</div>
 
         <form class="authForm" id="form-signin">
           <div class="field">
@@ -1118,186 +1117,10 @@ option{ background-color: rgba(11,16,32,.98); }
               <svg width="18" height="18"><use href="#i-workspace"/></svg>
               Enter Dashboard
             </button>
-            <button class="btn ghost" type="button" id="btn-quick-demo">
-              <svg width="18" height="18"><use href="#i-events"/></svg>
-              Use Demo
-            </button>
-          </div>
+</div>
 
           <div class="hint">
-            <b>Tip:</b> You can try the dashboard immediately using the <b>Use Demo</b> button.
-          </div>
-        </form>
-      </div>
-
-      <!-- Sign up -->
-      <div id="auth-signup" class="hidden">
-        <h2 style="margin:0;font-size:18px">Create your account</h2>
-        <div class="muted small" style="margin-top:6px">This will create a secure owner profile for your Events Hub.</div>
-
-        <form class="authForm" id="form-signup">
-          <div class="field">
-            <label>Full name</label>
-            <div class="input">
-              <svg width="18" height="18" style="color:var(--muted)"><use href="#i-user"/></svg>
-              <input id="signup-name" type="text" placeholder="Your name" required>
-            </div>
-          </div>
-          <div class="field">
-            <label>Email</label>
-            <div class="input">
-              <svg width="18" height="18" style="color:var(--muted)"><use href="#i-user"/></svg>
-              <input id="signup-email" type="email" placeholder="name@company.com" required>
-            </div>
-          </div>
-          <div class="field">
-            <label>Password</label>
-            <div class="input">
-              <svg width="18" height="18" style="color:var(--muted)"><use href="#i-lock"/></svg>
-              <input id="signup-pass" type="password" placeholder="Create a password" minlength="6" required>
-            </div>
-          </div>
-
-          <button class="btn primary" type="submit">
-            <svg width="18" height="18"><use href="#i-plus"/></svg>
-            Create account
-          </button>
-
-          <div class="muted small">Already have an account? <a href="#" id="go-signin">Sign in</a></div>
-        </form>
-      </div>
-
-      <!-- Forgot -->
-      <div id="auth-forgot" class="hidden">
-        <h2 style="margin:0;font-size:18px">Reset password</h2>
-        <div class="muted small" style="margin-top:6px">Enter your email and we’ll send you a reset link.</div>
-
-        <form class="authForm" id="form-forgot">
-          <div class="field">
-            <label>Email</label>
-            <div class="input">
-              <svg width="18" height="18" style="color:var(--muted)"><use href="#i-user"/></svg>
-              <input id="forgot-email" type="email" placeholder="name@company.com" required>
-            </div>
-          </div>
-          <button class="btn primary" type="submit">
-            <svg width="18" height="18"><use href="#i-webhook"/></svg>
-            Send reset link
-          </button>
-          <div class="muted small">Remembered it? <a href="#" id="go-signin2">Back to sign in</a></div>
-        </form>
-      </div>
-
-      <div class="footer">
-        <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
-        <span class="muted2">© <span id="year"></span> Luma</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- DASHBOARD APP -->
-<section id="dash" class="app hidden">
-  <!-- Sidebar -->
-  <aside id="sidebar" class="sidebar">
-    <div class="brandRow">
-      <div class="logoMark"><svg width="22" height="22"><use href="#i-luma"/></svg></div>
-      <div class="brandText">
-        <b>Luma Tickets</b>
-        <span id="sideSubtitle">Events Hub</span>
-      </div>
-    </div>
-
-    <div class="sideActions">
-      <button class="pill ghost" id="btnToggleSide" title="Toggle sidebar">
-        <svg width="18" height="18"><use href="#i-menu"/></svg>
-        <span class="lbl">Menu</span>
-      </button>
-      <button class="pill primary" id="btnCreateEvent">
-        <svg width="18" height="18"><use href="#i-plus"/></svg>
-        <span class="lbl">New event</span>
-      </button>
-    </div>
-
-    <nav class="nav">
-      <div class="navItem active" data-route="hub">
-        <div class="ic"><svg width="18" height="18"><use href="#i-events"/></svg></div>
-        <div class="txt">
-          <b>Events Hub</b>
-          <span>All events + quick KPIs</span>
-        </div>
-      </div>
-      <div class="navItem" data-route="workspace">
-        <div class="ic"><svg width="18" height="18"><use href="#i-workspace"/></svg></div>
-        <div class="txt">
-          <b>Workspace</b>
-          <span>Open an event workspace</span>
-        </div>
-      </div>
-      <div class="navItem" data-route="notifications">
-        <div class="ic"><svg width="18" height="18"><use href="#i-bell"/></svg></div>
-        <div class="txt">
-          <b>Attention</b>
-          <span>What needs attention</span>
-        </div>
-      </div>
-      <div class="navItem" data-route="analytics">
-        <div class="ic"><svg width="18" height="18"><use href="#i-chart"/></svg></div>
-        <div class="txt">
-          <b>Analytics</b>
-          <span>Overview across events</span>
-        </div>
-      </div>
-
-      <div class="navItem" data-route="demo">
-        <div class="ic"><svg width="18" height="18"><use href="#i-play"/></svg></div>
-        <div class="txt">
-          <b>Demo</b>
-          <span>Sandbox</span>
-        </div>
-      </div>
-    </nav>
-
-    <div class="sidebarFooter">
-      <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
-      <div class="pf" id="pfMini">Owner</div>
-    </div>
-  </aside>
-
-  <!-- Main -->
-  <main class="main">
-    <header class="topbar">
-      <div class="titleWrap">
-        <span class="badge" id="roleBadge"><strong>Owner</strong> access</span>
-        <div class="crumb" id="crumb">You are in <b>Events Hub</b></div>
-      </div>
-
-      <div class="search" title="Search events, customers, orders">
-        <svg width="18" height="18" style="color:var(--muted)"><use href="#i-search"/></svg>
-        <input id="globalSearch" placeholder="Search events, orders, customers...">
-      </div>
-
-      <div class="topActions">
-        <button class="btn sm ghost" id="btnDemo" title="Open Demo Sandbox">
-          <svg width="18" height="18"><use href="#i-bell"/></svg>
-          Simulate
-        </button>
-
-        <div class="menu">
-          <div class="avatar" id="avatarBtn" aria-haspopup="true" aria-expanded="false">
-            <div class="ava" id="avaInitials">LU</div>
-            <div class="meta">
-              <b id="avaName">Owner</b>
-              <span id="avaEmail" class="muted">—</span>
-            </div>
-          </div>
-          <div class="menuPanel" id="menuPanel">
-            <div class="menuRow" style="cursor:default">
-              <div class="left">
-                <div class="ava" style="width:38px;height:38px;border-radius:14px" id="avaInitials2">LU</div>
-                <div>
-                  <b id="menuName" style="font-size:12px">Owner</b><br>
-                  <small id="menuEmail">—</small>
+<small id="menuEmail">—</small>
                 </div>
               </div>
               <span class="chip info" id="menuPlan">Owner</span>
@@ -1317,15 +1140,7 @@ option{ background-color: rgba(11,16,32,.98); }
                 <option value="Viewer">Viewer</option>
               </select>
             </div>
-
-            <div class="menuRow" id="btnResetDemo">
-              <div class="left">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-trash"/></svg>
-                <div>
-                  <b style="font-size:12px">Reset demo data</b><br>
-                  <small>Restore default sample events</small>
-                </div>
-              </div>
+</div>
             </div>
 
             <div class="menuSep"></div>
@@ -1600,14 +1415,7 @@ option{ background-color: rgba(11,16,32,.98); }
 
       <!-- Event Workspace -->
       <div 
-      <!-- Demo (Sandbox) -->
-      <div id="page-demo" class="hidden">
-        <div class="split">
-          <div>
-            <h2 style="margin:0;font-size:18px">Demo Sandbox</h2>
-            <div class="muted small" style="margin-top:6px">This sandbox is <b>separate</b> from your real events. Demo changes do not touch your owner data.</div>
-          </div>
-          <div class="right">
+      <div class="right">
             <button class="btn" id="btnExitDemo"><svg width="18" height="18"><use href="#i-back"/></svg> Exit Demo</button>
           </div>
         </div>
@@ -2312,7 +2120,6 @@ option{ background-color: rgba(11,16,32,.98); }
 <div class="toasts" id="toasts"></div>
 
 <script type="module">
-
 /* =========================
    Luma Tickets — Owner Dashboard (Single-file demo app)
    ========================= */
@@ -2348,9 +2155,7 @@ let storage = null;
 async function __loadFirebase(){
   // If the user opens the file directly (file://), most browsers will block ESM imports.
   // Auto-switch to DEMO mode in that case.
-  if(location.protocol === "file:"){
-    window.__demoMode = true;
-  }
+  if(location.protocol==="file:"){ throw new Error("This app must be served over http(s). Use Firebase Hosting or any local dev server."); }
 
   // If DEMO is forced, don't attempt to load SDK.
   if(window.__demoMode){
@@ -5922,7 +5727,6 @@ $("#ordClear")?.addEventListener?.("click", ()=>{});
 /* ---------- Start ---------- */
 
 start();
-
 </script>
 
 </body>
