@@ -5196,25 +5196,6 @@ function createEventModal(){
     ]
   });
 }
-aed", accent:"#22c55e",
-            headline:"Your ticket is ready",
-            emailText:"Thanks for joining us. Show this QR code at the gate to check in.",
-            published:false, updatedAt: nowISO()
-          },
-          webhookUrl:""
-        };
-        addActivity(ev, "Event created", `${name}`, "ok");
-        data.events.unshift(ev);
-        saveData();
-        closeModal();
-        toast("Event created", "Open the workspace to continue setup.");
-        renderAll();
-      }}
-    ]
-  });
-}
-
-
 function editEventModal(eventId){
   const ev = data.events.find(e=>e.id===eventId);
   if(!ev) return;
