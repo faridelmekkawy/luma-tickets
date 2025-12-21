@@ -5735,6 +5735,33 @@ on("#btnEndEvent","click", async ()=>{
   toast("Ended", "Event marked as ended.");
 });
 
+on("#btnDeleteEvent","click", ()=>{
+  const ev = currentEvent(); if(!ev) return;
+  if(isReadOnly()) return;
+
+  openConfirmModal({
+    title: "Delete event?",
+    body: "This will permanently remove the event from the dashboard and marketplace.",
+    danger: true,
+    onConfirm: async ()=>{
+      // 🔴 remove public marketplace copy
+      try{
+        await deleteDoc(doc(db,"events", ev.id));
+      }catch(e){
+        console.error("Failed to delete public event", e);
+      }
+
+      // 🔴 remove owner copy
+      data.events = data.events.filter(e=>e.id!==ev.id);
+      saveData();
+
+      state.activeEventId = null;
+      setRoute("hub");
+      renderAll();
+      toast("Deleted","Event removed successfully.");
+    }
+  });
+});
 
   // subtabs
   $$("#subTabs .subTab").forEach(b=>{
