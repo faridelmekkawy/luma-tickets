@@ -67,10 +67,10 @@
       min-width: 250px;
       max-width: 320px;
     }
-    #ovStatusSelect.status-live, #wsStatusSelect.status-live { color: var(--brand2); }
-#ovStatusSelect.status-on-sale, #wsStatusSelect.status-on-sale { color: var(--info); }
-#ovStatusSelect.status-draft, #wsStatusSelect.status-draft { color: var(--warn); }
-#ovStatusSelect.status-ended, #wsStatusSelect.status-ended { color: var(--danger); }
+    .ovStatusSelect.status-live { color: var(--brand2); }
+.ovStatusSelect.status-on-sale { color: var(--info); }
+.ovStatusSelect.status-draft { color: var(--warn); }
+.ovStatusSelect.status-ended { color: var(--danger); }
     .sidebar.collapsed{
       width:78px;
       min-width:78px;
@@ -1423,7 +1423,7 @@ option{ background-color: rgba(11,16,32,.98); }
     <div class="field">
       <label>Current Status</label>
       <div class="input">
-        <select id="ovStatusSelect" style="font-weight:700;">
+        <select id="ovStatusSelectOverview" class="ovStatusSelect" style="font-weight:700;">
           <option value="Draft">Draft</option>
           <option value="On Sale">On Sale</option>
           <option value="Live">Live</option>
@@ -1660,7 +1660,7 @@ option{ background-color: rgba(11,16,32,.98); }
 <div id="page-event" class="hidden">
         <div class="workspaceTop">
           <div class="right">
-    <select id="wsStatusSelect" class="chip">
+    <select id="ovStatusSelectTop" class="chip ovStatusSelect">
       <option value="Draft">Draft</option>
       <option value="On Sale">On Sale</option>
       <option value="Live">Live</option>
@@ -2957,6 +2957,82 @@ function resetDemoData(){
 }
 let data = loadData();
 
+/* ---------- Auto sync to Public Events (Customer Marketplace) ---------- */
+/**
+ * This dashboard has TWO data layers:
+ *  1) Owner workspace data (saved in owners/{uid}/apps/...)
+ *  2) Public event doc (events/{eventId}) that customer.html reads.
+ *
+ * If you update an event and don't publish/sync, customers won't see changes.
+ * This auto-sync marks events dirty on workspace edits and pushes updates in a debounce.
+ */
+const __publicSyncTimers = new Map();
+
+function __isPublicSyncEnabled(){
+  return window.__firebaseReady && !window.__demoMode && !state.demoMode;
+}
+
+function markEventDirtyForPublic(ev){
+  if(!ev) return;
+  ev.__publicDirty = true;
+}
+
+function schedulePublicSync(ev, reason="edit"){
+  if(!ev) return;
+  if(isReadOnly()) return;
+  // Don't publish drafts automatically
+  if((ev.status||"Draft")==="Draft") return;
+  if(!__isPublicSyncEnabled()) return;
+
+  markEventDirtyForPublic(ev);
+
+  const key = ev.id;
+  clearTimeout(__publicSyncTimers.get(key));
+  __publicSyncTimers.set(key, setTimeout(async ()=>{
+    try{
+      // only sync if still dirty
+      const cur = data.events.find(x=>x.id===key);
+      if(!cur || !cur.__publicDirty) return;
+      cur.__publicDirty = false;
+      await syncEventToPublic(cur);
+      // also ensure status mirrors (cheap merge)
+      try{
+        await updateDoc(publicEventRef(cur.id), { status: cur.status || "Draft" });
+      }catch(_e){ /* ignore merge failures; syncEventToPublic is primary */ }
+    }catch(err){
+      console.error("Public sync failed", err);
+      // keep dirty so we can retry on next change
+      const cur = data.events.find(x=>x.id===key);
+      if(cur) cur.__publicDirty = true;
+      toast("Sync warning", "Saved locally, but could not publish to customer marketplace yet.");
+    }
+  }, 700));
+}
+
+// Mark dirty on any change inside Event Workspace
+document.addEventListener("input", (e)=>{
+  const ev = currentEvent();
+  if(!ev) return;
+  if(!e.target) return;
+  if(!(e.target.closest && e.target.closest("#page-event"))) return;
+  markEventDirtyForPublic(ev);
+  schedulePublicSync(ev, "input");
+}, true);
+
+document.addEventListener("change", (e)=>{
+  const ev = currentEvent();
+  if(!ev) return;
+  if(!e.target) return;
+  if(!(e.target.closest && e.target.closest("#page-event"))) return;
+  // status select has its own handler that already syncs immediately
+  if(e.target.id==="ovStatusSelectTop" || e.target.id==="ovStatusSelectOverview") return;
+  markEventDirtyForPublic(ev);
+  schedulePublicSync(ev, "change");
+}, true);
+
+/* ---------- End auto sync ---------- */
+
+
 /* ---------- Auth ---------- */
 
 function loadAuth(){
@@ -3533,19 +3609,19 @@ function renderEventWorkspace(){
     return;
   } // <--- Ensure this brace correctly closes the IF block
 
-  // 1. Sync the status dropdowns
-  const statusSelect = $("#ovStatusSelect");
-  const wsStatusSelect = $("#wsStatusSelect");
-  const applySel = (s)=>{
-    if(!s) return;
-    s.value = ev.status || "Draft";
-    s.disabled = isReadOnly();
-    s.classList.remove("status-live","status-on-sale","status-draft","status-ended");
-    const st = (ev.status||"Draft").toLowerCase().replace(/\s+/g,"-");
-    s.classList.add("status-"+st);
-  };
-  applySel(statusSelect);
-  applySel(wsStatusSelect);
+    // 1. Sync the status dropdown(s)
+  const statusSelects = [$("#ovStatusSelectTop"), $("#ovStatusSelectOverview")].filter(Boolean);
+  for (const sel of statusSelects) {
+    sel.value = ev.status || "Draft";
+    sel.disabled = isReadOnly();
+    // keep a status class for styling hooks
+    sel.classList.remove("status-draft","status-on-sale","status-live","status-ended");
+    sel.classList.add(
+      ev.status==="Live" ? "status-live" :
+      ev.status==="On Sale" ? "status-on-sale" :
+      ev.status==="Ended" ? "status-ended" : "status-draft"
+    );
+  }
 
   // 2. Update Top Titles
   $("#evName").textContent = ev.name;
@@ -5518,6 +5594,7 @@ function editEventModal(eventId){
         addActivity(ev, "Event updated", meta, "info");
 
         saveData();
+        schedulePublicSync(ev, "edit-basic");
         closeModal();
         toast("Event updated", "Changes saved.");
         renderAll();
@@ -5572,15 +5649,13 @@ function wireDashboardUI(){
     document.getElementById("sidebar")?.classList.toggle("collapsed");
   });
 
-  // Status dropdowns (wire ONCE)
-  const statusSelect = document.getElementById("ovStatusSelect");
-  if(statusSelect){
-    statusSelect.addEventListener("change", onOverviewStatusChange);
-  }
-  const wsStatusSelect = document.getElementById("wsStatusSelect");
-  if(wsStatusSelect){
-    wsStatusSelect.addEventListener("change", onOverviewStatusChange);
-  }
+  // Status dropdown(s) (wire ONCE)
+  const statusSelects = [document.getElementById("ovStatusSelectTop"), document.getElementById("ovStatusSelectOverview")].filter(Boolean);
+  statusSelects.forEach(sel=>{
+    if(sel.__wiredChange) return;
+    sel.__wiredChange = true;
+    sel.addEventListener("change", onOverviewStatusChange);
+  });
 
   // nav
   document.querySelectorAll(".navItem").forEach(item=>{
@@ -5848,10 +5923,7 @@ async function onOverviewStatusChange(e){
 
   // Viewer mode: block change and revert UI
   if(isReadOnly()){
-    const v = ev.status || "Draft";
-    sel.value = v;
-    const o = $("#ovStatusSelect"); if(o) o.value = v;
-    const w = $("#wsStatusSelect"); if(w) w.value = v;
+    sel.value = ev.status || "Draft";
     return;
   }
 
@@ -5869,6 +5941,12 @@ async function onOverviewStatusChange(e){
 
   // Update local
   ev.status = newStatus;
+  // Keep both status dropdowns in sync
+  [$("#ovStatusSelectTop"), $("#ovStatusSelectOverview")].filter(Boolean).forEach(s=>{
+    s.value = newStatus;
+    s.classList.remove("status-draft","status-on-sale","status-live","status-ended");
+    s.classList.add(newStatus==="Live"?"status-live":newStatus==="On Sale"?"status-on-sale":newStatus==="Ended"?"status-ended":"status-draft");
+  });
   await syncEventToPublic(ev);
   addActivity(ev, "Status Changed", `Manually changed from ${oldStatus} to ${newStatus}`, "info");
   saveData();
@@ -6111,5 +6189,4 @@ window.addEventListener('DOMContentLoaded', start);
 </script>
 
 </body>
-</html>
 </html>
