@@ -2336,7 +2336,7 @@ const firebaseConfig = {
 // - If the SDK can't be loaded (common when opening via file://), we fall back to local DEMO mode
 let initializeApp, getApp, getApps;
 let getAuth, onAuthStateChanged, signInWithEmailAndPassword, sendPasswordResetEmail, fbSignOut, createUserWithEmailAndPassword, updateProfile;
-let getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, getDocs, orderBy, limit, serverTimestamp, Timestamp;
+let getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, query, where, getDocs, orderBy, limit, serverTimestamp, Timestamp;
 let getStorage, stRef, uploadBytes, getDownloadURL, deleteObject;
 
 // Initialized by __loadFirebase()
@@ -2379,7 +2379,7 @@ async function __loadFirebase(){
     fbSignOut = authMod.signOut;
 
     const fsMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
-    ({ getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, getDocs, orderBy, limit, serverTimestamp, Timestamp } = fsMod);
+({ getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, query, where, getDocs, orderBy, limit, serverTimestamp, Timestamp } = fsMod);
 
     const stMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js");
     ({ getStorage, uploadBytes, getDownloadURL, deleteObject } = stMod);
@@ -2413,7 +2413,120 @@ await __loadFirebase();
 function ownerDocRef(uid){
   return doc(db, "owners", uid, "apps", "lumaTicketsOwnerDashboard");
 }
+// Public marketplace doc for customers to browse
+function publicEventRef(eventId){
+  return doc(db, "events", eventId);
+}
 
+// Push a public-safe copy of an event to Firestore for the customer marketplace
+async function syncEventToPublic(ev){
+  // If you're in local demo mode, skip
+  if(window.__demoMode) return;
+
+  const ownerId = auth.currentUser?.uid || null;
+
+  // Only expose what customer marketplace needs
+  const publicPayload = {
+    published: (ev.status === "On Sale" || ev.status === "Live" || ev.status === "Ended"), // keep ended visible if you want
+    status: ev.status || "Draft",
+    name: ev.name || "",
+    venue: ev.venue || "",
+    city: ev.city || "",
+    category: ev.category || "",
+    bannerUrl: ev.bannerUrl || "",
+    logoUrl: ev.logoUrl || "",
+
+    // customer.html expects dateISO. owner data often uses ev.date (YYYY-MM-DD).
+    dateISO: ev.dateISO || (ev.date ? `${ev.date}T00:00:00.000Z` : ""),
+
+    // tiers + waves the customer needs to render details/purchase
+    tiers: Array.isArray(ev.tiers) ? ev.tiers : [],
+    waves: Array.isArray(ev.waves) ? ev.waves : [],
+
+    ownerId,
+    updatedAt: serverTimestamp(),
+  };
+
+  await setDoc(publicEventRef(ev.id), publicPayload, { merge:true });
+}
+
+// PUBLIC EVENTS (what the customer app reads)
+function publicEventRef(eventId){
+  return doc(db, "events", eventId);
+}
+
+async function uploadDataUrlIfNeeded(dataUrl, storagePath){
+  if(!dataUrl) return "";
+  // already a URL
+  if(/^https?:\/\//i.test(dataUrl)) return dataUrl;
+  // only upload if it's a data URL
+  if(!/^data:/i.test(dataUrl)) return dataUrl;
+
+  if(!storage || !stRef){
+    throw new Error("Storage not ready. Make sure Firebase Storage SDK is loaded.");
+  }
+
+  const res = await fetch(dataUrl);
+  const blob = await res.blob();
+  const contentType = blob.type || "image/jpeg";
+
+  const r = stRef(storage, storagePath);
+  await uploadBytes(r, blob, { contentType });
+  return await getDownloadURL(r);
+}
+
+// Sync one event to /events/{eventId} so customer.html can see it
+async function syncEventToPublic(ev){
+  if(window.__demoMode) return;                 // never publish in demo
+  if(!window.__firebaseReady) return;
+
+  const uid = auth.currentUser?.uid;
+  if(!uid) throw new Error("Not signed in.");
+
+  const eventId = ev?.id;
+  if(!eventId) throw new Error("Event has no id.");
+
+  // Map fields expected by customer.html
+  const dateISO = ev.date || ev.dateISO || "";  // owner uses `date`
+  const city = ev.city || ev.locationCity || ""; // optional
+
+  // Upload images if they are data URLs (from file picker previews)
+  const bannerUrl = await uploadDataUrlIfNeeded(
+    ev.bannerDataUrl || ev.bannerUrl || "",
+    `publicEvents/${eventId}/banner`
+  );
+
+  const logoUrl = await uploadDataUrlIfNeeded(
+    ev.logoDataUrl || ev.logoUrl || "",
+    `publicEvents/${eventId}/logo`
+  );
+
+  const payload = {
+    // visibility
+    published: true,
+    status: ev.status || "Draft",
+
+    // basic info
+    name: ev.name || "",
+    dateISO,
+    venue: ev.venue || "",
+    city,
+
+    // visuals
+    bannerUrl,
+    logoUrl,
+
+    // pricing structure
+    tiers: Array.isArray(ev.tiers) ? ev.tiers : [],
+    waves: Array.isArray(ev.waves) ? ev.waves : [],
+
+    // ownership / audit
+    ownerId: uid,
+    updatedAt: serverTimestamp(),
+  };
+
+  await setDoc(publicEventRef(eventId), payload, { merge: true });
+}
 
 
 const $ = (q, el=document)=>el.querySelector(q);
@@ -5569,42 +5682,58 @@ function wireDashboardUI(){
     deleteEventModal(ev.id);
   });
 
-  // status controls (Overview)
-  on("#btnSetOnSale","click", ()=>{
-    const ev = currentEvent(); if(!ev) return;
-    if(isReadOnly()) return;
-    if(ev.status!=="Draft"){ toast("Not allowed","Only Draft events can be set On Sale."); return; }
-    ev.status = "On Sale";
-    addActivity(ev, "Status changed", "Draft → On Sale", "info");
-    saveData();
-    renderEventWorkspace();
-    toast("On Sale", "Event is now On Sale.");
-  });
+// status controls (Overview)
+on("#btnSetOnSale","click", async ()=>{
+  const ev = currentEvent(); if(!ev) return;
+  if(isReadOnly()) return;
+  if(ev.status!=="Draft"){ toast("Not allowed","Only Draft events can be set On Sale."); return; }
 
-  on("#btnGoLive","click", ()=>{
-    const ev = currentEvent(); if(!ev) return;
-    if(isReadOnly()) return;
-    const today = (()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
-    if(ev.date && ev.date > today){ toast("Too early","Live is available on (or after) the event date."); return; }
-    if(ev.status==="Ended"){ toast("Ended","This event already ended."); return; }
-    ev.status = "Live";
-    addActivity(ev, "Status changed", `${statusText("On Sale")} → Live`, "ok");
-    saveData();
-    renderEventWorkspace();
-    toast("Live", "Event is now Live.");
-  });
+  ev.status = "On Sale";
+  addActivity(ev, "Status changed", "Draft → On Sale", "info");
+  saveData();
 
-  on("#btnEndEvent","click", ()=>{
-    const ev = currentEvent(); if(!ev) return;
-    if(isReadOnly()) return;
-    if(ev.status==="Ended"){ toast("Already ended",""); return; }
-    ev.status = "Ended";
-    addActivity(ev, "Status changed", `${statusText(ev.status)} → Ended`, "warn");
-    saveData();
-    renderEventWorkspace();
-    toast("Ended", "Event marked as ended.");
-  });
+  // publish/update public marketplace copy
+  try{ await syncEventToPublic(ev); }catch(err){ console.error(err); }
 
+  renderEventWorkspace();
+  toast("On Sale", "Event is now On Sale.");
+});
+
+on("#btnGoLive","click", async ()=>{
+  const ev = currentEvent(); if(!ev) return;
+  if(isReadOnly()) return;
+
+  const today = (()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
+  if(ev.date && ev.date > today){ toast("Too early","Live is available on (or after) the event date."); return; }
+  if(ev.status==="Ended"){ toast("Ended","This event already ended."); return; }
+
+  ev.status = "Live";
+  addActivity(ev, "Status changed", `${statusText("On Sale")} → Live`, "ok");
+  saveData();
+
+  // publish/update public marketplace copy
+  try{ await syncEventToPublic(ev); }catch(err){ console.error(err); }
+
+  renderEventWorkspace();
+  toast("Live", "Event is now Live.");
+});
+
+on("#btnEndEvent","click", async ()=>{
+  const ev = currentEvent(); if(!ev) return;
+  if(isReadOnly()) return;
+  if(ev.status==="Ended"){ toast("Already ended",""); return; }
+
+  const prev = ev.status || "Draft";
+  ev.status = "Ended";
+  addActivity(ev, "Status changed", `${statusText(prev)} → Ended`, "warn");
+  saveData();
+
+  // update public marketplace copy too (so customer app sees Ended)
+  try{ await syncEventToPublic(ev); }catch(err){ console.error(err); }
+
+  renderEventWorkspace();
+  toast("Ended", "Event marked as ended.");
+});
 
 
   // subtabs
