@@ -3570,20 +3570,42 @@ function renderActivityLog(ev){
   const feed = $("#activityLog");
   feed.innerHTML = "";
 
-  const list = [...(ev.activity||[])].sort((a,b)=> (b.time||"").localeCompare(a.time||"")).slice(0,10);
-  if(list.length===0){
+  // normalize any time format into milliseconds
+  const toMs = (t) => {
+    if (!t) return 0;
+    if (t instanceof Date) return t.getTime();
+    if (typeof t === "number") return t;
+    if (typeof t === "string") {
+      const p = Date.parse(t);
+      if (!Number.isNaN(p)) return p;
+      const n = Number(t);
+      return Number.isFinite(n) ? n : 0;
+    }
+    // Firestore Timestamp (common)
+    if (typeof t === "object") {
+      if (typeof t.toMillis === "function") return t.toMillis();
+      if (typeof t.seconds === "number") return (t.seconds * 1000) + Math.floor((t.nanoseconds || 0) / 1e6);
+    }
+    return 0;
+  };
+
+  const list = [...(ev.activity || [])]
+    .sort((a, b) => toMs(b.time) - toMs(a.time)) // newest first
+    .slice(0, 10);
+
+  if(list.length === 0){
     feed.innerHTML = `<div class="tItem"><b>No activity yet</b><div class="meta">Activity will appear here as the event runs.</div></div>`;
     return;
   }
 
   for(const a of list){
-    const dt = new Date(a.time);
+    const dt = new Date(toMs(a.time));
     const label = a.type==="warn" ? "warn" : (a.type==="ok" ? "good" : "info");
     const node = document.createElement("div");
     node.className = "tItem";
     node.innerHTML = `
       <div class="top">
-        <b>${escapeHtml(a.text)}</b>
+        <b>${escapeHtml(a.text || "")}</b>
         <span class="chip ${label}">${fmtTime(dt)}</span>
       </div>
       <div class="meta">${escapeHtml(a.meta||"")}</div>
