@@ -42,7 +42,7 @@
         radial-gradient(900px 700px at 95% 10%, rgba(34,197,94,.20), transparent 50%),
         radial-gradient(900px 700px at 60% 120%, rgba(96,165,250,.14), transparent 55%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
-      overflow:hidden;
+      overflow:auto;
     }
     a{color:inherit}
     button,input,select,textarea{font-family:inherit}
@@ -2363,6 +2363,7 @@ const STORAGE = {
 const ROLES = ["Usher","Manual Desk","Finance","Design","Viewer","Ops Manager"];
 
 let state = {
+  uiWired: false,
   user: null,
   viewAs: "Owner",        // Owner or Viewer (read-only)
   route: "hub",           // hub, workspace, notifications, analytics, event
@@ -5471,6 +5472,12 @@ async function bootDashboard(){
   state.route = "hub";
   state.activeEventId = null;
   state.activeTab = "overview";
+
+  // Wire UI handlers once
+  if(!state.uiWired){
+    try{ wireDashboardUI(); }catch(e){ console.error(e); }
+    state.uiWired = true;
+  }
   render();
 }
 
@@ -5550,4 +5557,4 @@ start();
 </script>
 
 </body>
-</html>
+/html>
