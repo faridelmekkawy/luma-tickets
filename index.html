@@ -5856,6 +5856,7 @@ async function onOverviewStatusChange(e){
 
   // Update local
   ev.status = newStatus;
+  await syncEventToPublic(ev);
   addActivity(ev, "Status Changed", `Manually changed from ${oldStatus} to ${newStatus}`, "info");
   saveData();
 
