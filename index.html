@@ -5100,10 +5100,16 @@ function exportAllFinance(){
   for(const ev of data.events){
     const gross = eventGross(ev);
     const refunds = eventRefunds(ev);
-    const net = gross-refunds;
+    const net = gross - refunds;
     const sold = eventSold(ev);
     const check = eventCheckins(ev);
-    const att = sold ? Math.round((check/sol
+    const att = sold ? Math.round((check/sold)*100) : 0;
+    rows.push([ev.id, ev.name, ev.status||"", ev.date||"", ev.venue||"", gross, refunds, net, sold, check, att]);
+  }
+  downloadText(`all-events-finance-summary.csv`, toCSV(rows));
+  toast("Export ready", "All-events finance summary CSV downloaded.");
+}
+
 function createEventModal(){
   openModal({
     title:"Create Event",
