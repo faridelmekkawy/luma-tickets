@@ -2975,6 +2975,11 @@ function renderAll(){
   if(state.route==="event") renderEventWorkspace();
 }
 
+// Backwards-compatible alias (some flows call render())
+function render(){
+  renderAll();
+}
+
 function renderTopIdentity(){
   const nm = state.user?.name || "Owner";
   const em = state.user?.email || "—";
