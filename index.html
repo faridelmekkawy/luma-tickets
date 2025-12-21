@@ -2413,43 +2413,6 @@ await __loadFirebase();
 function ownerDocRef(uid){
   return doc(db, "owners", uid, "apps", "lumaTicketsOwnerDashboard");
 }
-// Public marketplace doc for customers to browse
-function publicEventRef(eventId){
-  return doc(db, "events", eventId);
-}
-
-// Push a public-safe copy of an event to Firestore for the customer marketplace
-async function syncEventToPublic(ev){
-  // If you're in local demo mode, skip
-  if(window.__demoMode) return;
-
-  const ownerId = auth.currentUser?.uid || null;
-
-  // Only expose what customer marketplace needs
-  const publicPayload = {
-    published: (ev.status === "On Sale" || ev.status === "Live" || ev.status === "Ended"), // keep ended visible if you want
-    status: ev.status || "Draft",
-    name: ev.name || "",
-    venue: ev.venue || "",
-    city: ev.city || "",
-    category: ev.category || "",
-    bannerUrl: ev.bannerUrl || "",
-    logoUrl: ev.logoUrl || "",
-
-    // customer.html expects dateISO. owner data often uses ev.date (YYYY-MM-DD).
-    dateISO: ev.dateISO || (ev.date ? `${ev.date}T00:00:00.000Z` : ""),
-
-    // tiers + waves the customer needs to render details/purchase
-    tiers: Array.isArray(ev.tiers) ? ev.tiers : [],
-    waves: Array.isArray(ev.waves) ? ev.waves : [],
-
-    ownerId,
-    updatedAt: serverTimestamp(),
-  };
-
-  await setDoc(publicEventRef(ev.id), publicPayload, { merge:true });
-}
-
 // PUBLIC EVENTS (what the customer app reads)
 function publicEventRef(eventId){
   return doc(db, "events", eventId);
