@@ -2893,6 +2893,12 @@ async function appSignOut(){
   toast("Signed out", "You’re now signed out of the dashboard.");
 }
 
+// Back-compat alias (some UI wiring may call signOut)
+function signOut(){
+  return appSignOut();
+}
+
+
 function setAuthTab(tab){
   $$(".tabBtn").forEach(b=>b.classList.toggle("active", b.dataset.authTab===tab));
   $("#auth-signin").classList.toggle("hidden", tab!=="signin");
@@ -3063,9 +3069,87 @@ function openDrawer(title, sub, bodyHtml){
 }
 function closeDrawer(){ $("#drawerOverlay").classList.remove("open"); }
 
+
+
+/* ---------- Activity helper ---------- */
+function addActivity(ev, text, detail, type){
+  if(!ev) return;
+  if(!Array.isArray(ev.activity)) ev.activity = [];
+  ev.activity.unshift({
+    text: String(text||""),
+    detail: String(detail||""),
+    type: type || "info",
+    time: Date.now()
+  });
+  // cap to keep the doc light
+  if(ev.activity.length>200) ev.activity.length = 200;
+
+  // Keep a small "needs attention" list derived from warn/danger types (optional)
+  if(type==="warn" || type==="danger"){
+    if(!Array.isArray(ev.attention)) ev.attention = [];
+    ev.attention.unshift({
+      text: String(text||""),
+      detail: String(detail||""),
+      type: type,
+      time: Date.now()
+    });
+    if(ev.attention.length>100) ev.attention.length = 100;
+  }
+}
 /* ---------- Routing ---------- */
 
-function setRoute(route){
+
+// Hash routing (Gmail-style URLs):
+//   #hub
+//   #event:<eventId>?tab=orders
+//   #demo , #notifications , #analytics
+function __parseHash(){
+  const raw = (location.hash||"").replace(/^#/, "").trim();
+  if(!raw) return { route: null };
+  const [path, qs=""] = raw.split("?");
+  const params = new URLSearchParams(qs);
+  if(path.startsWith("event:")){
+    return { route:"event", eventId: path.slice(6), tab: params.get("tab")||null };
+  }
+  if(path==="hub"||path==="workspace"||path==="notifications"||path==="analytics"||path==="demo"){
+    return { route:path, tab: params.get("tab")||null };
+  }
+  return { route: null };
+}
+function __setHash(route){
+  // Avoid loops while handling hashchange
+  if(state.__hashLock) return;
+  let h = "";
+  if(route==="event" && state.activeEventId){
+    h = `event:${state.activeEventId}`;
+    if(state.activeTab) h += `?tab=${encodeURIComponent(state.activeTab)}`;
+  }else if(route){
+    h = route;
+  }
+  const next = "#"+h;
+  if(location.hash !== next) {
+    state.__hashLock = true;
+    location.hash = h;
+    setTimeout(()=>{ state.__hashLock = false; }, 0);
+  }
+}
+function __applyHash(){
+  const h = __parseHash();
+  if(!h.route) return;
+  if(h.route==="event" && h.eventId){
+    state.activeEventId = h.eventId;
+    if(h.tab) state.activeTab = h.tab;
+    setRoute("event", { noHash:true });
+    // If event id isn't loaded yet, renderAll() will handle once data is ready.
+  }else{
+    if(h.tab) state.activeTab = h.tab;
+    setRoute(h.route, { noHash:true });
+  }
+}
+
+function setRoute(route, opts={
+  if(!opts.noHash) __setHash(route);
+}){
   state.route = route;
   // sidebar active
   $$(".navItem").forEach(x=>x.classList.toggle("active", x.dataset.route===route));
@@ -5371,7 +5455,7 @@ function wireDashboardUI(){
     if(!e.target.closest(".menu")) $("#menuPanel").classList.remove("open");
   });
 
-  on("#btnLogout","click", signOut);
+  on("#btnLogout","click", appSignOut);
   on("#btnResetDemo","click", ()=>{
     if(isReadOnly()){
       toast("Read-only mode","Switch to Owner to reset demo data.");
