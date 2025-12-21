@@ -760,12 +760,15 @@
     // Your backend should mint short-lived QR tokens (30s) for ultra-secure gate validation.
     // This client calls QR_TOKEN_ENDPOINT (Cloud Function / Cloud Run) using the user's Firebase ID token.
 
-    const firebaseConfig = { /* PASTE YOUR FIREBASE CONFIG HERE */ };
-
-    // Change this to your production endpoint that returns: { token: string, expiresAt: number (ms), gatePayload?: object }
-    // - It must verify the Firebase ID token (Authorization: Bearer <idToken>)
-    // - It must also verify the ticket belongs to the user and is active
-    // - It must return a short-lived token that ushers validate server-side
+    const firebaseConfig = {
+  apiKey: "AIzaSyA80bAAGPuyscnTVS-zwrxE9Jp3tPiS1gM",
+  authDomain: "events-339ce.firebaseapp.com",
+  databaseURL: "https://events-339ce-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "events-339ce",
+  storageBucket: "events-339ce.firebasestorage.app",
+  messagingSenderId: "175601544315",
+  appId: "1:175601544315:web:00c94b4affa972b3a286de"
+};
     const QR_TOKEN_ENDPOINT = ""; // e.g. "https://<region>-<project>.cloudfunctions.net/mintTicketToken"
 
     // Support URL (optional)
