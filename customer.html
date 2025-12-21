@@ -2887,9 +2887,9 @@ async function appSignOut(){
   state.route = "hub";
   state.activeTab = "overview";
   window.__demoMode = false;
-  $("#dash").classList.add("hidden");
-  $("#auth").classList.remove("hidden");
-  $("#menuPanel").classList.remove("open");
+  document.getElementById("dash")?.classList.add("hidden");
+  document.getElementById("auth")?.classList.remove("hidden");
+  document.getElementById("menuPanel")?.classList.remove("open");
   toast("Signed out", "You’re now signed out of the dashboard.");
 }
 
@@ -2901,9 +2901,9 @@ function signOut(){
 
 function setAuthTab(tab){
   $$(".tabBtn").forEach(b=>b.classList.toggle("active", b.dataset.authTab===tab));
-  $("#auth-signin").classList.toggle("hidden", tab!=="signin");
-  $("#auth-signup").classList.toggle("hidden", tab!=="signup");
-  $("#auth-forgot").classList.toggle("hidden", tab!=="forgot");
+  document.getElementById("auth-signin")?.classList.toggle("hidden", tab!=="signin");
+  document.getElementById("auth-signup")?.classList.toggle("hidden", tab!=="signup");
+  document.getElementById("auth-forgot")?.classList.toggle("hidden", tab!=="forgot");
 }
 
 function authInit(){
@@ -3057,17 +3057,17 @@ function openModal({title, desc, bodyHtml, footButtons=[]}){
     btn.addEventListener("click", b.onClick || closeModal);
     foot.appendChild(btn);
   }
-  $("#modalOverlay").classList.add("open");
+  document.getElementById("modalOverlay")?.classList.add("open");
 }
-function closeModal(){ $("#modalOverlay").classList.remove("open"); }
+function closeModal(){ document.getElementById("modalOverlay")?.classList.remove("open"); }
 
 function openDrawer(title, sub, bodyHtml){
   $("#drawerTitle").textContent = title || "Details";
   $("#drawerSub").textContent = sub || "";
   $("#drawerBody").innerHTML = bodyHtml || "";
-  $("#drawerOverlay").classList.add("open");
+  document.getElementById("drawerOverlay")?.classList.add("open");
 }
-function closeDrawer(){ $("#drawerOverlay").classList.remove("open"); }
+function closeDrawer(){ document.getElementById("drawerOverlay")?.classList.remove("open"); }
 
 
 
@@ -3153,12 +3153,12 @@ function setRoute(route, opts={}){
   // sidebar active
   $$(".navItem").forEach(x=>x.classList.toggle("active", x.dataset.route===route));
   // pages
-  $("#page-hub").classList.toggle("hidden", route!=="hub");
-  $("#page-workspace").classList.toggle("hidden", route!=="workspace");
-  $("#page-notifications").classList.toggle("hidden", route!=="notifications");
-  $("#page-analytics").classList.toggle("hidden", route!=="analytics");
-  $("#page-demo").classList.toggle("hidden", route!=="demo");
-  $("#page-event").classList.toggle("hidden", route!=="event");
+  document.getElementById("page-hub")?.classList.toggle("hidden", route!=="hub");
+  document.getElementById("page-workspace")?.classList.toggle("hidden", route!=="workspace");
+  document.getElementById("page-notifications")?.classList.toggle("hidden", route!=="notifications");
+  document.getElementById("page-analytics")?.classList.toggle("hidden", route!=="analytics");
+  document.getElementById("page-demo")?.classList.toggle("hidden", route!=="demo");
+  document.getElementById("page-event")?.classList.toggle("hidden", route!=="event");
 
   $("#sideSubtitle").textContent =
     route==="hub" ? "Events Hub" :
@@ -5422,7 +5422,7 @@ function duplicateEvent(eventId){
 function wireDashboardUI(){
   // Sidebar
   on("#btnToggleSide","click", ()=>{
-    $("#sidebar").classList.toggle("collapsed");
+    document.getElementById("sidebar")?.classList.toggle("collapsed");
   });
 
   // nav
@@ -5470,10 +5470,10 @@ function wireDashboardUI(){
 
   // menu
   on("#avatarBtn","click", ()=>{
-    $("#menuPanel").classList.toggle("open");
+    document.getElementById("menuPanel")?.classList.toggle("open");
   });
   document.addEventListener("click", (e)=>{
-    if(!e.target.closest(".menu")) $("#menuPanel").classList.remove("open");
+    if(!e.target.closest(".menu")) document.getElementById("menuPanel")?.classList.remove("open");
   });
 
   on("#btnLogout","click", appSignOut);
@@ -5529,7 +5529,7 @@ function wireDashboardUI(){
   on("#btnDemoSim","click", ()=>{
     if(!state.demoMode){ toast("Not in demo","Load demo first."); return; }
     state.simulateOn = !state.simulateOn;
-    $("#btnDemoSim").classList.toggle("good", state.simulateOn);
+    document.getElementById("btnDemoSim")?.classList.toggle("good", state.simulateOn);
     toast("Simulation", state.simulateOn ? "Demo simulation started." : "Simulation stopped.");
   });
 
@@ -5813,9 +5813,9 @@ function renderDemoPage(){
 
 
 async function bootDashboard(){
-  const a = $('#auth'); if(a) a.classList.add('hidden');
-  const d = $('#dash'); if(d) d.classList.remove('hidden');
-
+  // Defensive: the DOM might not contain these sections in some deployments
+  document.getElementById("auth")?.classList.add("hidden");
+  document.getElementById("dash")?.classList.remove("hidden");
   // sync user labels
   const name = state.user?.name || "Owner";
   const email = state.user?.email || "—";
@@ -5854,12 +5854,12 @@ async function bootDashboard(){
 function start(){
   authInit();
   const ok = loadAuth();
-  const a = $('#auth'); if(a) a.classList.toggle('hidden', ok);
-  const d = $('#dash'); if(d) d.classList.toggle('hidden', !ok);
+  // Defensive: if sections are missing (or replaced by another index shell), avoid crashing.
+  document.getElementById("auth")?.classList.toggle("hidden", ok);
+  document.getElementById("dash")?.classList.toggle("hidden", !ok);
   if(ok) bootDashboard();
   else setAuthTab("signin");
 }
-
 /* ---------- Misc buttons for hub/workspace ---------- */
 
 $("#btnCreateEvent2")?.addEventListener?.("click", ()=>{});
