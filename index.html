@@ -2225,6 +2225,50 @@
    Luma Tickets — Owner Dashboard (Single-file demo app)
    ========================= */
 
+/* =========================
+   Firebase (Auth + Firestore + Storage)
+   - Paste-ready for your project
+   ========================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyA80bAAGPuyscnTVS-zwrxE9Jp3tPiS1gM",
+  authDomain: "events-339ce.firebaseapp.com",
+  databaseURL: "https://events-339ce-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "events-339ce",
+  storageBucket: "events-339ce.firebasestorage.app",
+  messagingSenderId: "175601544315",
+  appId: "1:175601544315:web:00c94b4affa972b3a286de"
+};
+
+// Imports
+import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged,
+  signInWithEmailAndPassword, sendPasswordResetEmail,
+  signOut as fbSignOut,
+  createUserWithEmailAndPassword, updateProfile
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, addDoc,
+  collection, query, where, getDocs, orderBy, limit,
+  serverTimestamp, Timestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import {
+  getStorage, ref as sRef, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+
+// App init
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// Canonical doc path for this single-file app
+function ownerDocRef(uid){
+  return doc(db, "owners", uid, "apps", "lumaTicketsOwnerDashboard");
+}
+
+
+
 const $ = (q, el=document)=>el.querySelector(q);
 const $$ = (q, el=document)=>Array.from(el.querySelectorAll(q));
 const fmtEGP = n => `EGP ${Number(n||0).toLocaleString('en-US')}`;
@@ -2553,20 +2597,60 @@ function seedInitialLogs(ev){
 
 /* ---------- Persistence ---------- */
 
-function loadData(){
-  try{
-    const raw = localStorage.getItem(STORAGE.dataKey);
-    if(!raw) return defaultDemoData();
-    const parsed = JSON.parse(raw);
-    if(!parsed || !Array.isArray(parsed.events)) return defaultDemoData();
-    return parsed;
-  }catch(e){
-    return defaultDemoData();
+
+async function loadData(){
+  // Demo mode: local only
+  if(window.__demoMode) return defaultDemoData();
+
+  const uid = auth.currentUser?.uid;
+  const cached = localStorage.getItem(STORAGE.dataKey);
+  if(uid){
+    const ref = ownerDocRef(uid);
+    const snap = await getDoc(ref);
+    if(snap.exists()){
+      const d = snap.data()?.data;
+      if(d){
+        // cache for faster loads / offline
+        localStorage.setItem(STORAGE.dataKey, JSON.stringify(d));
+        return d;
+      }
+    }
+    // First time: seed
+    const seed = cached ? safeParseJSON(cached, defaultDemoData()) : defaultDemoData();
+    await setDoc(ref, { data: seed, updatedAt: serverTimestamp() }, { merge: true });
+    localStorage.setItem(STORAGE.dataKey, JSON.stringify(seed));
+    return seed;
   }
+
+  // Not signed in: fallback to localStorage only
+  if(cached) return safeParseJSON(cached, defaultDemoData());
+  const seed = defaultDemoData();
+  localStorage.setItem(STORAGE.dataKey, JSON.stringify(seed));
+  return seed;
 }
+
+let __saveTimer = null;
 function saveData(){
-  localStorage.setItem(STORAGE.dataKey, JSON.stringify(data));
+  // Debounced save (keeps UI snappy)
+  clearTimeout(__saveTimer);
+  __saveTimer = setTimeout(async ()=>{
+    try{
+      const payload = JSON.stringify(data);
+      localStorage.setItem(STORAGE.dataKey, payload);
+
+      if(!window.__demoMode){
+        const uid = auth.currentUser?.uid;
+        if(uid){
+          await setDoc(ownerDocRef(uid), { data, updatedAt: serverTimestamp() }, { merge: true });
+        }
+      }
+    }catch(err){
+      console.error(err);
+      toast("Save failed", "Could not sync changes right now. Your browser still cached your data.");
+    }
+  }, 250);
 }
+
 function resetDemoData(){
   data = defaultDemoData();
   saveData();
@@ -2596,83 +2680,134 @@ function saveAuth(){
   localStorage.setItem(STORAGE.userKey, JSON.stringify(state.user));
   localStorage.setItem(STORAGE.authKey, JSON.stringify({ email: state.user.email, viewAs: state.viewAs }));
 }
-function signOut(){
+
+async function appSignOut(){
+  try{
+    if(!window.__demoMode) await fbSignOut(auth);
+  }catch(_e){}
   localStorage.removeItem(STORAGE.authKey);
   state.user = null;
   state.activeEventId = null;
   state.route = "hub";
   state.activeTab = "overview";
+  window.__demoMode = false;
   $("#dash").classList.add("hidden");
   $("#auth").classList.remove("hidden");
   $("#menuPanel").classList.remove("open");
   toast("Signed out", "You’re now signed out of the dashboard.");
 }
+
 function setAuthTab(tab){
   $$(".tabBtn").forEach(b=>b.classList.toggle("active", b.dataset.authTab===tab));
   $("#auth-signin").classList.toggle("hidden", tab!=="signin");
   $("#auth-signup").classList.toggle("hidden", tab!=="signup");
   $("#auth-forgot").classList.toggle("hidden", tab!=="forgot");
 }
+
 function authInit(){
   $("#year").textContent = new Date().getFullYear();
   $$(".tabBtn").forEach(b=>b.addEventListener("click", ()=> setAuthTab(b.dataset.authTab)));
-  $("#go-signin").addEventListener("click", (e)=>{e.preventDefault(); setAuthTab("signin");});
-  $("#go-signin2").addEventListener("click", (e)=>{e.preventDefault(); setAuthTab("signin");});
+  $("#go-signin")?.addEventListener("click", (e)=>{ e.preventDefault(); setAuthTab("signin"); });
+  $("#go-signin2")?.addEventListener("click", (e)=>{ e.preventDefault(); setAuthTab("signin"); });
 
-  $("#form-signup").addEventListener("submit", (e)=>{
+  // Signup
+  $("#form-signup")?.addEventListener("submit", async (e)=>{
     e.preventDefault();
     const name = $("#signup-name").value.trim();
     const email = $("#signup-email").value.trim().toLowerCase();
     const pass = $("#signup-pass").value;
 
-    const users = JSON.parse(localStorage.getItem("luma_users")||"[]");
-    if(users.some(u=>u.email===email)){
-      toast("Account already exists", "Please sign in with this email.");
-      setAuthTab("signin");
-      $("#signin-email").value = email;
+    if(!email || !pass){
+      toast("Missing info", "Please enter your email and password.");
       return;
     }
-    users.push({name,email,pass});
-    localStorage.setItem("luma_users", JSON.stringify(users));
-    toast("Account created", "You can sign in now.");
-    setAuthTab("signin");
-    $("#signin-email").value = email;
+    try{
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      if(name) await updateProfile(cred.user, { displayName: name });
+      state.user = { name: cred.user.displayName || name || "Owner", email: cred.user.email };
+      state.viewAs = "Owner";
+      toast("Account created", "Welcome! Loading your Events Hub...");
+      await bootDashboard();
+    }catch(err){
+      toast("Signup failed", niceAuthError(err));
+    }
   });
 
-  $("#form-signin").addEventListener("submit", (e)=>{
+  // Signin
+  $("#form-signin")?.addEventListener("submit", async (e)=>{
     e.preventDefault();
     const email = $("#signin-email").value.trim().toLowerCase();
     const pass = $("#signin-pass").value;
 
-    const users = JSON.parse(localStorage.getItem("luma_users")||"[]");
-    const u = users.find(x=>x.email===email && x.pass===pass);
-    if(!u){
-      toast("Sign in failed", "Check your email and password.");
+    if(!email || !pass){
+      toast("Missing info", "Please enter your email and password.");
       return;
     }
-    state.user = { name: u.name, email: u.email };
-    state.viewAs = "Owner";
-    saveAuth();
-    bootDashboard();
+    try{
+      const cred = await signInWithEmailAndPassword(auth, email, pass);
+      state.user = { name: cred.user.displayName || "Owner", email: cred.user.email };
+      state.viewAs = "Owner";
+      toast("Signed in", "Loading your Events Hub...");
+      await bootDashboard();
+    }catch(err){
+      toast("Sign in failed", niceAuthError(err));
+    }
   });
 
-  $("#btn-quick-demo").addEventListener("click", ()=>{
-    state.user = { name:"Luma Owner", email:"owner@luma.tickets" };
-    state.viewAs = "Owner";
-    saveAuth();
-    bootDashboard();
-  });
-
-  $("#form-forgot").addEventListener("submit", (e)=>{
+  // Forgot password
+  $("#form-forgot")?.addEventListener("submit", async (e)=>{
     e.preventDefault();
     const email = $("#forgot-email").value.trim().toLowerCase();
-    toast("Reset link sent", `If an account exists for ${email}, a reset link will arrive shortly.`);
-    setAuthTab("signin");
-    $("#signin-email").value = email;
+    if(!email){
+      toast("Missing email", "Type your email first.");
+      return;
+    }
+    try{
+      await sendPasswordResetEmail(auth, email);
+      toast("Reset link sent", `Check your inbox for ${email}.`);
+      setAuthTab("signin");
+      $("#signin-email").value = email;
+    }catch(err){
+      toast("Reset failed", niceAuthError(err));
+    }
+  });
+
+  // Demo button (still available)
+  $("#btn-quick-demo")?.addEventListener("click", async ()=>{
+    // Uses firebase anonymous? Keep local-only demo without auth:
+    state.user = { name:"Luma Owner", email:"owner@luma.tickets" };
+    state.viewAs = "Owner";
+    // Load local demo data only
+    window.__demoMode = true;
+    await bootDashboard();
+  });
+
+  // Firebase auth session restore
+  onAuthStateChanged(auth, async (user)=>{
+    if(user){
+      state.user = { name: user.displayName || "Owner", email: user.email || "" };
+      state.viewAs = "Owner";
+      // If auth screen is visible, auto-enter dashboard
+      if(!window.__demoMode) await bootDashboard();
+    }
   });
 }
 
+
 /* ---------- UI helpers ---------- */
+
+function niceAuthError(err){
+  const code = (err && err.code) ? String(err.code) : "";
+  if(code.includes("auth/invalid-credential") || code.includes("auth/wrong-password")) return "Wrong email or password.";
+  if(code.includes("auth/user-not-found")) return "No account found for this email.";
+  if(code.includes("auth/email-already-in-use")) return "This email is already registered.";
+  if(code.includes("auth/weak-password")) return "Password is too weak (min 6 characters).";
+  if(code.includes("auth/invalid-email")) return "Invalid email address.";
+  if(code.includes("auth/network-request-failed")) return "Network error. Check your internet connection.";
+  return (err && err.message) ? err.message : "Something went wrong. Please try again.";
+}
+
+
 
 function toast(title, msg){
   const el = document.createElement("div");
@@ -5230,30 +5365,31 @@ function simulateTick(){
 
 /* ---------- Boot ---------- */
 
-function bootDashboard(){
+
+async function bootDashboard(){
   $("#auth").classList.add("hidden");
   $("#dash").classList.remove("hidden");
 
-  // set identity
-  renderTopIdentity();
+  // sync user labels
+  $("#userName").textContent = state.user?.name || "Owner";
+  $("#userEmail").textContent = state.user?.email || "";
 
-  // default route
-  setRoute("hub");
-
-  // render
-  renderAll();
-
-  // set up copy/filters etc once
-  if(!window.__wired){
-    wireDashboardUI();
-    window.__wired = true;
+  // Load data (Firestore if signed-in; local fallback)
+  try{
+    data = await loadData();
+  }catch(err){
+    console.error(err);
+    toast("Load failed", "Could not load your data. Using local fallback.");
+    data = defaultDemoData();
   }
 
-  // start interval for live simulation
-  if(!window.__simTimer){
-    window.__simTimer = setInterval(simulateTick, 1500);
-  }
+  // Route: hub
+  state.route = "hub";
+  state.activeEventId = null;
+  state.activeTab = "overview";
+  render();
 }
+
 
 function start(){
   authInit();
@@ -5413,4 +5549,3 @@ start();
 
 </body>
 </html>
-```
