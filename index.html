@@ -5860,22 +5860,29 @@ async function onOverviewStatusChange(e){
   addActivity(ev, "Status Changed", `Manually changed from ${oldStatus} to ${newStatus}`, "info");
   saveData();
 
- // Persist (optional)
-try{
-  if(window.__firebaseReady && !window.__demoMode && db){
-    const eventRef = doc(db, "events", ev.id);
-    await updateDoc(eventRef, { status: newStatus });
+  // Persist (optional)  ✅ FIX: use setDoc (creates doc if missing) + keep public event in sync
+  try{
+    if(window.__firebaseReady && !window.__demoMode){
+      const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+      const eventRef = doc(window.db, "events", ev.id);
+
+      // Create/merge so it won't fail if doc doesn't exist
+      await setDoc(eventRef, { status: newStatus }, { merge: true });
+    }
+
+    // Also publish/sync the event payload used by customer.html
+    try{ await syncEventToPublic(ev); }catch(err){ console.error("syncEventToPublic failed", err); }
+
+    toast("Status Updated", `Event is now ${newStatus}`);
+    renderEventWorkspace();
+    renderHub();
+  }catch(err){
+    console.error("Update failed", err);
+    toast("Error", "Failed to update status.");
+    ev.status = oldStatus;
+    sel.value = oldStatus;
+    saveData();
   }
-  toast("Status Updated", `Event is now ${newStatus}`);
-  renderEventWorkspace();
-  renderHub();
-}catch(err){
-  console.error("Update failed", err);
-  toast("Error", "Failed to update status.");
-  ev.status = oldStatus;
-  sel.value = oldStatus;
-  saveData();
-}
 }
 
 async function copyText(text, okMsg){
