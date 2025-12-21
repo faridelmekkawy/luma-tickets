@@ -3147,9 +3147,8 @@ function __applyHash(){
   }
 }
 
-function setRoute(route, opts={
+function setRoute(route, opts={}){
   if(!opts.noHash) __setHash(route);
-}){
   state.route = route;
   // sidebar active
   $$(".navItem").forEach(x=>x.classList.toggle("active", x.dataset.route===route));
@@ -5678,12 +5677,6 @@ function wireDashboardUI(){
     renderAttentionPage();
     toast("Feed cleared","Attention feed cleared.");
   });
-
-  // reset attention feed
-  on("#btnClearAttention","click", ()=>{ state.attentionFeed = []; renderAttentionPage(); });
-
-  // copying
-  on("#btnClearAttention","click", ()=>{});
 
   // hub to workspace route actions
   // (handled per card)
