@@ -4,1866 +4,1506 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Luma Tickets — Customer</title>
-  <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg0:#0b1020;
-      --bg1:#0b0f1a;
+      --bg:#0b1020;
       --panel:rgba(255,255,255,.06);
       --panel2:rgba(255,255,255,.08);
-      --stroke:rgba(255,255,255,.10);
-      --stroke2:rgba(255,255,255,.14);
       --ink:#f8fafc;
-      --muted:rgba(248,250,252,.70);
-      --muted2:rgba(248,250,252,.55);
-      --brand:#7c3aed;
-      --brand2:#22c55e;
-      --warn:#f59e0b;
+      --muted:rgba(248,250,252,.68);
+      --border:rgba(255,255,255,.12);
+      --accent:#22c55e;
       --danger:#ef4444;
-      --info:#60a5fa;
+      --warn:#f59e0b;
       --radius:18px;
-      --radius2:14px;
-      --shadow:0 18px 55px rgba(0,0,0,.45);
-      --shadow2:0 10px 32px rgba(0,0,0,.35);
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --shadow:0 18px 50px rgba(0,0,0,.35);
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;
-      font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      color:var(--ink);
+      font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       background:
-        radial-gradient(1000px 700px at 18% -10%, rgba(124,58,237,.35), transparent 55%),
-        radial-gradient(900px 700px at 95% 10%, rgba(34,197,94,.20), transparent 50%),
-        radial-gradient(900px 700px at 60% 120%, rgba(96,165,250,.14), transparent 55%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
-      overflow:auto;
+        radial-gradient(1200px 600px at 10% 0%, rgba(124,58,237,.18), transparent 55%),
+        radial-gradient(900px 500px at 90% 10%, rgba(34,197,94,.16), transparent 50%),
+        radial-gradient(900px 900px at 50% 120%, rgba(59,130,246,.10), transparent 50%),
+        var(--bg);
+      color:var(--ink);
     }
-    a{color:inherit}
-    button,input,select,textarea{font-family:inherit}
-    .hidden{display:none !important}
-    .sr{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
-
-    /* SVG icon sprites (simple, clean, not emojis) */
-    svg.sr{width:0;height:0}
-    .icBtn svg, .ic svg {display:block}
-
-    /* App shell */
+    a{color:inherit;text-decoration:none}
+    button,input,select{font:inherit}
     .app{
       min-height:100%;
-      display:flex;
-      flex-direction:column;
+      display:grid;
+      grid-template-rows:auto 1fr auto;
+    }
+    header{
+      position:sticky; top:0; z-index:50;
+      background:rgba(11,16,32,.70);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--border);
     }
     .topbar{
-      position:sticky;top:0;z-index:30;
-      height:64px;
+      max-width:1100px;
+      margin:0 auto;
+      padding:14px 16px;
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:12px;
-      padding:10px 14px;
-      border-bottom:1px solid var(--stroke);
-      background: rgba(10,14,26,.45);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
     }
-    .brandRow{display:flex;align-items:center;gap:10px;min-width:0}
-    .logoMark{
-      width:38px;height:38px;border-radius:14px;
-      background: radial-gradient(16px 16px at 30% 30%, rgba(255,255,255,.18), transparent 55%),
-                  linear-gradient(135deg, rgba(124,58,237,.95), rgba(34,197,94,.75));
-      box-shadow: 0 12px 30px rgba(0,0,0,.35);
-      border:1px solid rgba(255,255,255,.12);
-      display:grid;place-items:center;
-      flex:0 0 auto;
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight:800; letter-spacing:.2px;
     }
-    .brandText{display:flex;flex-direction:column;line-height:1.05;min-width:0}
-    .brandText b{font-size:14px;letter-spacing:.2px}
-    .brandText span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .topActions{display:flex;align-items:center;gap:10px}
-    .chip{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:7px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.04);
-      font-size:12px;color:var(--muted);
+    .logoDot{
+      width:14px;height:14px;border-radius:999px;
+      background:linear-gradient(135deg, #22c55e, #7c3aed);
+      box-shadow:0 10px 30px rgba(34,197,94,.25);
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      border-radius:999px;
+      color:var(--muted);
+      font-size:13px;
       white-space:nowrap;
     }
-    .chip.good{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:rgba(248,250,252,.90)}
-    .chip.info{border-color:rgba(96,165,250,.35);background:rgba(96,165,250,.10);color:rgba(248,250,252,.90)}
-    .chip.warn{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.10);color:rgba(248,250,252,.90)}
-    .chip.danger{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:rgba(248,250,252,.90)}
-
-    .btn{
-      display:inline-flex;align-items:center;justify-content:center;gap:10px;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid var(--stroke);
-      background:rgba(255,255,255,.05);
-      color:var(--ink);
-      cursor:pointer;
-      user-select:none;
-      transition:.12s ease;
-      box-shadow:0 10px 24px rgba(0,0,0,.18);
-      font-weight:700;
-      font-size:13px;
-    }
-    .btn:hover{background:rgba(255,255,255,.07);border-color:var(--stroke2)}
-    .btn:active{transform:translateY(1px)}
-    .btn.sm{padding:8px 10px;border-radius:12px;font-size:12px;box-shadow:none}
-    .btn.ghost{background:transparent;box-shadow:none}
-    .btn.primary{border-color:rgba(124,58,237,.5);background:linear-gradient(135deg, rgba(124,58,237,.22), rgba(255,255,255,.04))}
-    .btn.good{border-color:rgba(34,197,94,.45);background:linear-gradient(135deg, rgba(34,197,94,.18), rgba(255,255,255,.04))}
-    .btn.danger{border-color:rgba(239,68,68,.45);background:linear-gradient(135deg, rgba(239,68,68,.14), rgba(255,255,255,.04))}
-    .btn[disabled]{opacity:.55;cursor:not-allowed;transform:none!important}
-
-    .searchWrap{
-      flex:1;
-      max-width: 720px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      padding:10px 12px;
-      border-radius:999px;
-      border:1px solid var(--stroke);
-      background:rgba(255,255,255,.05);
-      min-width: 180px;
-    }
-    .searchWrap input{
-      border:0;outline:0;background:transparent;color:var(--ink);
+    .pill b{color:var(--ink); font-weight:700}
+    main{
+      max-width:1100px;
+      margin:0 auto;
+      padding:18px 16px 28px;
       width:100%;
-      font-size:13px;
     }
-    .content{
-      width:min(1160px, 100%);
-      margin:0 auto;
-      padding:14px;
-      flex:1;
-    }
-    .footer{
-      width:min(1160px, 100%);
-      margin:0 auto;
-      padding:12px 14px 18px;
-      color:var(--muted2);
-      font-size:12px;
-      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap
-    }
-    .powered{display:flex;align-items:center;gap:8px;opacity:.95}
-    .dot{width:8px;height:8px;border-radius:999px;background:rgba(34,197,94,.85);box-shadow:0 0 0 4px rgba(34,197,94,.14)}
-
-    /* Auth screens */
-    .authWrap{
-      min-height:100%;
-      display:grid;
-      place-items:center;
-      padding:18px;
-    }
-    .authCard{
-      width:min(980px, 100%);
-      border-radius:24px;
-      border:1px solid rgba(255,255,255,.10);
+    .card{
+      border:1px solid var(--border);
       background:rgba(255,255,255,.05);
-      box-shadow:var(--shadow);
+      border-radius:var(--radius);
+      box-shadow: var(--shadow);
       overflow:hidden;
-      display:grid;
-      grid-template-columns: 1.05fr .95fr;
-      min-height: 560px;
     }
-    .authLeft{
-      padding:26px 24px;
-      border-right:1px solid rgba(255,255,255,.08);
-      background:
-        radial-gradient(900px 520px at 20% 10%, rgba(124,58,237,.30), transparent 60%),
-        radial-gradient(900px 520px at 95% 35%, rgba(34,197,94,.16), transparent 55%),
-        rgba(255,255,255,.02);
-      display:flex;
-      flex-direction:column;
+    .grid{
+      display:grid;
       gap:14px;
     }
-    .authRight{padding:26px 24px;display:flex;flex-direction:column;gap:14px}
-    .hero{display:flex;flex-direction:column;gap:10px;margin-top:6px}
-    .hero h1{margin:0;font-size:28px;letter-spacing:.2px}
-    .hero p{margin:0;color:var(--muted);font-size:13px;max-width: 46ch;line-height:1.5}
-    .featureList{margin-top:10px;display:flex;flex-direction:column;gap:10px;}
-    .feat{
-      display:flex;gap:12px;align-items:flex-start;
-      padding:12px 12px;border-radius:18px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(0,0,0,.10);
+    .authWrap{
+      max-width:420px;
+      margin:28px auto 0;
     }
-    .feat .ic{
-      width:42px;height:42px;border-radius:14px;
-      display:grid;place-items:center;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.05);
-      flex:0 0 auto;
+    .authHeader{
+      padding:18px 18px 10px;
     }
-    .feat b{font-size:13px}
-    .feat p{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.45}
-    .authTabs{display:flex;gap:8px;flex-wrap:wrap}
-    .tabBtn{
-      padding:9px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
+    .authHeader h1{
+      margin:0;
+      font-size:22px;
+      letter-spacing:.2px;
+    }
+    .authHeader p{
+      margin:8px 0 0;
       color:var(--muted);
-      cursor:pointer;
-      font-weight:700;font-size:12px;
-      user-select:none;
+      line-height:1.4;
+      font-size:13.5px;
     }
-    .tabBtn.active{
-      background:linear-gradient(135deg, rgba(124,58,237,.24), rgba(255,255,255,.03));
-      border-color:rgba(124,58,237,.35);
+    .section{
+      padding:18px;
+    }
+    .row{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+    .field{display:flex; flex-direction:column; gap:6px; width:100%}
+    .label{font-size:12px; color:var(--muted)}
+    .input, select.input{
+      width:100%;
+      background:rgba(11,16,32,.55);
+      border:1px solid var(--border);
       color:var(--ink);
-    }
-    .authForm{margin-top:4px;display:flex;flex-direction:column;gap:10px}
-    .field{display:flex;flex-direction:column;gap:8px}
-    .field label{font-size:12px;color:var(--muted)}
-    .input{
-      display:flex;align-items:center;gap:10px;
       padding:12px 12px;
       border-radius:14px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.04);
+      outline:none;
     }
-    .input input, .input select, .input textarea{
-      width:100%;
-      border:0;outline:0;background:transparent;color:var(--ink);
-      font-size:13px;
+    .input:focus, select.input:focus{border-color:rgba(34,197,94,.45); box-shadow:0 0 0 3px rgba(34,197,94,.12)}
+    .btn{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.08);
+      color:var(--ink);
+      padding:11px 12px;
+      border-radius:14px;
+      cursor:pointer;
+      transition:.15s transform, .15s background, .15s border-color;
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      font-weight:700;
+    }
+    .btn:hover{transform:translateY(-1px); background:rgba(255,255,255,.10)}
+    .btn:active{transform:translateY(0px)}
+    .btn.primary{
+      border-color:rgba(34,197,94,.5);
+      background:linear-gradient(135deg, rgba(34,197,94,.95), rgba(34,197,94,.75));
+      color:#07110b;
+    }
+    .btn.danger{
+      border-color:rgba(239,68,68,.45);
+      background:linear-gradient(135deg, rgba(239,68,68,.95), rgba(239,68,68,.75));
+      color:#1a0707;
+    }
+    .btn.ghost{
+      background:transparent;
     }
     .hint{
-      padding:12px 12px;border-radius:18px;
-      border:1px solid rgba(96,165,250,.22);
-      background:rgba(96,165,250,.08);
-      color:rgba(248,250,252,.92);
-      font-size:12px;line-height:1.45;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.4;
     }
-    @media(max-width:980px){
-      .authCard{grid-template-columns:1fr}
-      .authLeft{border-right:0;border-bottom:1px solid rgba(255,255,255,.08)}
+    .link{
+      color:rgba(34,197,94,.95);
+      font-weight:700;
+      cursor:pointer;
     }
+    .divider{
+      height:1px; background:var(--border);
+      margin:14px 0;
+    }
+
+    /* Marketplace */
+    .filters{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      margin:0 0 14px;
+    }
+    .chipRow{display:flex; gap:10px; flex-wrap:wrap}
+    .chip{
+      border:1px solid var(--border);
+      padding:8px 10px;
+      border-radius:999px;
+      cursor:pointer;
+      background:rgba(255,255,255,.05);
+      color:var(--muted);
+      font-size:13px;
+      user-select:none;
+    }
+    .chip.on{border-color:rgba(34,197,94,.5); background:rgba(34,197,94,.14); color:var(--ink)}
+    .eventsGrid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:14px;
+    }
+    @media (max-width: 960px){
+      .eventsGrid{grid-template-columns: repeat(2, minmax(0, 1fr));}
+    }
+    @media (max-width: 620px){
+      .eventsGrid{grid-template-columns: 1fr;}
+    }
+    .evCard{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow: var(--shadow);
+      display:flex;
+      flex-direction:column;
+      min-height: 320px;
+    }
+    .evBanner{
+      height:130px;
+      background:linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
+      border-bottom:1px solid var(--border);
+      position:relative;
+    }
+    .evBanner img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .evLogo{
+      position:absolute;
+      left:14px;
+      bottom:-18px;
+      width:46px;
+      height:46px;
+      border-radius:14px;
+      background:rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.22);
+      overflow:hidden;
+      display:grid;
+      place-items:center;
+      box-shadow:0 18px 50px rgba(0,0,0,.35);
+    }
+    .evLogo img{width:100%;height:100%;object-fit:cover}
+    .evBody{padding:28px 14px 14px; display:flex; flex-direction:column; gap:10px; flex:1}
+    .evTitle{font-weight:800; font-size:16px; line-height:1.25}
+    .evMeta{color:var(--muted); font-size:13px; line-height:1.35}
+    .evBadges{display:flex; gap:8px; flex-wrap:wrap; margin-top:2px}
+    .badge{
+      font-size:12px;
+      padding:6px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      color:var(--muted);
+      display:inline-flex; gap:6px; align-items:center;
+    }
+    .badge.green{border-color:rgba(34,197,94,.45); background:rgba(34,197,94,.12); color:rgba(248,250,252,.92)}
+    .badge.warn{border-color:rgba(245,158,11,.50); background:rgba(245,158,11,.12); color:rgba(248,250,252,.92)}
+    .evActions{padding:0 14px 14px; display:flex; gap:10px}
+    .evActions .btn{flex:1}
 
     /* Tabs */
     .tabs{
-      display:flex;gap:8px;flex-wrap:wrap;
-      padding:10px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.04);
-      border-radius:18px;
-      margin-bottom:14px;
-      position:sticky;top:64px;z-index:25;
+      position:sticky;
+      bottom:0;
+      z-index:60;
+      background:rgba(11,16,32,.75);
       backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      border-top:1px solid var(--border);
     }
-    .tabs .subTab{
-      padding:9px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background:transparent;
-      color:var(--muted);
-      font-weight:800;font-size:12px;
-      cursor:pointer;
-      user-select:none;
-      display:inline-flex;align-items:center;gap:8px;
-    }
-    .tabs .subTab.active{
-      background:linear-gradient(135deg, rgba(124,58,237,.22), rgba(255,255,255,.03));
-      border-color:rgba(124,58,237,.35);
-      color:var(--ink);
-    }
-
-    /* Home / cards */
-    .filtersRow{
-      display:flex;gap:10px;flex-wrap:wrap;align-items:center;
-      margin:12px 0 14px;
-    }
-    .seg{
-      display:flex; padding:4px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
-    }
-    .seg button{
-      border:0;background:transparent;color:var(--muted);
-      padding:8px 10px;border-radius:999px;
-      cursor:pointer;font-weight:800;font-size:12px;
-    }
-    .seg button.active{
-      background:linear-gradient(135deg, rgba(124,58,237,.22), rgba(255,255,255,.03));
-      color:var(--ink);
-      border:1px solid rgba(124,58,237,.35);
-    }
-    select, option{ background-color: rgba(11,16,32,.96); color: var(--ink); }
-    select{ border: 1px solid rgba(255,255,255,.14); }
-    option{ background-color: rgba(11,16,32,.98); }
-
-    .eventGrid{
+    .tabbar{
+      max-width:1100px;
+      margin:0 auto;
       display:grid;
       grid-template-columns: repeat(3, 1fr);
-      gap:14px;
     }
-    @media (max-width:1200px){ .eventGrid{grid-template-columns:1fr 1fr} }
-    @media (max-width:720px){
-      .eventGrid{grid-template-columns:1fr}
-      .searchWrap{display:none}
-      .tabs{top:64px}
-    }
-
-    .eventCard{
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.04);
-      border-radius:22px;
-      overflow:hidden;
-      box-shadow:0 18px 52px rgba(0,0,0,.25);
-      display:flex;
-      flex-direction:column;
-      min-height: 330px;
-    }
-    .eventBanner{
-      height:120px;
-      background:
-        radial-gradient(700px 240px at 20% 30%, rgba(124,58,237,.40), transparent 62%),
-        radial-gradient(700px 240px at 85% 10%, rgba(34,197,94,.20), transparent 58%),
-        linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
-      position:relative;
-    }
-    .eventBanner img{width:100%;height:100%;object-fit:cover;display:block}
-    .eventLogo{
-      position:absolute;left:14px;bottom:-18px;
-      width:52px;height:52px;border-radius:18px;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(15,18,28,.65);
-      display:grid;place-items:center;
-      box-shadow:0 14px 34px rgba(0,0,0,.35);
-      overflow:hidden;
-    }
-    .eventLogo img{width:100%;height:100%;object-fit:cover}
-    .eventBody{padding:14px 14px 14px;margin-top:14px;display:flex;flex-direction:column;gap:10px;flex:1}
-    .eventTitle{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-    .eventTitle b{font-size:14px}
-    .eventMeta{display:flex;flex-direction:column;gap:6px}
-    .eventMeta .row{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}
-    .eventActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
-
-    .emptyState{
-      border:1px dashed rgba(255,255,255,.18);
-      background:rgba(255,255,255,.03);
-      border-radius:22px;
-      padding:18px;
+    .tab{
+      padding:12px 10px;
+      text-align:center;
       color:var(--muted);
-      text-align:center;
+      font-weight:800;
+      cursor:pointer;
+      user-select:none;
     }
-
-    /* Details + Ticket screen */
-    .card{
-      border:1px solid var(--stroke);
-      background:rgba(255,255,255,.05);
-      border-radius:var(--radius);
-      box-shadow: 0 14px 38px rgba(0,0,0,.25);
-      overflow:hidden;
-    }
-    .cardHead{
-      padding:14px 14px 10px;
-      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-      background:rgba(255,255,255,.02);
-    }
-    .cardHead h3{margin:0;font-size:14px;letter-spacing:.2px}
-    .cardHead p{margin:6px 0 0;color:var(--muted);font-size:12px}
-    .cardBody{padding:14px}
-    .grid2{display:grid;grid-template-columns: 1.2fr .8fr; gap:14px}
-    @media(max-width:980px){ .grid2{grid-template-columns:1fr} }
-
-    .tierGrid{display:grid;grid-template-columns:1fr;gap:10px}
-    .tierRow{
-      padding:12px;border-radius:18px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
-      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-    }
-    .tierRow b{font-size:13px}
-    .tierRow small{color:var(--muted2)}
-    .tierRow .right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-    .pill{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:8px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.04);
-      color:rgba(248,250,252,.90);
-      font-size:12px;
-      white-space:nowrap;
-    }
-    .pill.soldout{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:rgba(248,250,252,.92)}
-    .pill.live{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:rgba(248,250,252,.92)}
-    .pill.upcoming{border-color:rgba(96,165,250,.35);background:rgba(96,165,250,.10);color:rgba(248,250,252,.92)}
-
-    /* Modal */
-    .modalOverlay{
-      position:fixed;inset:0;
-      background:rgba(0,0,0,.55);
-      z-index:80;
-      display:none;
-      padding:16px;
-      overflow:auto;
-    }
-    .modalOverlay.open{display:flex;align-items:center;justify-content:center}
-    .modal{
-      width:min(760px, 96vw);
-      border-radius:22px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(18,22,36,.98);
-      box-shadow:var(--shadow);
-      overflow:hidden;
-    }
-    .modalHead{
-      padding:14px 14px 10px;
-      display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
-      border-bottom:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.02);
-    }
-    .modalHead h3{margin:0;font-size:14px}
-    .modalHead p{margin:6px 0 0;font-size:12px;color:var(--muted)}
-    .modalBody{padding:14px}
-    .modalFoot{
-      padding:12px 14px;
-      border-top:1px solid rgba(255,255,255,.08);
-      display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap
-    }
-
-    /* Toast */
-    .toasts{
-      position:fixed;right:14px;bottom:14px;
-      display:flex;flex-direction:column;gap:10px;
-      z-index:120;
-      max-width:min(440px, 92vw);
-    }
-    .toast{
-      padding:12px 12px;
-      border-radius:18px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(18,22,36,.98);
-      box-shadow:0 16px 46px rgba(0,0,0,.45);
-      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
-    }
-    .toast b{font-size:12px}
-    .toast p{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.45}
-    .toast .x{border:0;background:transparent;color:var(--muted);cursor:pointer}
-    .toast .x:hover{color:var(--ink)}
-
-    /* Ticket */
-    .ticketShell{
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-    }
-    .ticketHero{
-      border-radius:22px;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
-      box-shadow:0 18px 52px rgba(0,0,0,.22);
-    }
-    .ticketBanner{height:160px;background:rgba(255,255,255,.06);position:relative}
-    .ticketBanner img{width:100%;height:100%;object-fit:cover;display:block}
-    .ticketHeroBody{padding:14px}
-    .ticketHeroBody h2{margin:0;font-size:18px}
-    .ticketHeroBody .meta{margin-top:6px;color:var(--muted);font-size:12px;display:flex;gap:10px;flex-wrap:wrap}
-
-    .qrWrap{
-      display:grid;
-      place-items:center;
-      padding:14px;
-      border-radius:22px;
-      border:1px dashed rgba(255,255,255,.20);
-      background:rgba(0,0,0,.16);
-      gap:10px;
-      position:relative;
-    }
-    .qrBox{
-      width:210px;height:210px;border-radius:20px;
+    .tab.on{
+      color:var(--ink);
       background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.12);
-      display:grid;place-items:center;
+    }
+
+    /* Details */
+    .detailsHeader{
       position:relative;
+      border-bottom:1px solid var(--border);
+    }
+    .detailsHero{
+      height:220px;
+      background:linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
+    }
+    .detailsHero img{width:100%; height:100%; object-fit:cover; display:block}
+    .detailsInfo{
+      padding:14px 16px 16px;
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .detailsLogo{
+      width:64px; height:64px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.22);
+      overflow:hidden;
+      background:rgba(0,0,0,.25);
+      flex:0 0 auto;
+    }
+    .detailsLogo img{width:100%;height:100%;object-fit:cover}
+    .detailsText{flex:1 1 320px; min-width:240px}
+    .detailsText h2{margin:0; font-size:20px}
+    .detailsText p{margin:6px 0 0; color:var(--muted); line-height:1.45}
+    .tiers{
+      padding:16px;
+    }
+    .tierRow{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      border-radius:16px;
+      padding:12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .tierRow:last-child{margin-bottom:0}
+    .tierLeft{display:flex; flex-direction:column; gap:2px}
+    .tierName{font-weight:800}
+    .tierMeta{color:var(--muted); font-size:12.5px}
+    .tierRight{display:flex; align-items:center; gap:10px}
+    .price{font-weight:900}
+    .qtySel{
+      width:78px;
+      text-align:center;
+    }
+    .ctaBar{
+      padding:14px 16px 16px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      border-top:1px solid var(--border);
+      background:rgba(255,255,255,.03);
+    }
+
+    /* Tickets */
+    .ticketCard{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      border-radius:18px;
+      box-shadow: var(--shadow);
       overflow:hidden;
     }
-    .qrBox:before{
-      content:"";
-      position:absolute;inset:-60px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.13), transparent);
-      transform:rotate(18deg);
-      animation: shine 2.6s linear infinite;
+    .ticketTop{
+      padding:14px 14px 12px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      border-bottom:1px solid var(--border);
     }
-    @keyframes shine{
-      0%{transform:translateX(-40%) rotate(18deg)}
-      100%{transform:translateX(40%) rotate(18deg)}
-    }
-    .qrInner{
-      width:160px;height:160px;border-radius:16px;
-      background:
-        repeating-linear-gradient(0deg, rgba(255,255,255,.85) 0 6px, rgba(0,0,0,.06) 6px 10px),
-        repeating-linear-gradient(90deg, rgba(255,255,255,.85) 0 6px, rgba(0,0,0,.06) 6px 10px);
-      mix-blend-mode: screen;
-      opacity:.75;
-      position:relative;
-    }
-    .qrInner:after{
-      content:"";
-      position:absolute;inset:0;
-      background:
-        radial-gradient(12px 12px at 18% 18%, rgba(0,0,0,.25), transparent 55%),
-        radial-gradient(12px 12px at 82% 18%, rgba(0,0,0,.25), transparent 55%),
-        radial-gradient(12px 12px at 18% 82%, rgba(0,0,0,.25), transparent 55%);
-      opacity:.35;
-    }
-    .countRow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center}
-    .countRing{width:64px;height:64px;display:grid;place-items:center;position:relative}
-    .countRing svg{transform:rotate(-90deg)}
-    .countRing .t{position:absolute;inset:0;display:grid;place-items:center;font-weight:900}
-    .bigWarn{
-      max-width: 52ch;
-      text-align:center;
-      color:rgba(248,250,252,.92);
-      font-size:12px;
-      line-height:1.45;
-    }
-    .bigWarn b{color:var(--ink)}
-    .ticketDetails{
+    .ticketTop b{display:block; font-size:15px}
+    .ticketTop .meta{color:var(--muted); font-size:13px; line-height:1.35}
+    .ticketBody{padding:12px 14px 14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between}
+    .ticketBody .btn{min-width:160px}
+
+    /* Ticket Screen */
+    .qrWrap{
+      padding:16px;
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap:10px;
+      gap:14px;
+      align-items:start;
     }
-    @media(max-width:720px){ .ticketDetails{grid-template-columns:1fr} }
-    .kv{
-      padding:12px;border-radius:18px;border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
+    @media (max-width: 860px){
+      .qrWrap{grid-template-columns: 1fr;}
     }
-    .kv b{display:block;font-size:11px;color:var(--muted2);margin-bottom:6px}
-    .kv span{font-size:12px}
-
-    .mono{font-family:var(--mono)}
+    .qrBox{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      border-radius:18px;
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      align-items:center;
+    }
+    .qrMsg{
+      text-align:center;
+      color:rgba(248,250,252,.90);
+      font-weight:800;
+      line-height:1.35;
+    }
+    .qrHint{
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+    }
+    .qrCanvasWrap{
+      width:280px; height:280px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.18);
+      display:grid;
+      place-items:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .ring{
+      position:absolute;
+      inset:12px;
+      border-radius:999px;
+      pointer-events:none;
+    }
+    .ring svg{width:100%; height:100%; transform:rotate(-90deg)}
+    .ring circle{
+      fill:none;
+      stroke:rgba(255,255,255,.10);
+      stroke-width:10;
+    }
+    .ring .prog{
+      stroke:rgba(34,197,94,.95);
+      stroke-linecap:round;
+      stroke-width:10;
+      stroke-dasharray: 999;
+      stroke-dashoffset: 999;
+      filter: drop-shadow(0 10px 25px rgba(34,197,94,.18));
+    }
+    .countdown{
+      position:absolute;
+      bottom:10px;
+      right:10px;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(11,16,32,.70);
+      backdrop-filter: blur(8px);
+      color:rgba(248,250,252,.92);
+      font-weight:900;
+      font-size:12px;
+    }
+    .ticketInfo{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      border-radius:18px;
+      padding:14px;
+    }
+    .kv{display:flex; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.08)}
+    .kv:last-child{border-bottom:0}
+    .kv span{color:var(--muted)}
+    .kv b{font-weight:900}
+    .toast{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:82px;
+      z-index:80;
+      background:rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(10px);
+      padding:10px 12px;
+      border-radius:14px;
+      max-width:min(520px, calc(100vw - 20px));
+      box-shadow:0 18px 50px rgba(0,0,0,.35);
+      display:none;
+      color:rgba(248,250,252,.92);
+      font-size:13px;
+      line-height:1.35;
+    }
+    footer{
+      border-top:1px solid var(--border);
+      color:var(--muted);
+      padding:16px;
+      text-align:center;
+      font-size:12.5px;
+      background:rgba(11,16,32,.55);
+    }
+    .hidden{display:none !important}
+    .spin{
+      width:16px;height:16px;border-radius:999px;
+      border:2px solid rgba(255,255,255,.18);
+      border-top-color:rgba(34,197,94,.95);
+      animation:sp 1s linear infinite;
+    }
+    @keyframes sp{to{transform:rotate(360deg)}}
   </style>
+
+  <!-- QR generator -->
+  <script defer src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 
 <body>
-  <!-- icon sprites -->
-  <svg class="sr" xmlns="http://www.w3.org/2000/svg">
-    <symbol id="i-luma" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M12 3l8 5v8l-8 5-8-5V8l8-5z"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M12 3v18M4 8l8 5 8-5"/>
-    </symbol>
-    <symbol id="i-search" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16.5 16.5 21 21"/>
-    </symbol>
-    <symbol id="i-home" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M3 11l9-8 9 8v10a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2V11z"/>
-    </symbol>
-    <symbol id="i-ticket" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M5 7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V7z"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 6v12"/>
-    </symbol>
-    <symbol id="i-user" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M20 21a8 8 0 1 0-16 0"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M12 13a4 4 0 1 0-4-4 4 4 0 0 0 4 4z"/>
-    </symbol>
-    <symbol id="i-back" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M15 18l-6-6 6-6"/>
-    </symbol>
-    <symbol id="i-lock" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M7 11V8a5 5 0 0 1 10 0v3"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M6 11h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z"/>
-    </symbol>
-    <symbol id="i-receipt" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M7 3h10v18l-2-1-2 1-2-1-2 1-2-1-2 1V3z"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M9 8h6M9 12h6M9 16h4"/>
-    </symbol>
-    <symbol id="i-logout" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M10 16l-4-4 4-4"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 12h9"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"/>
-    </symbol>
-    <symbol id="i-support" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M4 12a8 8 0 0 1 16 0v4a2 2 0 0 1-2 2h-2v-6h4"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M4 12v4a2 2 0 0 0 2 2h2v-6H4"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 18v3"/>
-    </symbol>
-    <symbol id="i-close" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/>
-    </symbol>
-  </svg>
-
-  <!-- AUTH -->
-  <section id="auth" class="authWrap">
-    <div class="authCard">
-      <div class="authLeft">
-        <div class="brandRow" style="border:0;margin:0;padding:0 0 10px 0">
-          <div class="logoMark"><svg width="22" height="22"><use href="#i-luma"/></svg></div>
-          <div class="brandText">
-            <b>Luma Tickets</b>
-            <span>Customer Marketplace</span>
-          </div>
+  <div class="app">
+    <header>
+      <div class="topbar">
+        <div class="brand">
+          <div class="logoDot"></div>
+          <div>Luma Tickets</div>
         </div>
-
-        <div class="hero">
-          <h1>Find events. Buy tickets. Enter safely.</h1>
-          <p>A clean marketplace experience with ultra-secure live tickets. Your ticket refreshes every 30 seconds — screenshots won’t work.</p>
+        <div class="pill" id="pillUser" style="display:none">
+          <span id="pillEmail" class="muted">—</span>
         </div>
-
-        <div class="featureList">
-          <div class="feat">
-            <div class="ic"><svg width="22" height="22"><use href="#i-search"/></svg></div>
-            <div>
-              <b>Search-first browsing</b>
-              <p>Find events by name, city, venue, or day — with quick filters for Today and This Week.</p>
-            </div>
-          </div>
-          <div class="feat">
-            <div class="ic"><svg width="22" height="22"><use href="#i-ticket"/></svg></div>
-            <div>
-              <b>My Tickets</b>
-              <p>All purchases stay organized in one place. Open your live ticket when you arrive.</p>
-            </div>
-          </div>
-          <div class="feat">
-            <div class="ic"><svg width="22" height="22"><use href="#i-lock"/></svg></div>
-            <div>
-              <b>Ultra-secure ticket</b>
-              <p>Live QR placeholder with a 30s countdown ring. Designed for fast entry and anti-screenshot behavior.</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="footer" style="padding:0;margin-top:auto">
-          <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
-          <span class="muted2">Secure access • Customer app</span>
-        </div>
-      </div>
-
-      <div class="authRight">
-        <div class="authTabs">
-          <button class="tabBtn active" data-auth-tab="signin">Sign in</button>
-          <button class="tabBtn" data-auth-tab="signup">Sign up</button>
-          <button class="tabBtn" data-auth-tab="forgot">Forgot password</button>
-        </div>
-
-        <!-- Sign in -->
-        <div id="auth-signin">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
-            <div>
-              <h2 style="margin:0;font-size:18px">Welcome back</h2>
-              <div class="muted" style="margin-top:6px;font-size:12px">Sign in to browse available events and view your tickets.</div>
-            </div>
-            <span class="chip info"><b style="color:var(--ink)">Demo</b> enabled</span>
-          </div>
-
-          <form class="authForm" id="form-signin">
-            <div class="field">
-              <label>Email</label>
-              <div class="input">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-user"/></svg>
-                <input id="signin-email" type="email" placeholder="name@email.com" required>
-              </div>
-            </div>
-            <div class="field">
-              <label>Password</label>
-              <div class="input">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-lock"/></svg>
-                <input id="signin-pass" type="password" placeholder="••••••••" required>
-              </div>
-            </div>
-
-            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
-              <button class="btn primary" type="submit" style="flex:1;min-width:220px">
-                <svg width="18" height="18"><use href="#i-home"/></svg>
-                Enter Marketplace
-              </button>
-              <button class="btn ghost" type="button" id="btn-quick-demo" style="min-width:160px">
-                <svg width="18" height="18"><use href="#i-ticket"/></svg>
-                Use Demo
-              </button>
-            </div>
-
-            <div class="hint">
-              <b>Demo note:</b> This single-file build stores demo accounts + purchases in <b>localStorage</b>.
-              Later, you can connect Firebase Auth + Firestore without changing the UI.
-            </div>
-          </form>
-        </div>
-
-        <!-- Sign up -->
-        <div id="auth-signup" class="hidden">
-          <h2 style="margin:0;font-size:18px">Create your account</h2>
-          <div class="muted" style="margin-top:6px;font-size:12px">Sign up to start purchasing and storing tickets in My Tickets.</div>
-
-          <form class="authForm" id="form-signup">
-            <div class="field">
-              <label>Full name</label>
-              <div class="input">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-user"/></svg>
-                <input id="signup-name" type="text" placeholder="Your name" required>
-              </div>
-            </div>
-            <div class="field">
-              <label>Email</label>
-              <div class="input">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-user"/></svg>
-                <input id="signup-email" type="email" placeholder="name@email.com" required>
-              </div>
-            </div>
-            <div class="field">
-              <label>Password</label>
-              <div class="input">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-lock"/></svg>
-                <input id="signup-pass" type="password" placeholder="Create a password" minlength="6" required>
-              </div>
-            </div>
-
-            <button class="btn primary" type="submit">
-              <svg width="18" height="18"><use href="#i-ticket"/></svg>
-              Create account
-            </button>
-
-            <div class="muted" style="font-size:12px">Already have an account? <a href="#" id="go-signin">Sign in</a></div>
-          </form>
-        </div>
-
-        <!-- Forgot -->
-        <div id="auth-forgot" class="hidden">
-          <h2 style="margin:0;font-size:18px">Reset password</h2>
-          <div class="muted" style="margin-top:6px;font-size:12px">Enter your email to simulate a reset link.</div>
-
-          <form class="authForm" id="form-forgot">
-            <div class="field">
-              <label>Email</label>
-              <div class="input">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-user"/></svg>
-                <input id="forgot-email" type="email" placeholder="name@email.com" required>
-              </div>
-            </div>
-            <button class="btn primary" type="submit">
-              <svg width="18" height="18"><use href="#i-support"/></svg>
-              Send reset link
-            </button>
-            <div class="muted" style="font-size:12px">Remembered it? <a href="#" id="go-signin2">Back to sign in</a></div>
-          </form>
-        </div>
-
-        <div class="footer" style="padding:0;margin-top:auto">
-          <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
-          <span class="muted2">© <span id="year"></span> Luma</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- APP -->
-  <section id="app" class="app hidden">
-    <header class="topbar">
-      <div class="brandRow">
-        <div class="logoMark"><svg width="22" height="22"><use href="#i-luma"/></svg></div>
-        <div class="brandText">
-          <b id="topTitle">Home</b>
-          <span id="topSub">Available events</span>
-        </div>
-      </div>
-
-      <div class="searchWrap" title="Search events">
-        <svg width="18" height="18" style="color:var(--muted)"><use href="#i-search"/></svg>
-        <input id="q" placeholder="Search events, venues, cities...">
-      </div>
-
-      <div class="topActions">
-        <span class="chip" id="whoChip"><b style="color:var(--ink)">—</b></span>
-        <button class="btn sm ghost" id="btnSignOutTop" title="Sign out">
-          <svg width="18" height="18"><use href="#i-logout"/></svg>
-        </button>
       </div>
     </header>
 
-    <div class="content">
-      <nav class="tabs" aria-label="Primary navigation">
-        <button class="subTab active" data-tab="home"><svg width="16" height="16"><use href="#i-home"/></svg> Home</button>
-        <button class="subTab" data-tab="tickets"><svg width="16" height="16"><use href="#i-ticket"/></svg> My Tickets</button>
-        <button class="subTab" data-tab="profile"><svg width="16" height="16"><use href="#i-user"/></svg> Profile</button>
-      </nav>
-
-      <!-- HOME -->
-      <section id="tab-home">
-        <div class="filtersRow">
-          <div class="seg" role="group" aria-label="Date filter">
-            <button class="active" data-when="all">All</button>
-            <button data-when="today">Today</button>
-            <button data-when="week">This Week</button>
-          </div>
-
-          <div class="input" style="padding:10px 10px;border-radius:999px;min-width:220px">
-            <select id="city">
-              <option value="">All cities</option>
-            </select>
-          </div>
-
-          <div style="margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-            <span class="chip"><b style="color:var(--ink)" id="countEvents">0</b> events</span>
-          </div>
-        </div>
-
-        <div id="eventsGrid" class="eventGrid"></div>
-        <div id="eventsEmpty" class="emptyState hidden">
-          No events match your filters right now.
-        </div>
-      </section>
-
-      <!-- EVENT DETAILS -->
-      <section id="tab-details" class="hidden">
-        <button class="btn ghost" id="btnBackHome" style="margin-bottom:10px">
-          <svg width="18" height="18"><use href="#i-back"/></svg> Back
-        </button>
-
+    <main>
+      <!-- AUTH -->
+      <section id="screenAuth" class="authWrap hidden">
         <div class="card">
-          <div class="ticketBanner" style="height:220px" id="detailsBanner"></div>
-          <div class="cardBody">
-            <div class="grid2">
-              <div>
-                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
-                  <div>
-                    <h2 id="detailsName" style="margin:0;font-size:20px"></h2>
-                    <div class="muted" id="detailsMeta" style="margin-top:6px;font-size:12px"></div>
-                  </div>
-                  <span class="chip info" id="detailsStatus">Live</span>
-                </div>
-
-                <div class="hint" style="margin-top:12px">
-                  <b>Purchase is simulated:</b> clicking <b>Purchase</b> creates a paid ticket and adds it to <b>My Tickets</b>.
-                </div>
-
-                <div class="hr" style="height:1px;background:rgba(255,255,255,.08);margin:12px 0"></div>
-
-                <div class="card" style="border-radius:22px">
-                  <div class="cardHead">
-                    <div>
-                      <h3 style="margin:0">Available tiers / waves</h3>
-                      <p>Shown as what’s available right now (demo).</p>
-                    </div>
-                    <span class="chip" id="detailsWaveChip"><b style="color:var(--ink)">—</b></span>
-                  </div>
-                  <div class="cardBody">
-                    <div id="tiersList" class="tierGrid"></div>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <div class="card" style="border-radius:22px">
-                  <div class="cardHead">
-                    <div>
-                      <h3 style="margin:0">Checkout</h3>
-                      <p>Pick tier, quantity, then purchase.</p>
-                    </div>
-                  </div>
-                  <div class="cardBody">
-                    <div class="field">
-                      <label>Tier</label>
-                      <div class="input">
-                        <select id="buyTier"></select>
-                      </div>
-                    </div>
-                    <div class="field">
-                      <label>Quantity</label>
-                      <div class="input">
-                        <select id="buyQty">
-                          <option value="1">1</option>
-                          <option value="2">2</option>
-                          <option value="3">3</option>
-                          <option value="4">4</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div class="field">
-                      <label>Total</label>
-                      <div class="input">
-                        <input id="buyTotal" type="text" value="—" readonly>
-                      </div>
-                    </div>
-
-                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-                      <button class="btn good" id="btnPurchase" style="flex:1;min-width:220px">
-                        <svg width="18" height="18"><use href="#i-ticket"/></svg>
-                        Purchase
-                      </button>
-                      <button class="btn ghost" id="btnGoTickets" type="button">
-                        My Tickets
-                      </button>
-                    </div>
-
-                    <div class="muted" style="font-size:12px;margin-top:10px;line-height:1.5">
-                      Payments are simulated. Replace this later with your real checkout / PSP flow.
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
+          <div class="authHeader">
+            <h1 id="authTitle">Sign in</h1>
+            <p id="authSub">Access your tickets and upcoming events.</p>
           </div>
-        </div>
-      </section>
-
-      <!-- MY TICKETS -->
-      <section id="tab-tickets" class="hidden">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
-          <div>
-            <h2 style="margin:0;font-size:18px">My Tickets</h2>
-            <div class="muted" style="margin-top:6px;font-size:12px">All events you paid for appear here.</div>
-          </div>
-          <span class="chip"><b style="color:var(--ink)" id="countTickets">0</b> tickets</span>
-        </div>
-
-        <div id="ticketsGrid" class="eventGrid"></div>
-        <div id="ticketsEmpty" class="emptyState hidden">
-          You have no tickets yet. Go to <b>Home</b> and purchase a ticket.
-        </div>
-      </section>
-
-      <!-- TICKET SCREEN -->
-      <section id="tab-ticket" class="hidden">
-        <button class="btn ghost" id="btnBackTickets" style="margin-bottom:10px">
-          <svg width="18" height="18"><use href="#i-back"/></svg> Back to My Tickets
-        </button>
-
-        <div class="ticketShell">
-          <div class="ticketHero">
-            <div class="ticketBanner" id="ticketBanner"></div>
-            <div class="ticketHeroBody">
-              <h2 id="ticketEventName">—</h2>
-              <div class="meta" id="ticketMeta">—</div>
-            </div>
-          </div>
-
-          <div class="card" style="border-radius:22px">
-            <div class="cardHead">
-              <div>
-                <h3 style="margin:0">Ultra-Secure Live Ticket</h3>
-                <p>QR placeholder refreshes every 30 seconds.</p>
+          <div class="section">
+            <div id="authForm">
+              <div class="field">
+                <div class="label">Email</div>
+                <input class="input" id="authEmail" type="email" autocomplete="email" placeholder="you@email.com"/>
               </div>
-              <span class="chip info"><svg width="16" height="16"><use href="#i-lock"/></svg> Live</span>
-            </div>
-            <div class="cardBody">
-              <div class="qrWrap">
-                <div class="qrBox" aria-label="Dynamic QR placeholder">
-                  <div class="qrInner" id="qrInner"></div>
-                </div>
-
-                <div class="countRow">
-                  <div class="countRing" aria-label="Refresh countdown">
-                    <svg width="64" height="64" viewBox="0 0 64 64">
-                      <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="6"/>
-                      <circle id="ring" cx="32" cy="32" r="26" fill="none" stroke="rgba(34,197,94,.85)" stroke-width="6"
-                              stroke-linecap="round" stroke-dasharray="163.36" stroke-dashoffset="0"/>
-                    </svg>
-                    <div class="t"><span id="secs">30</span>s</div>
-                  </div>
-                  <div class="bigWarn">
-                    <b>Ticket must be live.</b> Screenshots won’t work.<br>
-                    This code changes automatically every 30 seconds.
-                  </div>
-                </div>
+              <div class="field" style="margin-top:10px">
+                <div class="label">Password</div>
+                <input class="input" id="authPass" type="password" autocomplete="current-password" placeholder="••••••••"/>
               </div>
 
-              <div class="ticketDetails" style="margin-top:12px">
-                <div class="kv">
-                  <b>Tier / Wave</b>
-                  <span id="ticketTier">—</span>
-                </div>
-                <div class="kv">
-                  <b>Quantity</b>
-                  <span id="ticketQty">—</span>
-                </div>
-                <div class="kv">
-                  <b>Ticket ID</b>
-                  <span id="ticketId" class="mono">—</span>
-                </div>
-                <div class="kv">
-                  <b>Purchase Time</b>
-                  <span id="ticketWhen">—</span>
-                </div>
-              </div>
-
-              <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px">
-                <button class="btn ghost" id="btnReceipt">
-                  <svg width="18" height="18"><use href="#i-receipt"/></svg>
-                  View receipt
+              <div class="row" style="margin-top:12px">
+                <button class="btn primary" id="btnSignin" style="flex:1">
+                  <span class="spin hidden" id="spinAuth"></span>
+                  <span id="authBtnText">Sign in</span>
                 </button>
               </div>
 
-              <div class="muted" style="font-size:12px;margin-top:10px;line-height:1.5">
-                Note: This is a visual placeholder. In production, your backend would generate short-lived QR tokens tied to entry rules.
+              <div class="row" style="justify-content:space-between; margin-top:10px">
+                <div class="hint"><span class="link" id="goSignup">Create account</span></div>
+                <div class="hint"><span class="link" id="goForgot">Forgot password?</span></div>
               </div>
+            </div>
+
+            <div id="signupForm" class="hidden">
+              <div class="field">
+                <div class="label">Full name</div>
+                <input class="input" id="suName" type="text" autocomplete="name" placeholder="Your name"/>
+              </div>
+              <div class="field" style="margin-top:10px">
+                <div class="label">Email</div>
+                <input class="input" id="suEmail" type="email" autocomplete="email" placeholder="you@email.com"/>
+              </div>
+              <div class="field" style="margin-top:10px">
+                <div class="label">Password</div>
+                <input class="input" id="suPass" type="password" autocomplete="new-password" placeholder="Create a strong password"/>
+              </div>
+
+              <div class="row" style="margin-top:12px">
+                <button class="btn primary" id="btnSignup" style="flex:1">
+                  <span class="spin hidden" id="spinSignup"></span>
+                  <span>Create account</span>
+                </button>
+              </div>
+
+              <div class="row" style="justify-content:space-between; margin-top:10px">
+                <div class="hint"><span class="link" id="goSignin2">I already have an account</span></div>
+              </div>
+            </div>
+
+            <div id="forgotForm" class="hidden">
+              <div class="field">
+                <div class="label">Email</div>
+                <input class="input" id="fpEmail" type="email" autocomplete="email" placeholder="you@email.com"/>
+              </div>
+              <div class="row" style="margin-top:12px">
+                <button class="btn primary" id="btnReset" style="flex:1">
+                  <span class="spin hidden" id="spinReset"></span>
+                  <span>Send reset link</span>
+                </button>
+              </div>
+              <div class="row" style="justify-content:space-between; margin-top:10px">
+                <div class="hint"><span class="link" id="goSignin3">Back to sign in</span></div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="hint">
+              By continuing you agree to ticket security rules. Your ticket QR refreshes frequently; screenshots will be rejected at the gate.
             </div>
           </div>
         </div>
       </section>
 
-      <!-- PROFILE -->
-      <section id="tab-profile" class="hidden">
-        <div class="card" style="border-radius:22px">
-          <div class="cardHead">
-            <div>
-              <h3 style="margin:0">Profile</h3>
-              <p>Basic info + support + logout.</p>
+      <!-- APP CONTENT -->
+      <section id="screenApp" class="hidden">
+        <!-- HOME -->
+        <section id="screenHome" class="hidden">
+          <div class="filters">
+            <div class="field" style="flex:1; min-width:220px">
+              <input class="input" id="searchBox" placeholder="Search events, venues, cities…"/>
             </div>
-            <span class="chip"><b style="color:var(--ink)" id="profileRole">Customer</b></span>
+            <div class="field" style="width:220px">
+              <select class="input" id="cityFilter">
+                <option value="">All cities</option>
+              </select>
+            </div>
+            <div class="chipRow">
+              <div class="chip on" data-date="all">All</div>
+              <div class="chip" data-date="today">Today</div>
+              <div class="chip" data-date="week">This Week</div>
+            </div>
           </div>
-          <div class="cardBody">
-            <div class="ticketDetails">
-              <div class="kv">
-                <b>Name</b>
-                <span id="pName">—</span>
-              </div>
-              <div class="kv">
-                <b>Email</b>
-                <span id="pEmail">—</span>
-              </div>
-              <div class="kv">
-                <b>Support</b>
-                <span><a id="supportLink" href="#" target="_blank" rel="noopener">Contact support</a></span>
-              </div>
-              <div class="kv">
-                <b>App</b>
-                <span class="muted">Luma Tickets — Customer</span>
+
+          <div id="eventsState" class="hint" style="margin:6px 2px 14px; display:none"></div>
+
+          <div class="eventsGrid" id="eventsGrid"></div>
+        </section>
+
+        <!-- DETAILS -->
+        <section id="screenDetails" class="hidden">
+          <div class="card">
+            <div class="detailsHeader">
+              <div class="detailsHero" id="detailsHero"></div>
+              <div class="detailsInfo">
+                <div class="detailsLogo" id="detailsLogo"></div>
+                <div class="detailsText">
+                  <h2 id="detailsName">—</h2>
+                  <p id="detailsMeta">—</p>
+                  <div class="evBadges" id="detailsBadges"></div>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap">
+                  <button class="btn" id="btnBackHome">Back</button>
+                </div>
               </div>
             </div>
 
-            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px">
-              <button class="btn danger" id="btnLogoutProfile">
-                <svg width="18" height="18"><use href="#i-logout"/></svg>
-                Log out
+            <div class="tiers">
+              <div class="hint" style="margin-bottom:10px">
+                Available tiers and waves **right now**.
+              </div>
+              <div id="tiersList"></div>
+            </div>
+
+            <div class="ctaBar">
+              <div>
+                <div class="hint">Total</div>
+                <div style="font-weight:1000; font-size:18px" id="buyTotal">—</div>
+              </div>
+              <button class="btn primary" id="btnBuy">
+                <span class="spin hidden" id="spinBuy"></span>
+                <span>Purchase</span>
               </button>
             </div>
+          </div>
+        </section>
 
-            <div class="hint" style="margin-top:12px">
-              <b>Support link:</b> update the email / URL in settings inside this file (look for <span class="mono">SUPPORT_URL</span>).
+        <!-- MY TICKETS -->
+        <section id="screenTickets" class="hidden">
+          <div class="row" style="justify-content:space-between; margin-bottom:14px">
+            <div>
+              <div style="font-weight:900; font-size:18px">My Tickets</div>
+              <div class="hint">Tickets you purchased across all events.</div>
             </div>
           </div>
-        </div>
+          <div class="grid" id="ticketsGrid"></div>
+          <div id="ticketsEmpty" class="hint hidden" style="padding:14px; border:1px dashed rgba(255,255,255,.18); border-radius:18px">
+            You don't have tickets yet. Go to Home and purchase your first ticket.
+          </div>
+        </section>
+
+        <!-- TICKET VIEW -->
+        <section id="screenTicketView" class="hidden">
+          <div class="card">
+            <div class="ticketTop">
+              <div>
+                <b id="tvEventName">—</b>
+                <div class="meta" id="tvEventMeta">—</div>
+              </div>
+              <button class="btn" id="btnBackTickets">Back</button>
+            </div>
+
+            <div class="qrWrap">
+              <div class="qrBox">
+                <div class="qrMsg">Ticket must be live. Screenshots won’t work.</div>
+                <div class="qrHint">Your QR refreshes every 30 seconds.</div>
+
+                <div class="qrCanvasWrap">
+                  <canvas id="qrCanvas" width="240" height="240"></canvas>
+                  <div class="ring" aria-hidden="true">
+                    <svg viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="42"></circle>
+                      <circle class="prog" cx="50" cy="50" r="42"></circle>
+                    </svg>
+                  </div>
+                  <div class="countdown" id="qrCountdown">30s</div>
+                </div>
+
+                <div class="hint" id="qrStatus">Generating secure token…</div>
+              </div>
+
+              <div class="ticketInfo">
+                <div style="font-weight:900; font-size:16px; margin-bottom:8px">Ticket details</div>
+                <div class="kv"><span>Tier</span><b id="tvTier">—</b></div>
+                <div class="kv"><span>Wave</span><b id="tvWave">—</b></div>
+                <div class="kv"><span>Quantity</span><b id="tvQty">—</b></div>
+                <div class="kv"><span>Status</span><b id="tvStatus">—</b></div>
+
+                <div class="divider"></div>
+
+                <div style="font-weight:900; font-size:16px; margin-bottom:8px">Receipt</div>
+                <div class="hint" id="rcMeta">—</div>
+                <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap">
+                  <button class="btn" id="btnViewReceipt">View receipt</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PROFILE -->
+        <section id="screenProfile" class="hidden">
+          <div class="card">
+            <div class="section">
+              <div style="font-weight:900; font-size:18px">Profile</div>
+              <div class="hint" style="margin-top:6px">Manage your account and get support.</div>
+
+              <div class="divider"></div>
+
+              <div class="kv"><span>Name</span><b id="pfName">—</b></div>
+              <div class="kv"><span>Email</span><b id="pfEmail">—</b></div>
+
+              <div class="divider"></div>
+
+              <div class="row">
+                <button class="btn danger" id="btnLogout">Logout</button>
+                <a class="btn" id="supportLink" href="#" target="_blank" rel="noopener">Support</a>
+              </div>
+            </div>
+          </div>
+        </section>
       </section>
+    </main>
 
-    </div>
+    <footer>Powered by Luma</footer>
 
-    <div class="footer">
-      <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
-      <span class="muted2">© <span id="year2"></span> Luma</span>
-    </div>
-  </section>
-
-  <!-- Receipt Modal -->
-  <div id="receiptModal" class="modalOverlay" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="receiptTitle">
-      <div class="modalHead">
-        <div>
-          <h3 id="receiptTitle" style="margin:0">Receipt</h3>
-          <p>View receipt details (no download buttons).</p>
-        </div>
-        <button class="btn sm ghost" id="btnCloseReceipt" aria-label="Close">
-          <svg width="18" height="18"><use href="#i-close"/></svg>
-        </button>
-      </div>
-      <div class="modalBody">
-        <div class="ticketDetails">
-          <div class="kv"><b>Receipt ID</b><span id="rId" class="mono">—</span></div>
-          <div class="kv"><b>Status</b><span><span class="chip good">Paid</span></span></div>
-          <div class="kv"><b>Event</b><span id="rEvent">—</span></div>
-          <div class="kv"><b>Tier / Wave</b><span id="rTier">—</span></div>
-          <div class="kv"><b>Quantity</b><span id="rQty">—</span></div>
-          <div class="kv"><b>Total</b><span id="rTotal">—</span></div>
-          <div class="kv"><b>Purchased at</b><span id="rWhen">—</span></div>
-          <div class="kv"><b>Customer</b><span id="rCustomer">—</span></div>
-        </div>
-        <div class="hint" style="margin-top:12px">
-          This is a receipt view only. No download options are shown.
-        </div>
-      </div>
-      <div class="modalFoot">
-        <button class="btn primary" id="btnCloseReceipt2">Close</button>
+    <div class="tabs hidden" id="tabs">
+      <div class="tabbar">
+        <div class="tab on" data-tab="home">Home</div>
+        <div class="tab" data-tab="tickets">My Tickets</div>
+        <div class="tab" data-tab="profile">Profile</div>
       </div>
     </div>
+
+    <div class="toast" id="toast"></div>
   </div>
 
-  <!-- Toasts -->
-  <div class="toasts" id="toasts" aria-live="polite" aria-relevant="additions"></div>
+  <script type="module">
+    /***********************
+      Firebase (Production)
+    ************************/
+    // IMPORTANT:
+    // - Paste the SAME firebaseConfig you use in your owner dashboard (index (22).html).
+    // - Customer marketplace reads public events from Firestore collection: `events`.
+    // - Tickets are stored per user in: `users/{uid}/tickets/{ticketId}`.
+    //
+    // Your backend should mint short-lived QR tokens (30s) for ultra-secure gate validation.
+    // This client calls QR_TOKEN_ENDPOINT (Cloud Function / Cloud Run) using the user's Firebase ID token.
 
-<script>
-/* =========================================================
-   Luma Tickets — customer.html (single-file)
-   - Demo auth + demo data via localStorage
-   - Marketplace: Home (events), Details, My Tickets, Ticket Screen, Profile
-   - Dynamic "QR placeholder" refresh every 30 seconds + countdown ring
-   ========================================================= */
+    const firebaseConfig = { /* PASTE YOUR FIREBASE CONFIG HERE */ };
 
-/* ============ Settings ============ */
-const SUPPORT_URL = "mailto:support@luma.example?subject=Luma%20Tickets%20Support";
-const STORAGE_KEY = "luma_customer_v1";
-const TZ = "Africa/Cairo"; // used for display
-const QR_PERIOD = 30;      // seconds
-const QR_BYTES = 16;
+    // Change this to your production endpoint that returns: { token: string, expiresAt: number (ms), gatePayload?: object }
+    // - It must verify the Firebase ID token (Authorization: Bearer <idToken>)
+    // - It must also verify the ticket belongs to the user and is active
+    // - It must return a short-lived token that ushers validate server-side
+    const QR_TOKEN_ENDPOINT = ""; // e.g. "https://<region>-<project>.cloudfunctions.net/mintTicketToken"
 
-/* Optional: Later you can connect Firebase here.
-   Keep UI the same and replace demo auth + data services. */
-// const firebaseConfig = { /* ... */ };
+    // Support URL (optional)
+    const SUPPORT_URL = ""; // e.g. "https://luma.site/support"
 
-/* ============ Helpers ============ */
-const $ = (s, el=document) => el.querySelector(s);
-const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+      sendPasswordResetEmail, signOut, updateProfile
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, collection,
+      query, where, orderBy, limit, getDocs, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]));
-}
-function uid(prefix="id"){
-  return prefix + "_" + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(2,7);
-}
-function nowISO(){ return new Date().toISOString(); }
-function formatDate(dt){
-  try{
-    const d = (dt instanceof Date) ? dt : new Date(dt);
-    return new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday:"short", year:"numeric", month:"short", day:"2-digit" }).format(d);
-  }catch(e){
-    return String(dt);
-  }
-}
-function formatTime(dt){
-  try{
-    const d = (dt instanceof Date) ? dt : new Date(dt);
-    return new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour:"2-digit", minute:"2-digit" }).format(d);
-  }catch(e){
-    return "";
-  }
-}
-function startOfDay(d){
-  const x = new Date(d);
-  x.setHours(0,0,0,0);
-  return x;
-}
-function endOfDay(d){
-  const x = new Date(d);
-  x.setHours(23,59,59,999);
-  return x;
-}
-function isSameDay(a,b){
-  const da = startOfDay(a), db = startOfDay(b);
-  return da.getTime() === db.getTime();
-}
-function isInThisWeek(date){
-  // Week = Mon..Sun (Cairo display intent)
-  const d = new Date(date);
-  const now = new Date();
-  const day = (now.getDay()+6)%7; // Monday=0
-  const monday = new Date(now); monday.setDate(now.getDate()-day); monday.setHours(0,0,0,0);
-  const sunday = new Date(monday); sunday.setDate(monday.getDate()+6); sunday.setHours(23,59,59,999);
-  return d >= monday && d <= sunday;
-}
-function money(n){
-  const x = Number(n||0);
-  return x.toLocaleString("en-EG",{maximumFractionDigits:0}) + " EGP";
-}
-function toast(title, meta="", type="info"){
-  const wrap = $("#toasts");
-  const node = document.createElement("div");
-  node.className = "toast";
-  node.innerHTML = `
-    <div>
-      <b>${escapeHtml(title)}</b>
-      ${meta ? `<p>${escapeHtml(meta)}</p>` : ``}
-    </div>
-    <button class="x" aria-label="Close">✕</button>
-  `;
-  node.querySelector(".x").onclick = ()=> node.remove();
-  wrap.appendChild(node);
-  setTimeout(()=>{ if(node.isConnected) node.remove(); }, 5200);
-}
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-/* ============ Demo DB ============ */
-function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return null;
-    return JSON.parse(raw);
-  }catch(e){ return null; }
-}
-function saveState(s){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-}
-function seedIfNeeded(){
-  let s = loadState();
-  if(s && s._seeded) return s;
+    /***********************
+      Utilities
+    ************************/
+    const $ = (s)=>document.querySelector(s);
+    const $$ = (s)=>Array.from(document.querySelectorAll(s));
+    const esc = (s)=>String(s??"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+    const toast = (msg)=>{
+      const t=$("#toast");
+      t.textContent = msg;
+      t.style.display="block";
+      clearTimeout(toast._t);
+      toast._t=setTimeout(()=>t.style.display="none", 3200);
+    };
+    const isoDay = (d)=>d.toISOString().slice(0,10);
+    const now = ()=>Date.now();
 
-  const base = new Date();
-  const today = new Date(base);
-  const tomorrow = new Date(base); tomorrow.setDate(base.getDate()+1);
-  const in3 = new Date(base); in3.setDate(base.getDate()+3);
-  const in8 = new Date(base); in8.setDate(base.getDate()+8);
+    // Cairo-friendly date text (display only)
+    const fmtDate = (iso)=>{
+      if(!iso) return "—";
+      const d = new Date(iso);
+      return d.toLocaleString("en-GB", { year:"numeric", month:"short", day:"2-digit" });
+    };
 
-  s = {
-    _seeded: true,
-    users: [
-      { id:"u_demo", name:"Demo Customer", email:"demo@luma.com", pass:"demo123" }
-    ],
-    sessions: {},
-    purchases: [], // tickets
-    events: [
-      {
-        id:"ev_afcon",
-        name:"AFCON Nights — Fan Zone",
-        city:"Cairo",
-        venue:"New Cairo Arena",
-        date: today.toISOString(),
-        bannerUrl:"",
-        logoUrl:"",
-        waves:[
-          { id:"w1", name:"Wave 1", status:"live", tiers:[
-            { id:"t1", name:"Regular", price:120, qty:200, sold:120 },
-            { id:"t2", name:"VIP", price:300, qty:60, sold:60 }
-          ]},
-          { id:"w2", name:"Wave 2", status:"upcoming", tiers:[
-            { id:"t1", name:"Regular", price:150, qty:200, sold:0 },
-            { id:"t2", name:"VIP", price:350, qty:60, sold:0 }
-          ]}
-        ]
-      },
-      {
-        id:"ev_bazaar",
-        name:"Luma Bazaar — Winter Edition",
-        city:"Giza",
-        venue:"Zayed Park",
-        date: in3.toISOString(),
-        bannerUrl:"",
-        logoUrl:"",
-        waves:[
-          { id:"w1", name:"Early Bird", status:"live", tiers:[
-            { id:"t1", name:"Entry", price:80, qty:500, sold:140 },
-            { id:"t2", name:"Fast Lane", price:140, qty:120, sold:30 }
-          ]}
-        ]
-      },
-      {
-        id:"ev_music",
-        name:"City Beats — Live Music Night",
-        city:"Alexandria",
-        venue:"Corniche Stage",
-        date: in8.toISOString(),
-        bannerUrl:"",
-        logoUrl:"",
-        waves:[
-          { id:"w1", name:"General", status:"live", tiers:[
-            { id:"t1", name:"General", price:200, qty:250, sold:80 },
-            { id:"t2", name:"Front Row", price:450, qty:50, sold:12 }
-          ]}
-        ]
-      },
-      {
-        id:"ev_today2",
-        name:"Stand‑Up Night — Open Mic",
-        city:"Cairo",
-        venue:"Downtown Theater",
-        date: tomorrow.toISOString(),
-        bannerUrl:"",
-        logoUrl:"",
-        waves:[
-          { id:"w1", name:"Standard", status:"live", tiers:[
-            { id:"t1", name:"Standard", price:100, qty:180, sold:61 }
-          ]}
-        ]
+    function setLoading(btn, spinning){
+      const sp = btn.querySelector(".spin");
+      if(sp) sp.classList.toggle("hidden", !spinning);
+      btn.disabled = spinning;
+    }
+
+    /***********************
+      State
+    ************************/
+    const state = {
+      user:null,
+      profile:null,
+      events:[],
+      city:"",
+      dateMode:"all",
+      search:"",
+      detailsEvent:null,
+      buySelection: null, // { waveId, tierId, qty, price, currency }
+      ticketView:null, // { ticket, event, order }
+      qrTimer:null,
+      qrTick:null,
+      qrExpiresAt:0
+    };
+
+    /***********************
+      Screens + Navigation
+    ************************/
+    const screens = ["screenAuth","screenApp","screenHome","screenDetails","screenTickets","screenTicketView","screenProfile"];
+    function show(id){
+      screens.forEach(x=>$("#"+x).classList.add("hidden"));
+      $("#"+id).classList.remove("hidden");
+    }
+    function showApp(tab){
+      $("#tabs").classList.remove("hidden");
+      $("#screenApp").classList.remove("hidden");
+      if(tab==="home") show("screenHome");
+      if(tab==="tickets") show("screenTickets");
+      if(tab==="profile") show("screenProfile");
+      $$(".tab").forEach(t=>t.classList.toggle("on", t.dataset.tab===tab));
+    }
+    function gotoDetails(eventId){
+      const ev = state.events.find(e=>e.id===eventId);
+      if(!ev){ toast("Event not found."); return; }
+      state.detailsEvent = ev;
+      renderDetails(ev);
+      $("#tabs").classList.add("hidden"); // focus mode
+      show("screenDetails");
+    }
+    function gotoTicket(ticketId){
+      stopQr();
+      const t = state._tickets?.find(x=>x.id===ticketId);
+      if(!t){ toast("Ticket not found."); return; }
+      state.ticketView = t;
+      renderTicketView(t);
+      $("#tabs").classList.add("hidden");
+      show("screenTicketView");
+      startQr();
+    }
+
+    /***********************
+      Auth
+    ************************/
+    function authMode(mode){
+      // mode: signin | signup | forgot
+      $("#authForm").classList.toggle("hidden", mode!=="signin");
+      $("#signupForm").classList.toggle("hidden", mode!=="signup");
+      $("#forgotForm").classList.toggle("hidden", mode!=="forgot");
+      if(mode==="signin"){
+        $("#authTitle").textContent="Sign in";
+        $("#authSub").textContent="Access your tickets and upcoming events.";
+      }else if(mode==="signup"){
+        $("#authTitle").textContent="Create account";
+        $("#authSub").textContent="Join Luma Tickets to buy and manage tickets.";
+      }else{
+        $("#authTitle").textContent="Reset password";
+        $("#authSub").textContent="We’ll email you a password reset link.";
       }
-    ]
-  };
+    }
 
-  saveState(s);
-  return s;
-}
+    $("#goSignup").onclick=()=>authMode("signup");
+    $("#goSignin2").onclick=()=>authMode("signin");
+    $("#goSignin3").onclick=()=>authMode("signin");
+    $("#goForgot").onclick=()=>authMode("forgot");
 
-let STATE = seedIfNeeded();
+    $("#btnSignin").onclick = async ()=>{
+      const email = $("#authEmail").value.trim();
+      const pass = $("#authPass").value;
+      if(!email || !pass) return toast("Enter email and password.");
+      setLoading($("#btnSignin"), true);
+      try{
+        await signInWithEmailAndPassword(auth, email, pass);
+      }catch(e){
+        toast(e?.message || "Sign in failed.");
+      }finally{
+        setLoading($("#btnSignin"), false);
+      }
+    };
 
-/* ============ Auth ============ */
-function setSession(user){
-  const token = uid("sess");
-  STATE.sessions[token] = { userId: user.id, createdAt: nowISO() };
-  saveState(STATE);
-  localStorage.setItem("luma_customer_session", token);
-}
-function clearSession(){
-  localStorage.removeItem("luma_customer_session");
-}
-function currentUser(){
-  const tok = localStorage.getItem("luma_customer_session");
-  if(!tok) return null;
-  const sess = STATE.sessions?.[tok];
-  if(!sess) return null;
-  return STATE.users.find(u=>u.id===sess.userId) || null;
-}
+    $("#btnSignup").onclick = async ()=>{
+      const name = $("#suName").value.trim();
+      const email = $("#suEmail").value.trim();
+      const pass = $("#suPass").value;
+      if(!name || !email || !pass) return toast("Complete all fields.");
+      setLoading($("#btnSignup"), true);
+      try{
+        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+        await updateProfile(cred.user, { displayName: name });
+        // Create profile doc
+        await setDoc(doc(db,"users", cred.user.uid), {
+          name, email,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }, { merge:true });
+        toast("Account created.");
+      }catch(e){
+        toast(e?.message || "Signup failed.");
+      }finally{
+        setLoading($("#btnSignup"), false);
+      }
+    };
 
-/* ============ Routing / Tabs ============ */
-const screens = {
-  auth: $("#auth"),
-  app: $("#app"),
-};
-const tabs = ["home","details","tickets","ticket","profile"];
+    $("#btnReset").onclick = async ()=>{
+      const email = $("#fpEmail").value.trim();
+      if(!email) return toast("Enter your email.");
+      setLoading($("#btnReset"), true);
+      try{
+        await sendPasswordResetEmail(auth, email);
+        toast("Reset link sent.");
+        authMode("signin");
+      }catch(e){
+        toast(e?.message || "Reset failed.");
+      }finally{
+        setLoading($("#btnReset"), false);
+      }
+    };
 
-let route = {
-  tab: "home",
-  eventId: null,
-  ticketId: null,
-};
+    $("#btnLogout").onclick = async ()=>{
+      stopQr();
+      await signOut(auth);
+    };
 
-function setTab(name){
-  // Update tab buttons
-  $$(".tabs .subTab").forEach(b=>{
-    const t = b.getAttribute("data-tab");
-    b.classList.toggle("active", t === name);
-  });
+    /***********************
+      Tabs
+    ************************/
+    $$(".tab").forEach(t=>{
+      t.onclick=()=>{
+        const tab=t.dataset.tab;
+        if(tab==="home") showApp("home");
+        if(tab==="tickets"){ renderMyTickets(); showApp("tickets"); }
+        if(tab==="profile") showApp("profile");
+      };
+    });
 
-  // Show/hide tab sections
-  $("#tab-home").classList.toggle("hidden", name!=="home");
-  $("#tab-details").classList.toggle("hidden", name!=="details");
-  $("#tab-tickets").classList.toggle("hidden", name!=="tickets");
-  $("#tab-ticket").classList.toggle("hidden", name!=="ticket");
-  $("#tab-profile").classList.toggle("hidden", name!=="profile");
+    $("#btnBackHome").onclick=()=>{
+      showApp("home");
+    };
+    $("#btnBackTickets").onclick=()=>{
+      stopQr();
+      renderMyTickets();
+      showApp("tickets");
+    };
 
-  // Update topbar labels
-  const titleMap = { home:"Home", details:"Event Details", tickets:"My Tickets", ticket:"Ticket", profile:"Profile" };
-  const subMap = {
-    home:"Available events",
-    details:"Choose tier & purchase",
-    tickets:"Your paid events",
-    ticket:"Ultra-secure ticket",
-    profile:"Account & support"
-  };
-  $("#topTitle").textContent = titleMap[name] || "Home";
-  $("#topSub").textContent = subMap[name] || "";
+    /***********************
+      Data: Events (Marketplace)
+    ************************/
+    async function loadCitiesFromEvents(){
+      const cities = new Set();
+      for(const ev of state.events){
+        if(ev.city) cities.add(ev.city);
+      }
+      const sel=$("#cityFilter");
+      const current=sel.value;
+      sel.innerHTML = `<option value="">All cities</option>` + Array.from(cities).sort().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+      sel.value = current;
+    }
 
-  route.tab = name;
-}
+    function applyFilters(){
+      const q = (state.search||"").trim().toLowerCase();
+      const city = state.city;
+      const dateMode = state.dateMode;
+      const today = new Date();
+      const todayIso = isoDay(today);
+      const weekEnd = new Date(today.getTime() + 7*24*60*60*1000);
+      const weekEndIso = isoDay(weekEnd);
 
-/* ============ Data access ============ */
-function getEvent(id){ return STATE.events.find(e=>e.id===id); }
-function getTicket(id){ return STATE.purchases.find(p=>p.id===id); }
-function myTickets(){
-  const u = currentUser();
-  if(!u) return [];
-  return STATE.purchases
-    .filter(p=>p.userId===u.id)
-    .sort((a,b)=> (b.createdAt||"").localeCompare(a.createdAt||""));
-}
-function activeWave(ev){
-  // Choose first "live" wave, else first wave
-  return (ev.waves||[]).find(w=>w.status==="live") || (ev.waves||[])[0] || null;
-}
-function tierAvailability(t){
-  const sold = Number(t.sold||0);
-  const qty = Number(t.qty||0);
-  if(qty>0 && sold>=qty) return "soldout";
-  return "available";
-}
+      let list = state.events.slice();
 
-/* ============ Render: Home ============ */
-let filterWhen = "all";
-function buildCityOptions(){
-  const citySel = $("#city");
-  const cities = Array.from(new Set(STATE.events.map(e=>e.city).filter(Boolean))).sort();
-  citySel.innerHTML = `<option value="">All cities</option>` + cities.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-}
-function passesFilters(ev){
-  const q = ($("#q").value || "").trim().toLowerCase();
-  const city = $("#city").value || "";
-  const d = new Date(ev.date);
+      if(city){
+        list = list.filter(e => String(e.city||"")===city);
+      }
+      if(dateMode==="today"){
+        list = list.filter(e => (e.dateISO||"").slice(0,10)===todayIso);
+      }
+      if(dateMode==="week"){
+        list = list.filter(e => {
+          const d=(e.dateISO||"").slice(0,10);
+          return d>=todayIso && d<=weekEndIso;
+        });
+      }
+      if(q){
+        list = list.filter(e=>{
+          const hay = `${e.name||""} ${e.venue||""} ${e.city||""}`.toLowerCase();
+          return hay.includes(q);
+        });
+      }
+      renderEvents(list);
+    }
 
-  if(city && ev.city !== city) return false;
-
-  if(filterWhen === "today" && !isSameDay(d, new Date())) return false;
-  if(filterWhen === "week" && !isInThisWeek(d)) return false;
-
-  if(q){
-    const blob = `${ev.name} ${ev.city} ${ev.venue}`.toLowerCase();
-    if(!blob.includes(q)) return false;
-  }
-  return true;
-}
-function eventCard(ev){
-  const wave = activeWave(ev);
-  const dateTxt = `${formatDate(ev.date)} • ${formatTime(ev.date)}`;
-  const banner = ev.bannerUrl
-    ? `<img alt="" src="${escapeHtml(ev.bannerUrl)}">`
-    : ``;
-  const logo = ev.logoUrl
-    ? `<img alt="" src="${escapeHtml(ev.logoUrl)}">`
-    : `<svg width="20" height="20" style="opacity:.9"><use href="#i-luma"/></svg>`;
-
-  const status = wave?.status === "live" ? "Live" : (wave?.status === "upcoming" ? "Upcoming" : "Live");
-  const statusChip = wave?.status === "live" ? "info" : "warn";
-
-  return `
-    <div class="eventCard">
-      <div class="eventBanner">${banner}<div class="eventLogo">${logo}</div></div>
-      <div class="eventBody">
-        <div class="eventTitle">
-          <div style="min-width:0">
-            <b>${escapeHtml(ev.name)}</b>
-            <div class="eventMeta" style="margin-top:8px">
-              <div class="row"><span class="chip ${statusChip}"><b style="color:var(--ink)">${status}</b></span></div>
-              <div class="row">${escapeHtml(dateTxt)}</div>
-              <div class="row">${escapeHtml(ev.venue)} • ${escapeHtml(ev.city)}</div>
+    function renderEvents(list){
+      const grid=$("#eventsGrid");
+      const st=$("#eventsState");
+      if(!list.length){
+        grid.innerHTML="";
+        st.style.display="block";
+        st.textContent="No events found for your search/filters.";
+        return;
+      }
+      st.style.display="none";
+      grid.innerHTML = list.map(ev=>{
+        const dateTxt = fmtDate(ev.dateISO);
+        const status = (ev.status||"").toLowerCase();
+        const badge = status.includes("live") ? `<span class="badge green">Live</span>` :
+                      status.includes("on sale") ? `<span class="badge green">On Sale</span>` :
+                      `<span class="badge warn">${esc(ev.status||"Event")}</span>`;
+        const banner = ev.bannerUrl ? `<img alt="" src="${esc(ev.bannerUrl)}">` : "";
+        const logo = ev.logoUrl ? `<img alt="" src="${esc(ev.logoUrl)}">` : `<div style="font-weight:900;color:rgba(248,250,252,.8)">L</div>`;
+        return `
+          <div class="evCard">
+            <div class="evBanner">${banner}<div class="evLogo">${logo}</div></div>
+            <div class="evBody">
+              <div class="evTitle">${esc(ev.name||"Event")}</div>
+              <div class="evMeta">${esc(dateTxt)} • ${esc(ev.venue||"")}${ev.city?` • ${esc(ev.city)}`:""}</div>
+              <div class="evBadges">${badge}${ev.category?`<span class="badge">${esc(ev.category)}</span>`:""}</div>
+              <div style="flex:1"></div>
+            </div>
+            <div class="evActions">
+              <button class="btn primary" data-open="${esc(ev.id)}">View Details</button>
             </div>
           </div>
-        </div>
+        `;
+      }).join("");
 
-        <div class="eventActions">
-          <button class="btn primary sm" data-act="details" data-id="${escapeHtml(ev.id)}">View Details</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-function renderHome(){
-  const grid = $("#eventsGrid");
-  const list = STATE.events.filter(passesFilters).sort((a,b)=> (a.date||"").localeCompare(b.date||""));
-  $("#countEvents").textContent = String(list.length);
+      grid.querySelectorAll("[data-open]").forEach(b=>{
+        b.onclick=()=>gotoDetails(b.dataset.open);
+      });
+    }
 
-  grid.innerHTML = list.map(eventCard).join("");
-  $("#eventsEmpty").classList.toggle("hidden", list.length !== 0);
+    async function loadMarketplaceEvents(){
+      $("#eventsState").style.display="block";
+      $("#eventsState").textContent="Loading events…";
+      try{
+        // Marketplace contract:
+        // events/{eventId} must be publicly readable for signed-in users (or everyone) with fields:
+        // { published:true, status:"On Sale"|"Live", name, dateISO, venue, city, bannerUrl, logoUrl, tiers[], waves[] }
+        //
+        // This file intentionally does not include sample/demo events.
+        const qy = query(
+          collection(db,"events"),
+          where("published","==", true),
+          orderBy("dateISO","asc"),
+          limit(60)
+        );
+        const snap = await getDocs(qy);
+        state.events = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+        await loadCitiesFromEvents();
+        applyFilters();
+        if(!state.events.length){
+          $("#eventsState").style.display="block";
+          $("#eventsState").textContent="No events available right now.";
+        }else{
+          $("#eventsState").style.display="none";
+        }
+      }catch(e){
+        $("#eventsState").style.display="block";
+        $("#eventsState").textContent="Unable to load events. Check Firestore permissions and indexes.";
+      }
+    }
 
-  grid.querySelectorAll("button[data-act='details']").forEach(btn=>{
-    btn.onclick = ()=>{
-      openDetails(btn.getAttribute("data-id"));
+    $("#searchBox").addEventListener("input", ()=>{
+      state.search = $("#searchBox").value;
+      applyFilters();
+    });
+    $("#cityFilter").addEventListener("change", ()=>{
+      state.city = $("#cityFilter").value;
+      applyFilters();
+    });
+    $$(".chip[data-date]").forEach(c=>{
+      c.onclick=()=>{
+        $$(".chip[data-date]").forEach(x=>x.classList.remove("on"));
+        c.classList.add("on");
+        state.dateMode = c.dataset.date;
+        applyFilters();
+      };
+    });
+
+    /***********************
+      Details + Purchase
+    ************************/
+    function activeWaveForEvent(ev){
+      const waves = Array.isArray(ev.waves)? ev.waves : [];
+      const nowMs = now();
+      const active = waves.filter(w=>{
+        const s = w.startAt ? new Date(w.startAt).getTime() : -Infinity;
+        const e = w.endAt ? new Date(w.endAt).getTime() : Infinity;
+        return nowMs >= s && nowMs <= e && (w.active!==false);
+      });
+      // If owner doesn't use start/end times, allow waves with `active:true` or `active` omitted
+      if(active.length) return active[0];
+      const fallback = waves.find(w=>w.active===true) || waves.find(w=>w.active!==false) || null;
+      return fallback;
+    }
+
+    function renderDetails(ev){
+      // hero
+      $("#detailsHero").innerHTML = ev.bannerUrl ? `<img alt="" src="${esc(ev.bannerUrl)}">` : "";
+      $("#detailsLogo").innerHTML = ev.logoUrl ? `<img alt="" src="${esc(ev.logoUrl)}">` : `<div style="width:100%;height:100%;display:grid;place-items:center;font-weight:1000;color:rgba(248,250,252,.85)">L</div>`;
+      $("#detailsName").textContent = ev.name || "Event";
+      $("#detailsMeta").textContent = `${fmtDate(ev.dateISO)} • ${ev.venue||""}${ev.city?` • ${ev.city}`:""}`.trim();
+      const badges = [];
+      if(ev.status) badges.push(`<span class="badge green">${esc(ev.status)}</span>`);
+      if(ev.city) badges.push(`<span class="badge">${esc(ev.city)}</span>`);
+      if(ev.category) badges.push(`<span class="badge">${esc(ev.category)}</span>`);
+      $("#detailsBadges").innerHTML = badges.join("");
+
+      // tiers and waves
+      const tiers = Array.isArray(ev.tiers)? ev.tiers : [];
+      const wave = activeWaveForEvent(ev);
+
+      // Determine which tiers are currently active in this wave
+      const activeTierIds = wave?.tiersActive || tiers.map(t=>t.id);
+
+      // Build rows
+      const rows = tiers
+        .filter(t=>activeTierIds.includes(t.id))
+        .map(t=>{
+          const price = Number(t.price||0);
+          const currency = t.currency || ev.currency || "EGP";
+          const sold = (wave?.sold?.[t.id] ?? null);
+          const qty = (wave?.qty?.[t.id] ?? null);
+          const soldOut = (typeof sold==="number" && typeof qty==="number" && qty>0 && sold>=qty);
+          const meta = [
+            wave?.name ? `Wave: ${wave.name}` : null,
+            (typeof sold==="number" && typeof qty==="number") ? `Remaining: ${Math.max(0, qty - sold)} / ${qty}` : null
+          ].filter(Boolean).join(" • ");
+          return `
+            <div class="tierRow">
+              <div class="tierLeft">
+                <div class="tierName">${esc(t.name || t.id)}</div>
+                <div class="tierMeta">${esc(meta || "Available now")}</div>
+              </div>
+              <div class="tierRight">
+                <div class="price">${currency} ${price.toFixed(0)}</div>
+                <select class="input qtySel" data-tier="${esc(t.id)}" ${soldOut?"disabled":""}>
+                  ${[0,1,2,3,4,5].map(n=>`<option value="${n}">${n}</option>`).join("")}
+                </select>
+              </div>
+            </div>
+          `;
+        });
+
+      $("#tiersList").innerHTML = rows.length ? rows.join("") : `<div class="hint">No tiers available right now.</div>`;
+      state.buySelection = null;
+      $("#buyTotal").textContent = "—";
+
+      // selection logic
+      const qtySelects = $$('[data-tier]');
+      qtySelects.forEach(sel=>{
+        sel.onchange=()=>{
+          // only allow one tier at a time to keep checkout simple
+          qtySelects.forEach(o=>{ if(o!==sel) o.value="0"; });
+          const tid = sel.dataset.tier;
+          const qty = Number(sel.value||0);
+          if(!qty){
+            state.buySelection=null;
+            $("#buyTotal").textContent="—";
+            return;
+          }
+          const t = tiers.find(x=>x.id===tid);
+          const price = Number(t?.price||0);
+          const currency = t?.currency || ev.currency || "EGP";
+          state.buySelection = {
+            eventId: ev.id,
+            waveId: wave?.id || wave?.name || "default",
+            tierId: tid,
+            tierName: t?.name || tid,
+            waveName: wave?.name || "Wave",
+            qty,
+            price,
+            currency
+          };
+          $("#buyTotal").textContent = `${currency} ${(price*qty).toFixed(0)}`;
+        };
+      });
+    }
+
+    $("#btnBuy").onclick = async ()=>{
+      if(!state.user) return toast("Please sign in.");
+      const s = state.buySelection;
+      const ev = state.detailsEvent;
+      if(!ev) return toast("Event not loaded.");
+      if(!s || !s.qty) return toast("Select a ticket quantity first.");
+
+      if(!ev.published || !String(ev.status||"").toLowerCase().includes("sale") && !String(ev.status||"").toLowerCase().includes("live")){
+        return toast("This event is not available for purchase.");
+      }
+
+      setLoading($("#btnBuy"), true);
+      try{
+        // Create paid order (production payment integration should replace this stage, but the data model is ready)
+        // NOTE: For real payments, you would create an order with status:"pending_payment" then confirm via webhook.
+        const total = s.price * s.qty;
+        const orderRef = await addDoc(collection(db,"events", ev.id, "orders"), {
+          uid: state.user.uid,
+          email: state.user.email || "",
+          items: [{ tierId:s.tierId, tierName:s.tierName, waveId:s.waveId, waveName:s.waveName, qty:s.qty, price:s.price, currency:s.currency }],
+          total, currency:s.currency,
+          status: "paid",
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+
+        // Create user ticket
+        const ticketRef = await addDoc(collection(db,"users", state.user.uid, "tickets"), {
+          eventId: ev.id,
+          orderId: orderRef.id,
+          tierId: s.tierId,
+          tierName: s.tierName,
+          waveId: s.waveId,
+          waveName: s.waveName,
+          qty: s.qty,
+          status: "active",
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+
+        toast("Purchase successful. Ticket added to My Tickets.");
+        // refresh ticket list
+        await loadMyTickets();
+        renderMyTickets();
+        showApp("tickets");
+      }catch(e){
+        toast(e?.message || "Purchase failed.");
+      }finally{
+        setLoading($("#btnBuy"), false);
+      }
     };
-  });
-}
 
-/* ============ Details ============ */
-let currentDetails = null;
-function bannerHTML(ev){
-  const b = ev.bannerUrl ? `<img alt="" src="${escapeHtml(ev.bannerUrl)}">` : "";
-  return b || `<div style="height:100%;display:grid;place-items:center;color:var(--muted)">No banner image</div>`;
-}
-function openDetails(eventId){
-  const ev = getEvent(eventId);
-  if(!ev) return toast("Event not found");
-  currentDetails = ev;
-  route.eventId = eventId;
+    /***********************
+      My Tickets
+    ************************/
+    async function loadMyTickets(){
+      if(!state.user) return;
+      // Load tickets
+      const tSnap = await getDocs(query(
+        collection(db,"users", state.user.uid, "tickets"),
+        orderBy("createdAt","desc"),
+        limit(80)
+      ));
+      const tickets = tSnap.docs.map(d=>({ id:d.id, ...d.data() }));
 
-  $("#detailsBanner").innerHTML = bannerHTML(ev);
-  $("#detailsName").textContent = ev.name;
-  $("#detailsMeta").textContent = `${formatDate(ev.date)} • ${formatTime(ev.date)} • ${ev.venue} • ${ev.city}`;
+      // Load events referenced
+      const needed = Array.from(new Set(tickets.map(t=>t.eventId).filter(Boolean)));
+      const eventsById = {};
+      for(const eid of needed){
+        try{
+          const eDoc = await getDoc(doc(db,"events", eid));
+          if(eDoc.exists()) eventsById[eid] = { id:eid, ...eDoc.data() };
+        }catch(_){}
+      }
 
-  const wave = activeWave(ev);
-  $("#detailsWaveChip").innerHTML = `<b style="color:var(--ink)">${escapeHtml(wave?.name || "—")}</b>`;
-  $("#detailsStatus").textContent = wave?.status === "live" ? "Live" : (wave?.status==="upcoming" ? "Upcoming" : "Live");
-  $("#detailsStatus").className = "chip " + (wave?.status === "live" ? "info" : "warn");
+      // Load receipts (orders) referenced
+      const ordersByKey = {}; // `${eventId}:${orderId}`
+      for(const t of tickets){
+        if(!t.orderId || !t.eventId) continue;
+        const k = `${t.eventId}:${t.orderId}`;
+        if(ordersByKey[k]) continue;
+        try{
+          const oDoc = await getDoc(doc(db,"events", t.eventId, "orders", t.orderId));
+          if(oDoc.exists()) ordersByKey[k] = { id:t.orderId, ...oDoc.data() };
+        }catch(_){}
+      }
 
-  // Build tiers list and buy dropdown
-  const tiers = (wave?.tiers || []).map(t=>{
-    const sold = Number(t.sold||0), qty = Number(t.qty||0);
-    const soldout = (qty>0 && sold>=qty);
-    const avail = soldout ? "Sold out" : "Available";
-    const pillClass = soldout ? "soldout" : (wave?.status==="live" ? "live" : "upcoming");
-    const remaining = qty>0 ? Math.max(0, qty-sold) : null;
+      state._tickets = tickets.map(t=>{
+        const ev = eventsById[t.eventId] || null;
+        const ord = ordersByKey[`${t.eventId}:${t.orderId}`] || null;
+        return { ...t, event: ev, order: ord };
+      });
+    }
 
-    return {
-      ...t,
-      waveId: wave?.id || "w",
-      waveName: wave?.name || "Wave",
-      soldout,
-      pillClass,
-      avail,
-      remaining
-    };
-  });
-
-  $("#tiersList").innerHTML = tiers.map(t=>{
-    const remTxt = (t.remaining===null) ? "" : ` • <small>${t.remaining} left</small>`;
-    return `
-      <div class="tierRow">
-        <div>
-          <b>${escapeHtml(t.name)}</b>
-          <div class="muted" style="font-size:12px;margin-top:4px">
-            ${escapeHtml(t.waveName)} • ${money(t.price)}${remTxt}
-          </div>
-        </div>
-        <div class="right">
-          <span class="pill ${t.pillClass}">${t.avail}</span>
-        </div>
-      </div>
-    `;
-  }).join("") || `<div class="emptyState">No tiers found.</div>`;
-
-  const buyTier = $("#buyTier");
-  buyTier.innerHTML = tiers.map(t=>{
-    const disabled = (t.soldout || wave?.status!=="live") ? "disabled" : "";
-    const label = `${t.name} — ${money(t.price)}${t.soldout ? " (Sold out)" : ""}`;
-    return `<option value="${escapeHtml(t.id)}" data-price="${escapeHtml(t.price)}" data-wave="${escapeHtml(t.waveId)}" ${disabled}>${escapeHtml(label)}</option>`;
-  }).join("");
-
-  // Choose first enabled
-  const firstEnabled = Array.from(buyTier.options).find(o=>!o.disabled) || buyTier.options[0];
-  if(firstEnabled) buyTier.value = firstEnabled.value;
-
-  calcTotal();
-  setTab("details");
-}
-
-function calcTotal(){
-  const ev = currentDetails;
-  if(!ev) return;
-  const tierId = $("#buyTier").value;
-  const qty = Number($("#buyQty").value || 1);
-  const wave = activeWave(ev);
-  const tier = (wave?.tiers || []).find(t=>t.id===tierId);
-  const total = (Number(tier?.price||0) * qty);
-  $("#buyTotal").value = total ? money(total) : "—";
-}
-$("#buyTier").addEventListener("change", calcTotal);
-$("#buyQty").addEventListener("change", calcTotal);
-
-function doPurchase(){
-  const u = currentUser();
-  if(!u){ toast("Please sign in"); return; }
-  const ev = currentDetails;
-  if(!ev){ toast("No event selected"); return; }
-
-  const wave = activeWave(ev);
-  if(!wave || wave.status!=="live"){ toast("This event is not available for purchase right now"); return; }
-
-  const tierId = $("#buyTier").value;
-  const qty = Number($("#buyQty").value || 1);
-  const tier = (wave.tiers||[]).find(t=>t.id===tierId);
-  if(!tier){ toast("Tier not found"); return; }
-
-  const sold = Number(tier.sold||0), capacity = Number(tier.qty||0);
-  if(capacity>0 && sold>=capacity){ toast("Sold out", "This tier is sold out."); return; }
-  if(capacity>0 && (sold + qty) > capacity){ toast("Not enough tickets", "Try a smaller quantity."); return; }
-
-  // Update sold (demo)
-  tier.sold = sold + qty;
-
-  const total = Number(tier.price||0) * qty;
-  const ticket = {
-    id: uid("tkt"),
-    receiptId: uid("rcpt"),
-    userId: u.id,
-    eventId: ev.id,
-    eventName: ev.name,
-    eventDate: ev.date,
-    city: ev.city,
-    venue: ev.venue,
-    bannerUrl: ev.bannerUrl || "",
-    tierId: tier.id,
-    tierName: tier.name,
-    waveId: wave.id,
-    waveName: wave.name,
-    qty,
-    total,
-    createdAt: nowISO()
-  };
-  STATE.purchases.push(ticket);
-  saveState(STATE);
-
-  toast("Purchase complete", "Ticket added to My Tickets.", "info");
-  renderHome();
-  renderTickets();
-  setTab("tickets");
-}
-
-/* ============ My Tickets ============ */
-function ticketCard(t){
-  const dateTxt = `${formatDate(t.eventDate)} • ${formatTime(t.eventDate)}`;
-  const banner = t.bannerUrl ? `<img alt="" src="${escapeHtml(t.bannerUrl)}">` : ``;
-  const logo = `<svg width="20" height="20" style="opacity:.9"><use href="#i-ticket"/></svg>`;
-
-  return `
-    <div class="eventCard">
-      <div class="eventBanner">${banner}<div class="eventLogo">${logo}</div></div>
-      <div class="eventBody">
-        <div class="eventTitle">
-          <div style="min-width:0">
-            <b>${escapeHtml(t.eventName)}</b>
-            <div class="eventMeta" style="margin-top:8px">
-              <div class="row">${escapeHtml(dateTxt)}</div>
-              <div class="row">${escapeHtml(t.venue)} • ${escapeHtml(t.city)}</div>
-              <div class="row"><span class="chip good"><b style="color:var(--ink)">${escapeHtml(t.tierName)}</b></span> <span class="chip">${escapeHtml(t.waveName)}</span></div>
+    function renderMyTickets(){
+      const grid=$("#ticketsGrid");
+      const list = state._tickets || [];
+      $("#ticketsEmpty").classList.toggle("hidden", list.length>0);
+      grid.innerHTML = list.map(t=>{
+        const ev = t.event || {};
+        const dateTxt = fmtDate(ev.dateISO);
+        const meta = `${dateTxt} • ${ev.venue||""}`.trim();
+        return `
+          <div class="ticketCard">
+            <div class="ticketTop">
+              <div>
+                <b>${esc(ev.name || "Event")}</b>
+                <div class="meta">${esc(meta)}</div>
+              </div>
+              <div class="pill"><b>${esc(t.tierName || t.tierId || "Ticket")}</b> • x${esc(t.qty||1)}</div>
+            </div>
+            <div class="ticketBody">
+              <div class="hint">${esc(t.waveName || "Wave")} • Status: ${esc(t.status||"active")}</div>
+              <button class="btn primary" data-open-ticket="${esc(t.id)}">Open Ticket</button>
             </div>
           </div>
-        </div>
+        `;
+      }).join("");
 
-        <div class="eventActions">
-          <button class="btn primary sm" data-act="openTicket" data-id="${escapeHtml(t.id)}">Open Ticket</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-function renderTickets(){
-  const list = myTickets();
-  $("#countTickets").textContent = String(list.length);
-  const grid = $("#ticketsGrid");
-  grid.innerHTML = list.map(ticketCard).join("");
-  $("#ticketsEmpty").classList.toggle("hidden", list.length !== 0);
-
-  grid.querySelectorAll("button[data-act='openTicket']").forEach(btn=>{
-    btn.onclick = ()=> openTicket(btn.getAttribute("data-id"));
-  });
-}
-
-/* ============ Ticket Screen (dynamic QR placeholder) ============ */
-let qrTimer = null;
-let qrTick = null;
-let qrRemaining = QR_PERIOD;
-let currentTicket = null;
-
-function randomTokenHex(bytes=16){
-  const arr = new Uint8Array(bytes);
-  crypto.getRandomValues(arr);
-  return Array.from(arr).map(x=>x.toString(16).padStart(2,"0")).join("");
-}
-function setQRVisual(){
-  // Change the inner "pattern" by updating background positions (visual only)
-  const token = randomTokenHex(QR_BYTES);
-  const el = $("#qrInner");
-  el.style.backgroundPosition = `${Math.floor(Math.random()*40)}px ${Math.floor(Math.random()*40)}px, ${Math.floor(Math.random()*40)}px ${Math.floor(Math.random()*40)}px`;
-  el.setAttribute("data-token", token); // still not visible; for debug if needed
-}
-function updateRing(){
-  const circ = 2 * Math.PI * 26; // ~163.36
-  const prog = qrRemaining / QR_PERIOD;
-  $("#secs").textContent = String(qrRemaining);
-  $("#ring").setAttribute("stroke-dasharray", String(circ));
-  $("#ring").setAttribute("stroke-dashoffset", String(circ * (1 - prog)));
-}
-function stopQR(){
-  if(qrTimer){ clearInterval(qrTimer); qrTimer = null; }
-  if(qrTick){ clearInterval(qrTick); qrTick = null; }
-}
-function startQR(){
-  stopQR();
-  qrRemaining = QR_PERIOD;
-  setQRVisual();
-  updateRing();
-
-  qrTick = setInterval(()=>{
-    qrRemaining = Math.max(0, qrRemaining - 1);
-    updateRing();
-    if(qrRemaining <= 0){
-      qrRemaining = QR_PERIOD;
-      setQRVisual();
-      updateRing();
+      grid.querySelectorAll("[data-open-ticket]").forEach(b=>{
+        b.onclick=()=>gotoTicket(b.dataset.openTicket);
+      });
     }
-  }, 1000);
-}
-function openTicket(ticketId){
-  const t = getTicket(ticketId);
-  if(!t){ toast("Ticket not found"); return; }
-  currentTicket = t;
 
-  $("#ticketBanner").innerHTML = t.bannerUrl ? `<img alt="" src="${escapeHtml(t.bannerUrl)}">` : `<div style="height:100%;display:grid;place-items:center;color:var(--muted)">No banner image</div>`;
-  $("#ticketEventName").textContent = t.eventName;
-  $("#ticketMeta").textContent = `${formatDate(t.eventDate)} • ${formatTime(t.eventDate)} • ${t.venue} • ${t.city}`;
+    /***********************
+      Ticket View + Dynamic QR
+    ************************/
+    async function mintQrToken(){
+      const tv = state.ticketView;
+      if(!tv || !state.user) return;
+      const canvas = $("#qrCanvas");
+      const status = $("#qrStatus");
 
-  $("#ticketTier").textContent = `${t.tierName} • ${t.waveName}`;
-  $("#ticketQty").textContent = String(t.qty);
-  $("#ticketId").textContent = t.id;
-  $("#ticketWhen").textContent = `${formatDate(t.createdAt)} • ${formatTime(t.createdAt)}`;
+      // Production contract: QR token must be minted by backend for security.
+      if(!QR_TOKEN_ENDPOINT){
+        status.textContent = "QR token endpoint is not configured.";
+        return;
+      }
 
-  setTab("ticket");
-  startQR();
-}
-function closeTicket(){
-  stopQR();
-  currentTicket = null;
-}
+      try{
+        status.textContent = "Generating secure token…";
+        const idToken = await state.user.getIdToken(true);
+        const res = await fetch(QR_TOKEN_ENDPOINT, {
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "Authorization": `Bearer ${idToken}`
+          },
+          body: JSON.stringify({
+            ticketId: tv.id,
+            eventId: tv.eventId,
+            orderId: tv.orderId
+          })
+        });
+        if(!res.ok){
+          const txt = await res.text().catch(()=> "");
+          throw new Error(txt || "Token mint failed.");
+        }
+        const data = await res.json();
+        const token = data?.token;
+        const expiresAt = Number(data?.expiresAt || 0);
+        if(!token || !expiresAt) throw new Error("Invalid token response.");
+        state.qrExpiresAt = expiresAt;
 
-/* ============ Receipt Modal ============ */
-function openReceipt(){
-  const t = currentTicket;
-  if(!t){ return toast("No ticket open"); }
-  $("#rId").textContent = t.receiptId;
-  $("#rEvent").textContent = t.eventName;
-  $("#rTier").textContent = `${t.tierName} • ${t.waveName}`;
-  $("#rQty").textContent = String(t.qty);
-  $("#rTotal").textContent = money(t.total);
-  $("#rWhen").textContent = `${formatDate(t.createdAt)} • ${formatTime(t.createdAt)}`;
-  const u = currentUser();
-  $("#rCustomer").textContent = u ? `${u.name} • ${u.email}` : "—";
-  $("#receiptModal").classList.add("open");
-  $("#receiptModal").setAttribute("aria-hidden","false");
-}
-function closeReceipt(){
-  $("#receiptModal").classList.remove("open");
-  $("#receiptModal").setAttribute("aria-hidden","true");
-}
+        // Render QR
+        await QRCode.toCanvas(canvas, token, {
+          errorCorrectionLevel:"M",
+          margin:1,
+          width:240
+        });
 
-/* ============ Profile ============ */
-function renderProfile(){
-  const u = currentUser();
-  $("#pName").textContent = u?.name || "—";
-  $("#pEmail").textContent = u?.email || "—";
-  $("#supportLink").href = SUPPORT_URL;
-}
-
-/* ============ App init & events ============ */
-function showApp(){
-  const u = currentUser();
-  if(!u){ showAuth(); return; }
-  screens.auth.classList.add("hidden");
-  screens.app.classList.remove("hidden");
-  $("#whoChip").innerHTML = `<b style="color:var(--ink)">${escapeHtml(u.name)}</b>`;
-  renderProfile();
-  buildCityOptions();
-  renderHome();
-  renderTickets();
-  setTab("home");
-}
-function showAuth(){
-  screens.app.classList.add("hidden");
-  screens.auth.classList.remove("hidden");
-}
-
-function authTab(name){
-  $$("#auth .tabBtn").forEach(b=> b.classList.toggle("active", b.dataset.authTab===name));
-  $("#auth-signin").classList.toggle("hidden", name!=="signin");
-  $("#auth-signup").classList.toggle("hidden", name!=="signup");
-  $("#auth-forgot").classList.toggle("hidden", name!=="forgot");
-}
-
-/* Auth listeners */
-$$("#auth .tabBtn").forEach(btn=>{
-  btn.onclick = ()=> authTab(btn.dataset.authTab);
-});
-$("#go-signin").onclick = (e)=>{ e.preventDefault(); authTab("signin"); };
-$("#go-signin2").onclick = (e)=>{ e.preventDefault(); authTab("signin"); };
-
-$("#form-signin").addEventListener("submit", (e)=>{
-  e.preventDefault();
-  const email = ($("#signin-email").value||"").trim().toLowerCase();
-  const pass = ($("#signin-pass").value||"").trim();
-  const u = STATE.users.find(x=>x.email.toLowerCase()===email && x.pass===pass);
-  if(!u){ toast("Invalid login", "Check your email/password (demo: demo@luma.com / demo123)"); return; }
-  setSession(u);
-  toast("Signed in", `Welcome back, ${u.name}.`);
-  showApp();
-});
-
-$("#btn-quick-demo").onclick = ()=>{
-  const u = STATE.users.find(x=>x.id==="u_demo") || STATE.users[0];
-  setSession(u);
-  toast("Demo mode", "Signed in as Demo Customer.");
-  showApp();
-};
-
-$("#form-signup").addEventListener("submit",(e)=>{
-  e.preventDefault();
-  const name = ($("#signup-name").value||"").trim();
-  const email = ($("#signup-email").value||"").trim().toLowerCase();
-  const pass = ($("#signup-pass").value||"").trim();
-  if(!name || !email || pass.length<6){ toast("Check your input"); return; }
-  if(STATE.users.some(u=>u.email.toLowerCase()===email)){ toast("Email already in use"); return; }
-  const u = { id: uid("u"), name, email, pass };
-  STATE.users.push(u);
-  saveState(STATE);
-  setSession(u);
-  toast("Account created", "Welcome to Luma Tickets.");
-  showApp();
-});
-
-$("#form-forgot").addEventListener("submit",(e)=>{
-  e.preventDefault();
-  const email = ($("#forgot-email").value||"").trim().toLowerCase();
-  toast("Reset link sent (simulated)", `If ${email} exists, a reset link would be sent.`);
-  authTab("signin");
-});
-
-/* App nav */
-$$("#app .tabs .subTab").forEach(btn=>{
-  btn.onclick = ()=>{
-    const t = btn.dataset.tab;
-    stopQR();
-    if(t==="home"){ setTab("home"); renderHome(); }
-    if(t==="tickets"){ setTab("tickets"); renderTickets(); }
-    if(t==="profile"){ setTab("profile"); renderProfile(); }
-  };
-});
-
-$("#btnBackHome").onclick = ()=>{
-  currentDetails = null;
-  setTab("home");
-  renderHome();
-};
-$("#btnGoTickets").onclick = ()=>{ setTab("tickets"); renderTickets(); };
-$("#btnPurchase").onclick = doPurchase;
-
-$("#btnBackTickets").onclick = ()=>{
-  closeTicket();
-  setTab("tickets");
-  renderTickets();
-};
-
-$("#btnReceipt").onclick = openReceipt;
-$("#btnCloseReceipt").onclick = closeReceipt;
-$("#btnCloseReceipt2").onclick = closeReceipt;
-$("#receiptModal").addEventListener("click",(e)=>{
-  if(e.target === $("#receiptModal")) closeReceipt();
-});
-
-/* Top sign out */
-function doLogout(){
-  stopQR();
-  clearSession();
-  toast("Signed out");
-  showAuth();
-}
-$("#btnSignOutTop").onclick = doLogout;
-$("#btnLogoutProfile").onclick = doLogout;
-
-/* Filters */
-$("#q").addEventListener("input", ()=> renderHome());
-$("#city").addEventListener("change", ()=> renderHome());
-$$(".seg button").forEach(b=>{
-  b.onclick = ()=>{
-    $$(".seg button").forEach(x=>x.classList.remove("active"));
-    b.classList.add("active");
-    filterWhen = b.dataset.when;
-    renderHome();
-  };
-});
-
-/* Ensure year */
-$("#year").textContent = String(new Date().getFullYear());
-$("#year2").textContent = String(new Date().getFullYear());
-
-/* On load */
-(function boot(){
-  // keep state fresh (in case another tab updated it)
-  window.addEventListener("storage", (e)=>{
-    if(e.key===STORAGE_KEY){
-      STATE = loadState() || STATE;
-      if(currentUser()) { buildCityOptions(); renderHome(); renderTickets(); renderProfile(); }
+        status.textContent = "Live ticket • Present this at the gate.";
+      }catch(e){
+        status.textContent = "Unable to generate QR token.";
+      }
     }
-  });
 
-  // Auto show appropriate screen
-  if(currentUser()) showApp();
-  else showAuth();
-})();
-</script>
+    function startQr(){
+      stopQr();
+      // countdown tick
+      const prog = document.querySelector(".ring .prog");
+      const cd = $("#qrCountdown");
+
+      const tick = ()=>{
+        const remainMs = Math.max(0, state.qrExpiresAt - now());
+        const remainS = Math.ceil(remainMs/1000);
+        const total = 30;
+        const pct = Math.min(1, Math.max(0, remainS/total));
+        cd.textContent = `${remainS || 0}s`;
+
+        // ring stroke
+        const r = 42;
+        const circ = 2 * Math.PI * r;
+        prog.style.strokeDasharray = `${circ}`;
+        prog.style.strokeDashoffset = `${circ * (1 - pct)}`;
+
+        if(remainS<=0){
+          // next mint will be scheduled below
+        }
+      };
+
+      // mint immediately then every 30s
+      mintQrToken();
+      state.qrTimer = setInterval(mintQrToken, 30000);
+      state.qrTick = setInterval(tick, 200);
+      // initialize ring
+      state.qrExpiresAt = now() + 30000;
+      tick();
+    }
+
+    function stopQr(){
+      if(state.qrTimer) clearInterval(state.qrTimer);
+      if(state.qrTick) clearInterval(state.qrTick);
+      state.qrTimer=null;
+      state.qrTick=null;
+      state.qrExpiresAt=0;
+    }
+
+    function renderTicketView(t){
+      const ev = t.event || {};
+      $("#tvEventName").textContent = ev.name || "Event";
+      $("#tvEventMeta").textContent = `${fmtDate(ev.dateISO)} • ${ev.venue||""}${ev.city?` • ${ev.city}`:""}`.trim();
+      $("#tvTier").textContent = t.tierName || t.tierId || "—";
+      $("#tvWave").textContent = t.waveName || t.waveId || "—";
+      $("#tvQty").textContent = String(t.qty || 1);
+      $("#tvStatus").textContent = t.status || "active";
+
+      const ord = t.order || {};
+      const total = ord.total != null ? `${ord.currency || ev.currency || "EGP"} ${Number(ord.total).toFixed(0)}` : "—";
+      const st = ord.status || "—";
+      $("#rcMeta").textContent = `Order: ${t.orderId || "—"} • Status: ${st} • Total: ${total}`;
+
+      $("#btnViewReceipt").onclick=()=>{
+        // Receipt in production should be a dedicated receipt page on your domain, or a secure hosted view.
+        // This app intentionally avoids download buttons (per spec).
+        if(ord.receiptUrl){
+          window.open(ord.receiptUrl, "_blank", "noopener");
+        }else{
+          toast("Receipt link is not available.");
+        }
+      };
+    }
+
+    /***********************
+      Profile
+    ************************/
+    async function loadProfile(){
+      if(!state.user) return;
+      const ref = doc(db,"users", state.user.uid);
+      try{
+        const snap = await getDoc(ref);
+        state.profile = snap.exists() ? snap.data() : null;
+      }catch(_){
+        state.profile = null;
+      }
+      const name = state.user.displayName || state.profile?.name || "—";
+      $("#pfName").textContent = name;
+      $("#pfEmail").textContent = state.user.email || "—";
+    }
+
+    /***********************
+      Boot
+    ************************/
+    $("#supportLink").href = SUPPORT_URL || "#";
+    $("#supportLink").onclick = (e)=>{
+      if(!SUPPORT_URL){ e.preventDefault(); toast("Support link is not configured."); }
+    };
+
+    onAuthStateChanged(auth, async (user)=>{
+      state.user = user || null;
+
+      stopQr();
+
+      if(!user){
+        $("#pillUser").style.display="none";
+        $("#tabs").classList.add("hidden");
+        show("screenAuth");
+        authMode("signin");
+        return;
+      }
+
+      $("#pillUser").style.display="inline-flex";
+      $("#pillEmail").textContent = user.email || "Signed in";
+
+      // Load profile
+      await loadProfile();
+
+      // Load marketplace
+      show("screenApp");
+      showApp("home");
+      await loadMarketplaceEvents();
+
+      // Load tickets (background)
+      try{ await loadMyTickets(); }catch(_){}
+    });
+
+    // Safety: stop timers if page hidden
+    document.addEventListener("visibilitychange", ()=>{
+      if(document.hidden) stopQr();
+      else if(!$("#screenTicketView").classList.contains("hidden")) startQr();
+    });
+  </script>
 </body>
 </html>
