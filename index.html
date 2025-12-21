@@ -3535,8 +3535,6 @@ function renderEventWorkspace(){
   $("#evStatusBadge").className = "badge " + statusBadgeClass(ev.status);
   $("#evStatusBadge").innerHTML = `<strong>${escapeHtml(statusText(ev.status))}</strong>`;
 }
-}
-
   $("#evName").textContent = ev.name;
   $("#evMeta").textContent = `${ev.date}${ev.time?` • ${ev.time}`:""} • ${ev.venue}`;
   $("#evStatusBadge").className = "badge " + statusBadgeClass(ev.status);
