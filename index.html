@@ -2983,10 +2983,23 @@ function setAuthTab(tab){
 }
 
 function authInit(){
-  if(document.getElementById("year")) document.getElementById("year")?.textContent = new Date().getFullYear();
-  $$(".tabBtn").forEach(b=>b.addEventListener("click", ()=> setAuthTab(b.dataset.authTab)));
-  $("#go-signin")?.addEventListener("click", (e)=>{ e.preventDefault(); setAuthTab("signin"); });
-  $("#go-signin2")?.addEventListener("click", (e)=>{ e.preventDefault(); setAuthTab("signin"); });
+  const y = document.getElementById("year");
+  if (y) y.textContent = new Date().getFullYear();
+
+  $$(".tabBtn").forEach(b =>
+    b.addEventListener("click", () => setAuthTab(b.dataset.authTab))
+  );
+
+  $("#go-signin")?.addEventListener("click", (e)=>{
+    e.preventDefault();
+    setAuthTab("signin");
+  });
+
+  $("#go-signin2")?.addEventListener("click", (e)=>{
+    e.preventDefault();
+    setAuthTab("signin");
+  });
+}
 
   // Signup
   $("#form-signup")?.addEventListener("submit", async (e)=>{
