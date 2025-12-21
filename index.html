@@ -884,7 +884,20 @@
     /* Utility */
     .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .nowrap{white-space:nowrap}
-  </style>
+  
+/* --- Fix: dark dropdowns + full scroll --- */
+select, option{
+  background-color: rgba(11,16,32,.96);
+  color: var(--ink);
+}
+select{
+  border: 1px solid rgba(255,255,255,.14);
+}
+option{ background-color: rgba(11,16,32,.98); }
+.content{ overflow:auto; }
+#dash{ min-height:100vh; }
+
+</style>
 </head>
 <body>
 
@@ -1226,7 +1239,14 @@
       </div>
       <div class="navItem" data-route="analytics">
         <div class="ic"><svg width="18" height="18"><use href="#i-chart"/></svg></div>
+        <div class="navItem" data-route="demo">
+        <div class="ic"><svg width="18" height="18"><use href="#i-play"/></svg></div>
         <div class="txt">
+          <b>Demo</b>
+          <small>Sandbox</small>
+        </div>
+      </div>
+<div class="txt">
           <b>Analytics</b>
           <span>Overview across events</span>
         </div>
@@ -1253,7 +1273,7 @@
       </div>
 
       <div class="topActions">
-        <button class="btn sm ghost" id="btnSimulate" title="Simulate live activity">
+        <button class="btn sm ghost" id="btnDemo" title="Open Demo Sandbox">
           <svg width="18" height="18"><use href="#i-bell"/></svg>
           Simulate
         </button>
@@ -1424,8 +1444,33 @@
           </div>
         </div>
 
-        <div style="height:12px"></div>
-        <div class="grid cols2">
+        <div style="height:12px">
+          </div>
+          <div class="card" style="grid-column:1/-1;margin-top:12px">
+            <div class="cardBody">
+              <div class="split">
+                <div>
+                  <b>Status</b>
+                  <div class="muted small" style="margin-top:6px">Draft → On Sale → Live → Ended. Live is allowed on (or after) the event date.</div>
+                </div>
+                <div class="right" style="gap:10px;flex-wrap:wrap">
+                  <span class="chip info" id="ovStatusChip">Draft</span>
+                  <button class="btn sm" id="btnSetOnSale">Set On Sale</button>
+                  <button class="btn sm primary" id="btnGoLive">Go Live</button>
+                  <button class="btn sm danger" id="btnEndEvent">End</button>
+                </div>
+              </div>
+              <div class="hr"></div>
+              <div class="row" style="justify-content:space-between;gap:12px;flex-wrap:wrap">
+                <div class="muted small"><b>Venue:</b> <span id="ovVenue">—</span></div>
+                <div class="muted small"><b>Date:</b> <span id="ovDate">—</span></div>
+                <div class="muted small"><b>Location:</b> <a class="link" href="#" id="ovMapsLink" target="_blank" rel="noopener">Open in Maps</a></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid cols2">
+
           <div class="card">
             <div class="cardHead">
               <div>
@@ -1549,7 +1594,48 @@
       </div>
 
       <!-- Event Workspace -->
-      <div id="page-event" class="hidden">
+      <div 
+      <!-- Demo (Sandbox) -->
+      <div id="page-demo" class="hidden">
+        <div class="split">
+          <div>
+            <h2 style="margin:0;font-size:18px">Demo Sandbox</h2>
+            <div class="muted small" style="margin-top:6px">This sandbox is <b>separate</b> from your real events. Demo changes do not touch your owner data.</div>
+          </div>
+          <div class="right">
+            <button class="btn" id="btnExitDemo"><svg width="18" height="18"><use href="#i-back"/></svg> Exit Demo</button>
+          </div>
+        </div>
+        <div class="hr"></div>
+
+        <div class="grid cols2">
+          <div class="card">
+            <div class="cardBody">
+              <b>Start here</b>
+              <div class="muted small" style="margin-top:6px">Load sample data, then use the normal Events Hub and Event Workspace to click around.</div>
+              <div class="row" style="margin-top:12px;gap:10px;flex-wrap:wrap">
+                <button class="btn primary" id="btnEnterDemo"><svg width="18" height="18"><use href="#i-play"/></svg> Load Demo Dataset</button>
+                <button class="btn" id="btnDemoSim"><svg width="18" height="18"><use href="#i-bolt"/></svg> Start / Stop Simulation</button>
+                <button class="btn danger" id="btnDemoReset"><svg width="18" height="18"><use href="#i-trash"/></svg> Reset Demo</button>
+              </div>
+              <div class="hint" style="margin-top:12px">Tip: Demo mode is isolated (local only). Exit demo to get back to your real data.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="cardBody">
+              <b>Use cases</b>
+              <ul class="muted small" style="margin:10px 0 0 18px;line-height:1.7">
+                <li>UX testing (buttons, filters, exports)</li>
+                <li>Client preview without touching real data</li>
+                <li>Staff training & onboarding</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+id="page-event" class="hidden">
 
         <div class="workspaceTop">
           <div class="wsTitle">
@@ -2334,6 +2420,16 @@ function ownerDocRef(uid){
 
 const $ = (q, el=document)=>el.querySelector(q);
 const $$ = (q, el=document)=>Array.from(el.querySelectorAll(q));
+const on = (sel, evt, fn)=>{
+  const el = (typeof sel==="string") ? $(sel) : sel;
+  if(!el) return null;
+  el.__wired = el.__wired || {};
+  const key = evt;
+  if(el.__wired[key]) return el;
+  el.__wired[key] = true;
+  el.addEventListener(evt, fn);
+  return el;
+};
 // Make helpers available to non-module scripts too
 window.$ = $; window.$$ = $$;
 
@@ -2351,11 +2447,28 @@ const fmtTime = (d=new Date())=>{
   return `${yy}-${mo}-${dd} • ${hh}:${mm}`;
 };
 const uid = (p="") => p + Math.random().toString(16).slice(2,10).toUpperCase();
+
+const slugId = (...parts)=>{
+  const raw = parts.filter(Boolean).join(" ").toLowerCase().trim();
+  const slug = raw
+    .normalize("NFKD").replace(/[̀-ͯ]/g,"")
+    .replace(/[^a-z0-9]+/g,"-")
+    .replace(/(^-|-$)/g,"")
+    .slice(0,48) || "event";
+  return slug;
+};
+
+const mapsLink = (q)=>{
+  const qq = encodeURIComponent(q || "");
+  const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  return isiOS ? `http://maps.apple.com/?q=${qq}` : `https://www.google.com/maps/search/?api=1&query=${qq}`;
+};
 const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
 const safe = s => (s ?? "").toString();
 
 const STORAGE = {
   userKey: "luma_owner_user",
+  demoKey: "luma_owner_demo_v1",
   authKey: "luma_owner_auth",
   dataKey: "luma_owner_data_v1",
 };
@@ -2671,6 +2784,13 @@ function seedInitialLogs(ev){
 
 
 async function loadData(){
+  // Demo mode: always use local demo storage
+  if(state.demoMode){
+    const raw = localStorage.getItem(STORAGE.demoKey);
+    if(raw) return safeParseJSON(raw, defaultDemoData());
+    return defaultDemoData();
+  }
+
   // Demo mode: local only
   if(window.__demoMode) return defaultDemoData();
 
@@ -2703,6 +2823,12 @@ async function loadData(){
 
 let __saveTimer = null;
 function saveData(){
+  // Demo mode: save only to demo localStorage (never Firestore)
+  if(state.demoMode){
+    localStorage.setItem(STORAGE.demoKey, JSON.stringify(data));
+    return;
+  }
+
   // Debounced save (keeps UI snappy)
   clearTimeout(__saveTimer);
   __saveTimer = setTimeout(async ()=>{
@@ -2950,6 +3076,7 @@ function setRoute(route){
   $("#page-workspace").classList.toggle("hidden", route!=="workspace");
   $("#page-notifications").classList.toggle("hidden", route!=="notifications");
   $("#page-analytics").classList.toggle("hidden", route!=="analytics");
+  $("#page-demo").classList.toggle("hidden", route!=="demo");
   $("#page-event").classList.toggle("hidden", route!=="event");
 
   $("#sideSubtitle").textContent =
@@ -2957,6 +3084,7 @@ function setRoute(route){
     route==="workspace" ? "Workspace" :
     route==="notifications" ? "Attention" :
     route==="analytics" ? "Analytics" :
+    route==="demo" ? "Demo Sandbox" :
     route==="event" ? "Event Workspace" : "Dashboard";
 
   const crumb =
@@ -2964,10 +3092,12 @@ function setRoute(route){
     route==="workspace" ? `Select an event to open its <b>Workspace</b>` :
     route==="notifications" ? `You are in <b>What needs attention</b>` :
     route==="analytics" ? `You are in <b>Analytics</b>` :
+    route==="demo" ? `You are in <b>Demo Sandbox</b> (separate from real data)` :
     route==="event" ? `You are in <b>Event Workspace</b>` : `Dashboard`;
   $("#crumb").innerHTML = crumb;
 
   if(route==="analytics") renderAllAnalytics();
+  if(route==="demo") renderDemoPage();
   if(route==="notifications") renderAttentionPage();
   if(route==="workspace") renderWorkspacePicker();
   if(route==="hub") renderHub();
@@ -3020,6 +3150,22 @@ function statusBadgeClass(s){
   return "";
 }
 function statusText(s){ return s || "Draft"; }
+
+
+function normalizeEventStatus(ev){
+  // Auto-end after the event date passes (based on device local date in YYYY-MM-DD)
+  try{
+    const today = new Date();
+    const yy = today.getFullYear();
+    const mo = String(today.getMonth()+1).padStart(2,"0");
+    const dd = String(today.getDate()).padStart(2,"0");
+    const t = `${yy}-${mo}-${dd}`;
+    if(ev.date && ev.date < t && ev.status !== "Ended"){
+      ev.status = "Ended";
+      addActivity(ev, "Event ended", "Auto-ended after event date.", "info");
+    }
+  }catch(_){}
+}
 
 function initials(name){
   const parts = (name||"").trim().split(/\s+/).filter(Boolean);
@@ -3095,6 +3241,7 @@ function renderHub(){
   }
 
   for(const ev of list){
+    normalizeEventStatus(ev);
     const sold = eventSold(ev);
     const checkins = eventCheckins(ev);
     const net = eventNet(ev);
@@ -3116,10 +3263,9 @@ function renderHub(){
             <b style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(ev.name)}</b>
             <div class="eventMeta">
               <div class="row"><span class="chip ${badgeClass}">${escapeHtml(statusText(ev.status))}</span></div>
-              <div class="row"><span class="muted2">Date:</span> ${escapeHtml(ev.date)}</div>
+              <div class="row"><span class="muted2">Date:</span> ${escapeHtml(ev.date)}${ev.time?` • ${escapeHtml(ev.time)}`:""}</div>
               <div class="row"><span class="muted2">Venue:</span> ${escapeHtml(ev.venue)}</div>
-              <div class="row"><span class="muted2">Event ID:</span> <span class="mono">${escapeHtml(ev.id)}</span></div>
-            </div>
+              ${ev.locationText?`<div class="row"><span class="muted2">Location:</span> <a class="link" href="${mapsLink(ev.locationText)}" target="_blank" rel="noopener">${escapeHtml(ev.locationText)}</a></div>`:""}            </div>
           </div>
         </div>
 
@@ -3178,6 +3324,7 @@ function openEventWorkspace(eventId){
 
 function renderEventWorkspace(){
   const ev = currentEvent();
+  if(ev) normalizeEventStatus(ev);
   if(!ev){
     toast("Event not found", "Please select another event.");
     setRoute("hub");
@@ -3185,9 +3332,30 @@ function renderEventWorkspace(){
   }
 
   $("#evName").textContent = ev.name;
-  $("#evMeta").textContent = `${ev.date} • ${ev.venue} • ID ${ev.id}`;
+  $("#evMeta").textContent = `${ev.date}${ev.time?` • ${ev.time}`:""} • ${ev.venue}`;
   $("#evStatusBadge").className = "badge " + statusBadgeClass(ev.status);
   $("#evStatusBadge").innerHTML = `<strong>${escapeHtml(statusText(ev.status))}</strong>`;
+
+
+  // Overview status panel
+  if($("#ovStatusChip")){
+    $("#ovStatusChip").className = "chip " + (ev.status==="Live"?"good":(ev.status==="On Sale"?"info":(ev.status==="Ended"?"danger":"")));
+    $("#ovStatusChip").textContent = statusText(ev.status);
+    $("#ovVenue").textContent = ev.venue || "—";
+    $("#ovDate").textContent = `${ev.date}${ev.time?` • ${ev.time}`:""}`.trim();
+    const loc = ev.locationText || ev.venue || "";
+    $("#ovMapsLink").href = loc ? mapsLink(loc) : "#";
+    $("#ovMapsLink").style.pointerEvents = loc ? "auto" : "none";
+    $("#ovMapsLink").style.opacity = loc ? "1" : ".5";
+
+    const today = (()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
+    const canLive = (ev.date && ev.date <= today);
+
+    // enable/disable buttons
+    $("#btnSetOnSale").disabled = isReadOnly() || ev.status!=="Draft";
+    $("#btnGoLive").disabled = isReadOnly() || !canLive || (ev.status==="Live") || (ev.status==="Ended");
+    $("#btnEndEvent").disabled = isReadOnly() || ev.status==="Ended";
+  }
 
   // lock event-level actions in Viewer mode
   lockIfReadOnly($("#btnEditEvent"));
@@ -4376,7 +4544,7 @@ function renderDesignStudio(ev){
   lockIfReadOnly($("#btnPublishDesign"));
 
   if(!$("#btnSaveDesign")._wired){
-    $("#btnSaveDesign").addEventListener("click", ()=>{
+    on("#btnSaveDesign","click", ()=>{
       if(isReadOnly()) return;
       const draft = getDesignDraft(ev);
       Object.assign(ev.design, draft, { updatedAt: nowISO() });
@@ -4388,7 +4556,7 @@ function renderDesignStudio(ev){
     $("#btnSaveDesign")._wired = true;
   }
   if(!$("#btnPublishDesign")._wired){
-    $("#btnPublishDesign").addEventListener("click", ()=>{
+    on("#btnPublishDesign","click", ()=>{
       if(isReadOnly()) return;
       const draft = getDesignDraft(ev);
       Object.assign(ev.design, draft, { updatedAt: nowISO(), published:true });
@@ -4935,79 +5103,65 @@ function exportAllFinance(){
     const net = gross-refunds;
     const sold = eventSold(ev);
     const check = eventCheckins(ev);
-    const att = sold ? Math.round((check/sold)*100) : 0;
-    rows.push([ev.id, ev.name, ev.status, ev.date, ev.venue, gross, refunds, net, sold, check, att]);
-  }
-  downloadText(`luma-all-events-finance.csv`, toCSV(rows));
-  toast("Export ready", "All-events finance CSV downloaded.");
-}
-
-/* ---------- Activity ---------- */
-
-function addActivity(ev, text, meta="", type="info"){
-  ev.activity = ev.activity || [];
-  ev.activity.unshift({ id: uid("LOG-"), time: new Date().toISOString(), text, meta, type });
-}
-
-/* ---------- Event CRUD ---------- */
-
+    const att = sold ? Math.round((check/sol
 function createEventModal(){
   openModal({
     title:"Create Event",
-    desc:"Create a new event workspace with basic details.",
+    desc:"Create a new event workspace. Status starts as Draft.",
     bodyHtml: `
       <div class="grid cols2">
         <div class="field" style="grid-column:1/-1">
           <label>Event name</label>
-          <div class="input"><input id="mEvName" placeholder="Event name"></div>
+          <div class="input"><input id="mEvName" placeholder="AFCON Nights — Quarter Finals"></div>
         </div>
+
         <div class="field">
           <label>Date</label>
           <div class="input"><input id="mEvDate" type="date"></div>
         </div>
+
         <div class="field">
+          <label>Start time</label>
+          <div class="input"><input id="mEvTime" type="time" value="19:00"></div>
+        </div>
+
+        <div class="field" style="grid-column:1/-1">
           <label>Venue</label>
-          <div class="input"><input id="mEvVenue" placeholder="Venue"></div>
+          <div class="input"><input id="mEvVenue" placeholder="Cairo International Stadium"></div>
         </div>
-        <div class="field">
-          <label>Status</label>
-          <div class="input">
-            <select id="mEvStatus">
-              <option>Draft</option>
-              <option>On Sale</option>
-              <option>Live</option>
-              <option>Ended</option>
-            </select>
-          </div>
-        </div>
-        <div class="field">
-          <label>Event ID (optional)</label>
-          <div class="input"><input id="mEvId" placeholder="e.g., EVT-ABC-01"></div>
+
+        <div class="field" style="grid-column:1/-1">
+          <label>Location (address / landmark)</label>
+          <div class="input"><input id="mEvLocation" placeholder="Street, area, city..."></div>
+          <div class="hint">This will be shown to customers. Clicking it opens Maps.</div>
         </div>
       </div>
       <div class="hr"></div>
-      <div class="hint"><b>Next:</b> After creating, open the workspace to add tiers, waves, staff, and design.</div>
+      <div class="hint"><b>Event ID:</b> generated automatically from name + venue + date.</div>
     `,
     footButtons: [
       {label:"Cancel", kind:"ghost", onClick: closeModal},
       {label:"Create event", kind:"primary", onClick: ()=>{
         const name = $("#mEvName").value.trim();
         const date = $("#mEvDate").value;
+        const time = $("#mEvTime").value || "";
         const venue = $("#mEvVenue").value.trim();
-        const status = $("#mEvStatus").value;
-        const idIn = $("#mEvId").value.trim();
+        const locationText = $("#mEvLocation").value.trim();
 
         if(!name || !date || !venue){
           toast("Missing details","Event name, date, and venue are required.");
           return;
         }
-        const id = idIn || uid("EVT-");
-        if(data.events.some(e=>e.id===id)){
-          toast("Event ID already used","Choose a different event ID.");
-          return;
-        }
+
+        const base = slugId(name, venue, date);
+        let id = base;
+        let n = 2;
+        while(data.events.some(e=>e.id===id)) id = `${base}-${n++}`;
+
         const ev = {
-          id, name, date, venue, status,
+          id, name, date, time, venue,
+          locationText,
+          status:"Draft",
           bannerDataUrl:"", logoDataUrl:"",
           tiers: [],
           waves: [],
@@ -5026,6 +5180,24 @@ function createEventModal(){
           },
           webhookUrl:""
         };
+
+        addActivity(ev, "Event created", `Draft • ${name}`, "ok");
+        data.events.unshift(ev);
+        saveData();
+        closeModal();
+        toast("Event created", "Open the workspace to continue setup.");
+        renderAll();
+      }}
+    ]
+  });
+}
+aed", accent:"#22c55e",
+            headline:"Your ticket is ready",
+            emailText:"Thanks for joining us. Show this QR code at the gate to check in.",
+            published:false, updatedAt: nowISO()
+          },
+          webhookUrl:""
+        };
         addActivity(ev, "Event created", `${name}`, "ok");
         data.events.unshift(ev);
         saveData();
@@ -5036,6 +5208,7 @@ function createEventModal(){
     ]
   });
 }
+
 
 function editEventModal(eventId){
   const ev = data.events.find(e=>e.id===eventId);
@@ -5050,47 +5223,63 @@ function editEventModal(eventId){
           <label>Event name</label>
           <div class="input"><input id="mEvName" value="${escapeHtml(ev.name)}"></div>
         </div>
+
         <div class="field">
           <label>Date</label>
           <div class="input"><input id="mEvDate" type="date" value="${escapeHtml(ev.date)}"></div>
         </div>
+
         <div class="field">
+          <label>Start time</label>
+          <div class="input"><input id="mEvTime" type="time" value="${escapeHtml(ev.time||"")}"></div>
+        </div>
+
+        <div class="field" style="grid-column:1/-1">
           <label>Venue</label>
           <div class="input"><input id="mEvVenue" value="${escapeHtml(ev.venue)}"></div>
         </div>
-        <div class="field">
-          <label>Status</label>
-          <div class="input">
-            <select id="mEvStatus">
-              ${["Draft","On Sale","Live","Ended"].map(s=>`<option ${ev.status===s?"selected":""}>${s}</option>`).join("")}
-            </select>
-          </div>
-        </div>
-        <div class="field">
-          <label>Event ID</label>
-          <div class="input"><input id="mEvId" value="${escapeHtml(ev.id)}" disabled></div>
+
+        <div class="field" style="grid-column:1/-1">
+          <label>Location (address / landmark)</label>
+          <div class="input"><input id="mEvLocation" value="${escapeHtml(ev.locationText||"")}"></div>
+          <div class="hint">Shown to customers. Clicking it opens Maps.</div>
         </div>
       </div>
       <div class="hr"></div>
-      <div class="hint"><b>Tip:</b> Status controls how the event appears in the Events Hub.</div>
+      <div class="hint"><b>Status</b> is controlled from the Overview tab (Draft → On Sale → Live → Ended).</div>
     `,
     footButtons: [
       {label:"Cancel", kind:"ghost", onClick: closeModal},
       {label:"Save changes", kind:"primary", onClick: ()=>{
+        const before = { name: ev.name, date: ev.date, time: ev.time||"", venue: ev.venue, locationText: ev.locationText||"" };
+
         const name = $("#mEvName").value.trim();
         const date = $("#mEvDate").value;
+        const time = $("#mEvTime").value || "";
         const venue = $("#mEvVenue").value.trim();
-        const status = $("#mEvStatus").value;
+        const locationText = $("#mEvLocation").value.trim();
 
         if(!name || !date || !venue){
           toast("Missing details","Event name, date, and venue are required.");
           return;
         }
+
         ev.name = name;
         ev.date = date;
+        ev.time = time;
         ev.venue = venue;
-        ev.status = status;
-        addActivity(ev, "Event updated", `${name} • ${status}`, "info");
+        ev.locationText = locationText;
+
+        const changes = [];
+        if(before.name!==name) changes.push(`Name: ${before.name} → ${name}`);
+        if(before.date!==date) changes.push(`Date: ${before.date} → ${date}`);
+        if(before.time!==time) changes.push(`Time: ${before.time||"—"} → ${time||"—"}`);
+        if(before.venue!==venue) changes.push(`Venue: ${before.venue} → ${venue}`);
+        if(before.locationText!==locationText) changes.push(`Location updated`);
+
+        const meta = (changes.join(" • ").slice(0,120)) || "Details updated";
+        addActivity(ev, "Event updated", meta, "info");
+
         saveData();
         closeModal();
         toast("Event updated", "Changes saved.");
@@ -5099,7 +5288,6 @@ function editEventModal(eventId){
     ]
   });
 }
-
 function deleteEventModal(eventId){
   const ev = data.events.find(e=>e.id===eventId);
   if(!ev) return;
@@ -5143,7 +5331,7 @@ function duplicateEvent(eventId){
 
 function wireDashboardUI(){
   // Sidebar
-  $("#btnToggleSide").addEventListener("click", ()=>{
+  on("#btnToggleSide","click", ()=>{
     $("#sidebar").classList.toggle("collapsed");
   });
 
@@ -5168,15 +5356,15 @@ function wireDashboardUI(){
   });
 
   // create event
-  $("#btnCreateEvent").addEventListener("click", ()=> !isReadOnly() ? createEventModal() : toast("Read-only mode","Switch to Owner to create events."));
-  $("#btnCreateEvent2").addEventListener("click", ()=> !isReadOnly() ? createEventModal() : toast("Read-only mode","Switch to Owner to create events."));
+  on("#btnCreateEvent","click", ()=> !isReadOnly() ? createEventModal() : toast("Read-only mode","Switch to Owner to create events."));
+  on("#btnCreateEvent2","click", ()=> !isReadOnly() ? createEventModal() : toast("Read-only mode","Switch to Owner to create events."));
 
   // hub filters
   ["hubStatus","hubVenue","hubDateFrom","hubDateTo"].forEach(id=>{
     $("#"+id).addEventListener("input", renderHub);
     $("#"+id).addEventListener("change", renderHub);
   });
-  $("#hubClear").addEventListener("click", ()=>{
+  on("#hubClear","click", ()=>{
     $("#hubStatus").value="";
     $("#hubVenue").value="";
     $("#hubDateFrom").value="";
@@ -5185,21 +5373,21 @@ function wireDashboardUI(){
   });
 
   // workspace picker
-  $("#btnOpenWS").addEventListener("click", ()=>{
+  on("#btnOpenWS","click", ()=>{
     const id = $("#wsSelect").value;
     if(id) openEventWorkspace(id);
   });
 
   // menu
-  $("#avatarBtn").addEventListener("click", ()=>{
+  on("#avatarBtn","click", ()=>{
     $("#menuPanel").classList.toggle("open");
   });
   document.addEventListener("click", (e)=>{
     if(!e.target.closest(".menu")) $("#menuPanel").classList.remove("open");
   });
 
-  $("#btnLogout").addEventListener("click", signOut);
-  $("#btnResetDemo").addEventListener("click", ()=>{
+  on("#btnLogout","click", signOut);
+  on("#btnResetDemo","click", ()=>{
     if(isReadOnly()){
       toast("Read-only mode","Switch to Owner to reset demo data.");
       return;
@@ -5213,7 +5401,7 @@ function wireDashboardUI(){
     });
   });
 
-  $("#viewAs").addEventListener("change", ()=>{
+  on("#viewAs","change", ()=>{
     state.viewAs = $("#viewAs").value;
     saveAuth();
     renderTopIdentity();
@@ -5222,7 +5410,7 @@ function wireDashboardUI(){
   });
 
   // global search
-  $("#globalSearch").addEventListener("input", ()=>{
+  on("#globalSearch","input", ()=>{
     if(state.route==="hub") renderHub();
     if(state.route==="event"){
       // update orders/customers if those tabs open
@@ -5233,36 +5421,89 @@ function wireDashboardUI(){
     }
   });
 
-  // simulate
-  $("#btnSimulate").addEventListener("click", ()=>{
+  // demo (separate sandbox)
+  on("#btnDemo","click", ()=> setRoute("demo"));
+
+  // demo page buttons
+  on("#btnEnterDemo","click", ()=>{ if(!state.demoMode) enterDemoMode(); else toast("Already in demo","Exit demo to return to real data."); });
+  on("#btnExitDemo","click", ()=>{ if(state.demoMode) exitDemoMode(); else setRoute("hub"); });
+  on("#btnDemoReset","click", ()=>{ 
+    if(!state.demoMode){ toast("Not in demo","Load demo first."); return; }
+    localStorage.removeItem(STORAGE.demoKey);
+    data = defaultDemoData();
+    saveData();
+    toast("Demo reset","Demo dataset restored.");
+    setRoute("hub");
+    renderAll();
+  });
+  on("#btnDemoSim","click", ()=>{
+    if(!state.demoMode){ toast("Not in demo","Load demo first."); return; }
     state.simulateOn = !state.simulateOn;
-    $("#btnSimulate").classList.toggle("good", state.simulateOn);
-    toast("Simulation", state.simulateOn ? "Live activity simulation started." : "Simulation stopped.");
+    $("#btnDemoSim").classList.toggle("good", state.simulateOn);
+    toast("Simulation", state.simulateOn ? "Demo simulation started." : "Simulation stopped.");
   });
 
   // drawer & modal close
-  $("#drawerClose").addEventListener("click", closeDrawer);
-  $("#drawerOverlay").addEventListener("click", (e)=>{ if(e.target.id==="drawerOverlay") closeDrawer(); });
-  $("#modalClose").addEventListener("click", closeModal);
-  $("#modalOverlay").addEventListener("click", (e)=>{ if(e.target.id==="modalOverlay") closeModal(); });
+  on("#drawerClose","click", closeDrawer);
+  on("#drawerOverlay","click", (e)=>{ if(e.target.id==="drawerOverlay") closeDrawer(); });
+  on("#modalClose","click", closeModal);
+  on("#modalOverlay","click", (e)=>{ if(e.target.id==="modalOverlay") closeModal(); });
 
   // event workspace controls
-  $("#btnBackHub").addEventListener("click", ()=> setRoute("hub"));
-  $("#btnEditEvent").addEventListener("click", ()=> {
+  on("#btnBackHub","click", ()=> setRoute("hub"));
+  on("#btnEditEvent","click", ()=> {
     const ev = currentEvent(); if(!ev) return;
     if(isReadOnly()) return;
     editEventModal(ev.id);
   });
-  $("#btnDuplicateEvent").addEventListener("click", ()=> {
+  on("#btnDuplicateEvent","click", ()=> {
     const ev = currentEvent(); if(!ev) return;
     if(isReadOnly()) return;
     duplicateEvent(ev.id);
   });
-  $("#btnDeleteEvent").addEventListener("click", ()=> {
+  on("#btnDeleteEvent","click", ()=> {
     const ev = currentEvent(); if(!ev) return;
     if(isReadOnly()) return;
     deleteEventModal(ev.id);
   });
+
+  // status controls (Overview)
+  on("#btnSetOnSale","click", ()=>{
+    const ev = currentEvent(); if(!ev) return;
+    if(isReadOnly()) return;
+    if(ev.status!=="Draft"){ toast("Not allowed","Only Draft events can be set On Sale."); return; }
+    ev.status = "On Sale";
+    addActivity(ev, "Status changed", "Draft → On Sale", "info");
+    saveData();
+    renderEventWorkspace();
+    toast("On Sale", "Event is now On Sale.");
+  });
+
+  on("#btnGoLive","click", ()=>{
+    const ev = currentEvent(); if(!ev) return;
+    if(isReadOnly()) return;
+    const today = (()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
+    if(ev.date && ev.date > today){ toast("Too early","Live is available on (or after) the event date."); return; }
+    if(ev.status==="Ended"){ toast("Ended","This event already ended."); return; }
+    ev.status = "Live";
+    addActivity(ev, "Status changed", `${statusText("On Sale")} → Live`, "ok");
+    saveData();
+    renderEventWorkspace();
+    toast("Live", "Event is now Live.");
+  });
+
+  on("#btnEndEvent","click", ()=>{
+    const ev = currentEvent(); if(!ev) return;
+    if(isReadOnly()) return;
+    if(ev.status==="Ended"){ toast("Already ended",""); return; }
+    ev.status = "Ended";
+    addActivity(ev, "Status changed", `${statusText(ev.status)} → Ended`, "warn");
+    saveData();
+    renderEventWorkspace();
+    toast("Ended", "Event marked as ended.");
+  });
+
+
 
   // subtabs
   $$("#subTabs .subTab").forEach(b=>{
@@ -5279,12 +5520,12 @@ function wireDashboardUI(){
   });
 
   // ticketing add buttons
-  $("#btnAddTier").addEventListener("click", ()=> {
+  on("#btnAddTier","click", ()=> {
     const ev = currentEvent(); if(!ev) return;
     if(isReadOnly()) return;
     tierModal(ev.id, null);
   });
-  $("#btnAddWave").addEventListener("click", ()=> {
+  on("#btnAddWave","click", ()=> {
     const ev = currentEvent(); if(!ev) return;
     if(isReadOnly()) return;
     if(ev.tiers.length===0){ toast("Add tiers first","Create tiers before adding waves."); return; }
@@ -5298,29 +5539,29 @@ function wireDashboardUI(){
       renderOrdersTable(ev);
     });
   });
-  $("#ordClear").addEventListener("click", ()=>{
+  on("#ordClear","click", ()=>{
     ["ordFrom","ordTo"].forEach(id=>$("#"+id).value="");
     ["ordWave","ordTier","ordStatus"].forEach(id=>$("#"+id).value="");
     const ev = currentEvent(); if(ev) renderOrdersTable(ev);
   });
 
   // exports
-  $("#btnExportOrders").addEventListener("click", ()=>{ const ev=currentEvent(); if(ev) exportOrders(ev); });
-  $("#btnExportFinance").addEventListener("click", ()=>{ const ev=currentEvent(); if(ev) exportFinance(ev); });
-  $("#btnExportFinance2").addEventListener("click", ()=>{ const ev=currentEvent(); if(ev) exportFinance(ev); });
-  $("#btnExportAllFinance").addEventListener("click", exportAllFinance);
+  on("#btnExportOrders","click", ()=>{ const ev=currentEvent(); if(ev) exportOrders(ev); });
+  on("#btnExportFinance","click", ()=>{ const ev=currentEvent(); if(ev) exportFinance(ev); });
+  on("#btnExportFinance2","click", ()=>{ const ev=currentEvent(); if(ev) exportFinance(ev); });
+  on("#btnExportAllFinance","click", exportAllFinance);
 
-  $("#btnExportAtt").addEventListener("click", ()=>{ const ev=currentEvent(); if(ev) exportAttendees(ev,false); });
-  $("#btnExportCheckins").addEventListener("click", ()=>{ const ev=currentEvent(); if(ev) exportAttendees(ev,true); });
+  on("#btnExportAtt","click", ()=>{ const ev=currentEvent(); if(ev) exportAttendees(ev,false); });
+  on("#btnExportCheckins","click", ()=>{ const ev=currentEvent(); if(ev) exportAttendees(ev,true); });
 
-  $("#btnExportIncidents").addEventListener("click", ()=>{ const ev=currentEvent(); if(ev) exportIncidents(ev); });
+  on("#btnExportIncidents","click", ()=>{ const ev=currentEvent(); if(ev) exportIncidents(ev); });
 
   // customer filters
   ["attSearch","attStatus","attWave","attTier"].forEach(id=>{
     $("#"+id).addEventListener("input", ()=>{ const ev=currentEvent(); if(ev) renderAttendeesTable(ev); });
     $("#"+id).addEventListener("change", ()=>{ const ev=currentEvent(); if(ev) renderAttendeesTable(ev); });
   });
-  $("#attClear").addEventListener("click", ()=>{
+  on("#attClear","click", ()=>{
     $("#attSearch").value="";
     $("#attStatus").value="";
     $("#attWave").value="";
@@ -5329,23 +5570,23 @@ function wireDashboardUI(){
   });
 
   // gates / staff add
-  $("#btnAddGate").addEventListener("click", ()=> {
+  on("#btnAddGate","click", ()=> {
     const ev=currentEvent(); if(!ev) return;
     if(isReadOnly()) return;
     gateModal(ev.id, null);
   });
-  $("#btnAddStaff").addEventListener("click", ()=> {
+  on("#btnAddStaff","click", ()=> {
     const ev=currentEvent(); if(!ev) return;
     if(isReadOnly()) return;
     staffModal(ev.id, null);
   });
 
   // links copy
-  $("#copyUsher").addEventListener("click", ()=> copyText($("#linkUsher").value, "Usher link copied"));
-  $("#copyDesk").addEventListener("click", ()=> copyText($("#linkDesk").value, "Manual Desk link copied"));
+  on("#copyUsher","click", ()=> copyText($("#linkUsher").value, "Usher link copied"));
+  on("#copyDesk","click", ()=> copyText($("#linkDesk").value, "Manual Desk link copied"));
 
   // automation
-  $("#btnTestWebhook").addEventListener("click", ()=>{
+  on("#btnTestWebhook","click", ()=>{
     const ev = currentEvent(); if(!ev) return;
     if(isReadOnly()){ toast("Read-only mode","Switch to Owner to test webhook."); return; }
     ev.webhookUrl = $("#webhookUrl").value.trim();
@@ -5355,7 +5596,7 @@ function wireDashboardUI(){
     toast("Test receipt sent", "A sample test receipt was generated and logged.");
     renderEventWorkspace();
   });
-  $("#webhookUrl").addEventListener("change", ()=>{
+  on("#webhookUrl","change", ()=>{
     const ev = currentEvent(); if(!ev) return;
     if(isReadOnly()) return;
     ev.webhookUrl = $("#webhookUrl").value.trim();
@@ -5363,17 +5604,17 @@ function wireDashboardUI(){
   });
 
   // attention page clear
-  $("#btnClearAttention").addEventListener("click", ()=>{
+  on("#btnClearAttention","click", ()=>{
     state.attentionFeed = [];
     renderAttentionPage();
     toast("Feed cleared","Attention feed cleared.");
   });
 
   // reset attention feed
-  $("#btnClearAttention").addEventListener("click", ()=>{ state.attentionFeed = []; renderAttentionPage(); });
+  on("#btnClearAttention","click", ()=>{ state.attentionFeed = []; renderAttentionPage(); });
 
   // copying
-  $("#btnClearAttention").addEventListener("click", ()=>{});
+  on("#btnClearAttention","click", ()=>{});
 
   // hub to workspace route actions
   // (handled per card)
@@ -5438,6 +5679,50 @@ function simulateTick(){
   if(state.route==="notifications") renderAttentionPage();
   if(state.route==="hub") renderHub();
   if(state.route==="analytics") renderAllAnalytics();
+}
+
+
+/* ---------- Demo Sandbox (separate dataset) ---------- */
+
+let __realDataCache = null;
+
+function enterDemoMode(){
+  __realDataCache = JSON.parse(JSON.stringify(data || defaultDemoData()));
+  state.demoMode = true;
+  state.simulateOn = false;
+  data = defaultDemoData();
+  saveData();
+  toast("Demo loaded","You are now working inside the demo sandbox.");
+  setRoute("hub");
+  renderAll();
+}
+
+async function exitDemoMode(){
+  state.demoMode = false;
+  state.simulateOn = false;
+  if(__realDataCache){
+    data = __realDataCache;
+    __realDataCache = null;
+    saveData();
+    toast("Back to real data","Demo sandbox closed.");
+    setRoute("hub");
+    renderAll();
+    return;
+  }
+  try{
+    data = await loadData();
+  }catch(e){
+    console.error(e);
+    toast("Reload failed","Could not reload real data. Using local fallback.");
+    data = defaultDemoData();
+  }
+  setRoute("hub");
+  renderAll();
+}
+
+function renderDemoPage(){
+  $("#btnEnterDemo")?.classList.toggle("disabled", state.demoMode);
+  $("#btnExitDemo")?.classList.toggle("disabled", !state.demoMode);
 }
 
 /* ---------- Boot ---------- */
@@ -5557,4 +5842,5 @@ start();
 </script>
 
 </body>
-/html>
+</html>
+</html>
