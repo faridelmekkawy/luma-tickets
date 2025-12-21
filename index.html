@@ -1023,7 +1023,12 @@ option{ background-color: rgba(11,16,32,.98); }
       d="M17 17a4 4 0 0 1-7.3 2.1"/>
     <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
       d="M9 9l6 6"/>
+  
+  <symbol id="i-play" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M8 5l12 7-12 7V5z"/>
   </symbol>
+</symbol>
   <symbol id="i-close" viewBox="0 0 24 24">
     <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/>
   </symbol>
@@ -1239,16 +1244,17 @@ option{ background-color: rgba(11,16,32,.98); }
       </div>
       <div class="navItem" data-route="analytics">
         <div class="ic"><svg width="18" height="18"><use href="#i-chart"/></svg></div>
-        <div class="navItem" data-route="demo">
+        <div class="txt">
+          <b>Analytics</b>
+          <span>Overview across events</span>
+        </div>
+      </div>
+
+      <div class="navItem" data-route="demo">
         <div class="ic"><svg width="18" height="18"><use href="#i-play"/></svg></div>
         <div class="txt">
           <b>Demo</b>
-          <small>Sandbox</small>
-        </div>
-      </div>
-<div class="txt">
-          <b>Analytics</b>
-          <span>Overview across events</span>
+          <span>Sandbox</span>
         </div>
       </div>
     </nav>
@@ -2363,12 +2369,6 @@ async function __loadFirebase(){
     sendPasswordResetEmail = async ()=> { throw new Error("Demo mode: Password reset requires hosting over http(s)."); };
     fbSignOut = async ()=> { /* noop */ };
 
-    // Demo wrappers (so the rest of the code can call Firebase-like APIs safely)
-    onAuthStateChanged = (a, cb)=> a?.onAuthStateChanged?.(cb) ?? (()=>{});
-    signInWithEmailAndPassword = async ()=> { throw new Error("Demo mode: Sign in requires hosting over http(s). Use the 'Use Demo' button."); };
-    createUserWithEmailAndPassword = async ()=> { throw new Error("Demo mode: Sign up requires hosting over http(s)."); };
-    sendPasswordResetEmail = async ()=> { throw new Error("Demo mode: Password reset requires hosting over http(s)."); };
-    fbSignOut = async ()=> { /* noop */ };
     return;
   }
 
@@ -5842,5 +5842,4 @@ start();
 </script>
 
 </body>
-</html>
 </html>
