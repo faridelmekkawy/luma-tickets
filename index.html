@@ -2271,6 +2271,14 @@ function ownerDocRef(uid){
 
 const $ = (q, el=document)=>el.querySelector(q);
 const $$ = (q, el=document)=>Array.from(el.querySelectorAll(q));
+// Make helpers available to non-module scripts too
+window.$ = $; window.$$ = $$;
+
+function safeParseJSON(str, fallback){
+  try{ return JSON.parse(str); }catch(e){ return fallback; }
+}
+window.safeParseJSON = safeParseJSON;
+
 const fmtEGP = n => `EGP ${Number(n||0).toLocaleString('en-US')}`;
 const nowISO = () => new Date().toISOString();
 const pad2 = n => String(n).padStart(2,'0');
@@ -5371,8 +5379,16 @@ async function bootDashboard(){
   $("#dash").classList.remove("hidden");
 
   // sync user labels
-  $("#userName").textContent = state.user?.name || "Owner";
-  $("#userEmail").textContent = state.user?.email || "";
+  const name = state.user?.name || "Owner";
+  const email = state.user?.email || "—";
+  if($("#avaName")) $("#avaName").textContent = name;
+  if($("#menuName")) $("#menuName").textContent = name;
+  if($("#pfMini")) $("#pfMini").textContent = name;
+  if($("#avaEmail")) $("#avaEmail").textContent = email;
+  if($("#menuEmail")) $("#menuEmail").textContent = email;
+  const initials = (name.split(/\s+/).slice(0,2).map(x=>x[0]).join("")||"LU").toUpperCase();
+  if($("#avaInitials")) $("#avaInitials").textContent = initials;
+  if($("#avaInitials2")) $("#avaInitials2").textContent = initials;
 
   // Load data (Firestore if signed-in; local fallback)
   try{
