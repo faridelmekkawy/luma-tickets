@@ -1591,6 +1591,16 @@ option{ background-color: rgba(11,16,32,.98); }
             </div>
           </div>
         </div>
+<select id="manualStatus">
+  <option value="Draft">Draft</option>
+  <option value="On Sale">On Sale</option>
+  <option value="Live">Live</option>
+  <option value="Ended">Ended</option>
+</select>
+
+<button class="btn sm warn" id="btnManualStatusApply">
+  Apply Manual Override
+</button>
 
         <div class="footer">
           <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
@@ -1599,7 +1609,8 @@ option{ background-color: rgba(11,16,32,.98); }
       </div>
 
       <!-- Event Workspace -->
-      <div 
+      <!-- Event Workspace -->
+      <div id="page-workspace" class="hidden">
       <!-- Demo (Sandbox) -->
       <div id="page-demo" class="hidden">
         <div class="split">
@@ -5708,6 +5719,38 @@ on("#btnEndEvent","click", async ()=>{
 
   renderEventWorkspace();
   toast("Ended", "Event marked as ended.");
+});
+on("#btnManualStatusApply","click", async ()=>{
+  const ev = currentEvent(); if(!ev) return;
+  if(isReadOnly()) return;
+
+  const sel = document.getElementById("manualStatus");
+  if(!sel) return;
+
+  const next = sel.value;
+  const prev = ev.status || "Draft";
+  if(prev === next){ toast("No change",""); return; }
+
+  ev.status = next;
+  addActivity(ev, "Manual override", `${statusText(prev)} → ${next}`, "warn");
+  saveData();
+
+  try{
+    if(next === "Draft"){
+      await setDoc(
+        doc(db,"events", ev.id),
+        { published:false, status:"Draft", updatedAt: serverTimestamp() },
+        { merge:true }
+      );
+    }else{
+      await syncEventToPublic(ev);
+    }
+  }catch(err){
+    console.error(err);
+  }
+
+  renderEventWorkspace();
+  toast("Updated", `Status manually set to ${next}.`);
 });
 
 on("#btnDeleteEvent","click", ()=>{
