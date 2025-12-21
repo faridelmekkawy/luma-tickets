@@ -2907,7 +2907,7 @@ function setAuthTab(tab){
 }
 
 function authInit(){
-  $("#year").textContent = new Date().getFullYear();
+  if(document.getElementById("year")) document.getElementById("year")?.textContent = new Date().getFullYear();
   $$(".tabBtn").forEach(b=>b.addEventListener("click", ()=> setAuthTab(b.dataset.authTab)));
   $("#go-signin")?.addEventListener("click", (e)=>{ e.preventDefault(); setAuthTab("signin"); });
   $("#go-signin2")?.addEventListener("click", (e)=>{ e.preventDefault(); setAuthTab("signin"); });
@@ -3022,7 +3022,14 @@ function toast(title, msg){
     <button class="x" title="Close"><svg width="18" height="18"><use href="#i-close"/></svg></button>
   `;
   el.querySelector(".x").addEventListener("click", ()=> el.remove());
-  $("#toasts").appendChild(el);
+  const wrap = $("#toasts") || (()=>{
+    const w = document.createElement("div");
+    w.id = "toasts";
+    w.className = "toasts";
+    document.body.appendChild(w);
+    return w;
+  })();
+  wrap.appendChild(el);
   setTimeout(()=>{ if(el.isConnected) el.remove(); }, 5200);
 }
 function escapeHtml(s){
@@ -3499,7 +3506,8 @@ function switchTab(tab){
   state.activeTab = tab;
   const tabs = ["overview","ticketing","orders","customers","staff","design","analytics","incidents","links","automation"];
   for(const t of tabs){
-    $("#tab-"+t).classList.toggle("hidden", t!==tab);
+    const el = $("#tab-"+t);
+    if(el) el.classList.toggle("hidden", t!==tab);
   }
   if(tab==="analytics"){
     // ensure charts draw after visible
@@ -4618,6 +4626,7 @@ function renderDesignStudio(ev){
   };
   ["dsPrimary","dsAccent","dsHeadline","dsEmailText"].forEach(id=>{
     const el = $("#"+id);
+    if(!el) return;
     if(!el._wired){
       el.addEventListener("input", updatePreview);
       el._wired = true;
@@ -4630,8 +4639,9 @@ function renderDesignStudio(ev){
   wireFileInput("#dsBg", (dataUrl)=>{ ev.design.bgDataUrl = dataUrl; saveData(); updatePreview(); toast("Background updated","Preview updated."); });
 
   // preview mode buttons
-  if(!$("#previewMode")._wired){
-    $$("#previewMode button").forEach(b=>{
+  const __pm = $("#previewMode");
+  if(__pm && !__pm._wired){
+$$("#previewMode button").forEach(b=>{
       b.addEventListener("click", ()=>{
         $$("#previewMode button").forEach(x=>x.classList.remove("active"));
         b.classList.add("active");
@@ -4639,14 +4649,15 @@ function renderDesignStudio(ev){
         buildPreview(getDesignDraft(ev));
       });
     });
-    $("#previewMode")._wired = true;
+    __pm._wired = true;
   }
 
   // buttons
-  lockIfReadOnly($("#btnSaveDesign"));
-  lockIfReadOnly($("#btnPublishDesign"));
+  lockIfReadOnly($("#btnSaveDesign") || null);
+  lockIfReadOnly($("#btnPublishDesign") || null);
 
-  if(!$("#btnSaveDesign")._wired){
+  const __btnSave = $("#btnSaveDesign");
+  if(__btnSave && !__btnSave._wired){
     on("#btnSaveDesign","click", ()=>{
       if(isReadOnly()) return;
       const draft = getDesignDraft(ev);
@@ -4656,9 +4667,10 @@ function renderDesignStudio(ev){
       toast("Draft saved", "Your design draft was saved.");
       renderEventWorkspace();
     });
-    $("#btnSaveDesign")._wired = true;
+    __btnSave._wired = true;
   }
-  if(!$("#btnPublishDesign")._wired){
+  const __btnPub = $("#btnPublishDesign");
+  if(__btnPub && !__btnPub._wired){
     on("#btnPublishDesign","click", ()=>{
       if(isReadOnly()) return;
       const draft = getDesignDraft(ev);
@@ -4668,7 +4680,7 @@ function renderDesignStudio(ev){
       toast("Design published", "Your design is now published for this event.");
       renderEventWorkspace();
     });
-    $("#btnPublishDesign")._wired = true;
+    __btnPub._wired = true;
   }
 
   // initial preview
