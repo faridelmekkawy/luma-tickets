@@ -2624,6 +2624,66 @@ async function loadData(){
   return seed;
 }
 
+// --- Public events publishing (Customer marketplace compatibility) ---
+// Customer app reads: events/{eventId} and writes orders to events/{eventId}/orders
+function eventDocRef(eventId){
+  return doc(db, "events", String(eventId));
+}
+
+function publicEventPayload(ev, ownerUid){
+  // Keep only fields the customer app needs (avoid leaking private staff pins, etc.)
+  const clean = {
+    id: ev.id,
+    ownerUid: ownerUid || null,
+    name: ev.name || "",
+    date: ev.date || "",
+    venue: ev.venue || "",
+    city: ev.city || "",
+    status: ev.status || "Draft",
+    published: !!(ev.published ?? ev.design?.published ?? (String(ev.status||"").toLowerCase().includes("sale") || String(ev.status||"").toLowerCase().includes("live"))),
+    currency: ev.currency || "EGP",
+    bannerDataUrl: ev.bannerDataUrl || ev.design?.bannerDataUrl || "",
+    logoDataUrl: ev.logoDataUrl || ev.design?.logoDataUrl || "",
+    tiers: Array.isArray(ev.tiers) ? ev.tiers.map(t=>({
+      id: t.id, name: t.name, desc: t.desc || "", baseCap: Number(t.baseCap||0)
+    })) : [],
+    waves: Array.isArray(ev.waves) ? ev.waves.map(w=>({
+      id: w.id, name: w.name,
+      start: w.start || null,
+      end: w.end || null,
+      tiersActive: Array.isArray(w.tiersActive) ? w.tiersActive : [],
+      pricing: w.pricing || {},
+      qty: w.qty || {},
+      sold: w.sold || {}
+    })) : [],
+    updatedAt: serverTimestamp(),
+  };
+  return clean;
+}
+
+async function publishEventToMarketplace(ev){
+  try{
+    const ownerUid = auth.currentUser?.uid || null;
+    if(!ownerUid) return; // publish only when signed-in
+    if(!ev?.id) return;
+    await setDoc(eventDocRef(ev.id), publicEventPayload(ev, ownerUid), { merge:true });
+  }catch(err){
+    console.warn("publishEventToMarketplace failed", err);
+  }
+}
+
+async function publishAllEventsToMarketplace(){
+  try{
+    if(!auth.currentUser?.uid) return;
+    const evs = data?.events || [];
+    for(const ev of evs){
+      await publishEventToMarketplace(ev);
+    }
+  }catch(err){
+    console.warn("publishAllEventsToMarketplace failed", err);
+  }
+}
+
 let __saveTimer = null;
 function saveData(){
   // Demo mode: save only to demo localStorage (never Firestore)
@@ -2643,6 +2703,8 @@ function saveData(){
         const uid = auth.currentUser?.uid;
         if(uid){
           await setDoc(ownerDocRef(uid), { data, updatedAt: serverTimestamp() }, { merge: true });
+          // Also publish events to the public marketplace collection for customer.html
+          await publishAllEventsToMarketplace();
         }
       }
     }catch(err){
@@ -2712,7 +2774,9 @@ function setAuthTab(tab){
 }
 
 function authInit(){
-  $("#year").textContent = new Date().getFullYear();
+  // Some deployments remove the footer year node; guard against null.
+  const y = $("#year");
+  if(y) y.textContent = new Date().getFullYear();
   $$(".tabBtn").forEach(b=>b.addEventListener("click", ()=> setAuthTab(b.dataset.authTab)));
   $("#go-signin")?.addEventListener("click", (e)=>{ e.preventDefault(); setAuthTab("signin"); });
   $("#go-signin2")?.addEventListener("click", (e)=>{ e.preventDefault(); setAuthTab("signin"); });
