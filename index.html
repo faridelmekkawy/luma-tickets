@@ -3518,30 +3518,33 @@ function openEventWorkspace(eventId){
 function renderEventWorkspace(){
   const ev = currentEvent();
   if(ev) normalizeEventStatus(ev);
+  
   if(!ev){
     toast("Event not found", "Please select another event.");
     setRoute("hub");
     return;
-  // Sync the new dropdown
+  } // <--- Ensure this brace correctly closes the IF block
+
+  // 1. Sync the status dropdown
   const statusSelect = $("#ovStatusSelect");
   if (statusSelect) {
     statusSelect.value = ev.status || "Draft";
-    
     // Disable if the user is a Viewer (Read-only)
     statusSelect.disabled = isReadOnly();
   }
-  
-  // Update the existing badge for visual consistency
-  $("#evStatusBadge").className = "badge " + statusBadgeClass(ev.status);
-  $("#evStatusBadge").innerHTML = `<strong>${escapeHtml(statusText(ev.status))}</strong>`;
-}
+
+  // 2. Update Top Titles
   $("#evName").textContent = ev.name;
   $("#evMeta").textContent = `${ev.date}${ev.time?` • ${ev.time}`:""} • ${ev.venue}`;
-  $("#evStatusBadge").className = "badge " + statusBadgeClass(ev.status);
-  $("#evStatusBadge").innerHTML = `<strong>${escapeHtml(statusText(ev.status))}</strong>`;
 
+  // 3. Update the existing badge for visual consistency
+  const badge = $("#evStatusBadge");
+  if (badge) {
+    badge.className = "badge " + statusBadgeClass(ev.status);
+    badge.innerHTML = `<strong>${escapeHtml(statusText(ev.status))}</strong>`;
+  }
 
-  // Overview status panel
+  // 4. Handle Overview status panel (for the manual chip)
   if($("#ovStatusChip")){
     $("#ovStatusChip").className = "chip " + (ev.status==="Live"?"good":(ev.status==="On Sale"?"info":(ev.status==="Ended"?"danger":"")));
     $("#ovStatusChip").textContent = statusText(ev.status);
@@ -3551,16 +3554,18 @@ function renderEventWorkspace(){
     $("#ovMapsLink").href = loc ? mapsLink(loc) : "#";
     $("#ovMapsLink").style.pointerEvents = loc ? "auto" : "none";
     $("#ovMapsLink").style.opacity = loc ? "1" : ".5";
-
-    const today = (()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
+    
+    const today = (()=>{
+      const d=new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    })();
     const canLive = (ev.date && ev.date <= today);
-
-    // enable/disable buttons
+    
+    // Original buttons (can keep or remove)
     $("#btnSetOnSale").disabled = isReadOnly() || ev.status!=="Draft";
     $("#btnGoLive").disabled = isReadOnly() || !canLive || (ev.status==="Live") || (ev.status==="Ended");
     $("#btnEndEvent").disabled = isReadOnly() || ev.status==="Ended";
   }
-
   // lock event-level actions in Viewer mode
   lockIfReadOnly($("#btnEditEvent"));
   lockIfReadOnly($("#btnDuplicateEvent"));
@@ -5563,7 +5568,22 @@ function wireDashboardUI(){
       return;
     }
   }
+// Add this once in your initialization code
+document.addEventListener('change', async (e) => {
+  if (e.target && e.target.id === 'ovStatusSelect') {
+    const ev = currentEvent();
+    if (!ev || isReadOnly()) return;
 
+    const oldStatus = ev.status;
+    ev.status = e.target.value;
+
+    addActivity(ev, "Status Changed", `Manually updated from ${oldStatus} to ${ev.status}`, "info");
+    
+    renderEventWorkspace();
+    renderHub(); 
+    toast("Status Updated", `Event is now ${ev.status}`);
+  }
+});
   // Update local state
   const oldStatus = ev.status;
   ev.status = newStatus;
