@@ -2222,6 +2222,7 @@
 <div class="toasts" id="toasts"></div>
 
 <script type="module">
+
 /* =========================
    Luma Tickets — Owner Dashboard (Single-file demo app)
    ========================= */
@@ -2240,28 +2241,89 @@ const firebaseConfig = {
   appId: "1:175601544315:web:00c94b4affa972b3a286de"
 };
 
-// Imports
-import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import {
-  getAuth, onAuthStateChanged,
-  signInWithEmailAndPassword, sendPasswordResetEmail,
-  signOut as fbSignOut,
-  createUserWithEmailAndPassword, updateProfile
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, setDoc, updateDoc, addDoc,
-  collection, query, where, getDocs, orderBy, limit,
-  serverTimestamp, Timestamp
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-import {
-  getStorage, ref as sRef, uploadBytes, getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+// Firebase SDK dynamic imports
+// - Works when served over http(s)
+// - If the SDK can't be loaded (common when opening via file://), we fall back to local DEMO mode
+let initializeApp, getApp, getApps;
+let getAuth, onAuthStateChanged, signInWithEmailAndPassword, sendPasswordResetEmail, fbSignOut, createUserWithEmailAndPassword, updateProfile;
+let getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, getDocs, orderBy, limit, serverTimestamp, Timestamp;
+let getStorage, stRef, uploadBytes, getDownloadURL, deleteObject;
+
+// Initialized by __loadFirebase()
+let app = null;
+let auth = null;
+let db = null;
+let storage = null;
+
+async function __loadFirebase(){
+  // If the user opens the file directly (file://), most browsers will block ESM imports.
+  // Auto-switch to DEMO mode in that case.
+  if(location.protocol === "file:"){
+    window.__demoMode = true;
+  }
+
+  // If DEMO is forced, don't attempt to load SDK.
+  if(window.__demoMode){
+    window.__firebaseReady = false;
+    // Minimal auth stubs used by UI flow
+    auth = {
+      currentUser: null,
+      onAuthStateChanged(cb){ cb(null); return ()=>{}; }
+    };
+    // Demo wrappers (so the rest of the code can call Firebase-like APIs safely)
+    onAuthStateChanged = (a, cb)=> a?.onAuthStateChanged?.(cb) ?? (()=>{});
+    signInWithEmailAndPassword = async ()=> { throw new Error("Demo mode: Sign in requires hosting over http(s). Use the 'Use Demo' button."); };
+    createUserWithEmailAndPassword = async ()=> { throw new Error("Demo mode: Sign up requires hosting over http(s)."); };
+    sendPasswordResetEmail = async ()=> { throw new Error("Demo mode: Password reset requires hosting over http(s)."); };
+    fbSignOut = async ()=> { /* noop */ };
+
+    // Demo wrappers (so the rest of the code can call Firebase-like APIs safely)
+    onAuthStateChanged = (a, cb)=> a?.onAuthStateChanged?.(cb) ?? (()=>{});
+    signInWithEmailAndPassword = async ()=> { throw new Error("Demo mode: Sign in requires hosting over http(s). Use the 'Use Demo' button."); };
+    createUserWithEmailAndPassword = async ()=> { throw new Error("Demo mode: Sign up requires hosting over http(s)."); };
+    sendPasswordResetEmail = async ()=> { throw new Error("Demo mode: Password reset requires hosting over http(s)."); };
+    fbSignOut = async ()=> { /* noop */ };
+    return;
+  }
+
+  try{
+    const appMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
+    ({ initializeApp, getApp, getApps } = appMod);
+
+    const authMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
+    ({ getAuth, onAuthStateChanged, signInWithEmailAndPassword, sendPasswordResetEmail, createUserWithEmailAndPassword, updateProfile } = authMod);
+    fbSignOut = authMod.signOut;
+
+    const fsMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
+    ({ getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, getDocs, orderBy, limit, serverTimestamp, Timestamp } = fsMod);
+
+    const stMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js");
+    ({ getStorage, uploadBytes, getDownloadURL, deleteObject } = stMod);
+    stRef = stMod.ref;
+
+    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    storage = getStorage(app);
+    window.__firebaseReady = true;
+  }catch(err){
+    console.warn("[Luma] Firebase SDK not available; running in local DEMO mode.", err);
+    window.__demoMode = true;
+    window.__firebaseReady = false;
+    auth = {
+      currentUser: null,
+      onAuthStateChanged(cb){ cb(null); return ()=>{}; }
+    };
+  }
+}
+
+// Ensure auth/db/storage are ready (or DEMO stubs are set)
+await __loadFirebase();
+
 
 // App init
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+// (app/auth/db/storage are initialized above; DEMO mode uses local-only data)
+
 
 // Canonical doc path for this single-file app
 function ownerDocRef(uid){
@@ -5484,6 +5546,7 @@ $("#ordClear")?.addEventListener?.("click", ()=>{});
 /* ---------- Start ---------- */
 
 start();
+
 </script>
 
 </body>
