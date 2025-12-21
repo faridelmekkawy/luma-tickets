@@ -5553,79 +5553,26 @@ function duplicateEvent(eventId){
 /* ---------- Header/Sidebar wiring ---------- */
 
 function wireDashboardUI(){
-  // Sidebar
+  // Sidebar toggle
   on("#btnToggleSide","click", ()=>{
     document.getElementById("sidebar")?.classList.toggle("collapsed");
-    $("#ovStatusSelect")?.addEventListener("change", async (e) => {
-  const newStatus = e.target.value;
-  const ev = currentEvent();
-  if (!ev) return;
-
-  // Confirmation for sensitive changes
-  if (newStatus === "Ended") {
-    if (!confirm("Are you sure you want to end this event? This usually stops ticket sales and check-ins.")) {
-      e.target.value = ev.status; // Revert
-      return;
-    }
-  }
-// Add this once in your initialization code
-document.addEventListener('change', async (e) => {
-  if (e.target && e.target.id === 'ovStatusSelect') {
-    const ev = currentEvent();
-    if (!ev || isReadOnly()) return;
-
-    const oldStatus = ev.status;
-    ev.status = e.target.value;
-
-    addActivity(ev, "Status Changed", `Manually updated from ${oldStatus} to ${ev.status}`, "info");
-    
-    renderEventWorkspace();
-    renderHub(); 
-    toast("Status Updated", `Event is now ${ev.status}`);
-  }
-});
-  // Update local state
-  const oldStatus = ev.status;
-  ev.status = newStatus;
-
-  // Add to activity log
-  addActivity(ev, "Status Changed", `Manually changed from ${oldStatus} to ${newStatus}`, "info");
-
-  // Save to Firebase/Backend (if applicable)
-  try {
-    if (window.__firebaseReady && !window.__demoMode) {
-      const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-      const eventRef = doc(window.db, "events", ev.id);
-      await updateDoc(eventRef, { status: newStatus });
-    }
-    
-    toast("Status Updated", `Event is now ${newStatus}`);
-    renderEventWorkspace(); // Re-render to update badges and UI
-    renderHub(); // Sync the main list
-  } catch (err) {
-    console.error("Update failed", err);
-    toast("Error", "Failed to update status.");
-    ev.status = oldStatus; // Rollback on error
-  }
   });
 
+  // Status dropdown (wire ONCE)
+  const statusSelect = document.getElementById("ovStatusSelect");
+  if(statusSelect){
+    statusSelect.addEventListener("change", onOverviewStatusChange);
+  }
+
   // nav
-  $$(".navItem").forEach(item=>{
+  document.querySelectorAll(".navItem").forEach(item=>{
     item.addEventListener("click", ()=>{
       const r = item.dataset.route;
-      if(r==="workspace"){
-        setRoute("workspace");
-      }else if(r==="hub"){
-        setRoute("hub");
-      }else if(r==="notifications"){
-        setRoute("notifications");
-      }else if(r==="analytics"){
-        setRoute("analytics");
-      }else if(r==="workspace"){
-        setRoute("workspace");
-      }else{
-        setRoute("hub");
-      }
+      if(r==="workspace") setRoute("workspace");
+      else if(r==="hub") setRoute("hub");
+      else if(r==="notifications") setRoute("notifications");
+      else if(r==="analytics") setRoute("analytics");
+      else setRoute("hub");
     });
   });
 
@@ -5635,20 +5582,23 @@ document.addEventListener('change', async (e) => {
 
   // hub filters
   ["hubStatus","hubVenue","hubDateFrom","hubDateTo"].forEach(id=>{
-    $("#"+id).addEventListener("input", renderHub);
-    $("#"+id).addEventListener("change", renderHub);
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener("input", renderHub);
+    el.addEventListener("change", renderHub);
   });
   on("#hubClear","click", ()=>{
-    $("#hubStatus").value="";
-    $("#hubVenue").value="";
-    $("#hubDateFrom").value="";
-    $("#hubDateTo").value="";
+    const a = document.getElementById("hubStatus"); if(a) a.value="";
+    const b = document.getElementById("hubVenue"); if(b) b.value="";
+    const c = document.getElementById("hubDateFrom"); if(c) c.value="";
+    const d = document.getElementById("hubDateTo"); if(d) d.value="";
     renderHub();
   });
 
   // workspace picker
   on("#btnOpenWS","click", ()=>{
-    const id = $("#wsSelect").value;
+    const sel = document.getElementById("wsSelect");
+    const id = sel?.value;
     if(id) openEventWorkspace(id);
   });
 
@@ -5661,6 +5611,7 @@ document.addEventListener('change', async (e) => {
   });
 
   on("#btnLogout","click", appSignOut);
+
   on("#btnResetDemo","click", ()=>{
     if(isReadOnly()){
       toast("Read-only mode","Switch to Owner to reset demo data.");
@@ -5676,7 +5627,7 @@ document.addEventListener('change', async (e) => {
   });
 
   on("#viewAs","change", ()=>{
-    state.viewAs = $("#viewAs").value;
+    state.viewAs = document.getElementById("viewAs")?.value || "Owner";
     saveAuth();
     renderTopIdentity();
     renderAll();
@@ -5687,34 +5638,11 @@ document.addEventListener('change', async (e) => {
   on("#globalSearch","input", ()=>{
     if(state.route==="hub") renderHub();
     if(state.route==="event"){
-      // update orders/customers if those tabs open
       const ev = currentEvent();
       if(!ev) return;
       if(state.activeTab==="orders") renderOrdersTable(ev);
       if(state.activeTab==="customers") renderAttendeesTable(ev);
     }
-  });
-
-  // demo (separate sandbox)
-  on("#btnDemo","click", ()=> setRoute("demo"));
-
-  // demo page buttons
-  on("#btnEnterDemo","click", ()=>{ if(!state.demoMode) enterDemoMode(); else toast("Already in demo","Exit demo to return to real data."); });
-  on("#btnExitDemo","click", ()=>{ if(state.demoMode) exitDemoMode(); else setRoute("hub"); });
-  on("#btnDemoReset","click", ()=>{ 
-    if(!state.demoMode){ toast("Not in demo","Load demo first."); return; }
-    localStorage.removeItem(STORAGE.demoKey);
-    data = defaultDemoData();
-    saveData();
-    toast("Demo reset","Demo dataset restored.");
-    setRoute("hub");
-    renderAll();
-  });
-  on("#btnDemoSim","click", ()=>{
-    if(!state.demoMode){ toast("Not in demo","Load demo first."); return; }
-    state.simulateOn = !state.simulateOn;
-    document.getElementById("btnDemoSim")?.classList.toggle("good", state.simulateOn);
-    toast("Simulation", state.simulateOn ? "Demo simulation started." : "Simulation stopped.");
   });
 
   // drawer & modal close
@@ -5741,95 +5669,66 @@ document.addEventListener('change', async (e) => {
     deleteEventModal(ev.id);
   });
 
-// status controls (Overview)
-on("#btnSetOnSale","click", async ()=>{
-  const ev = currentEvent(); if(!ev) return;
-  if(isReadOnly()) return;
-  if(ev.status!=="Draft"){ toast("Not allowed","Only Draft events can be set On Sale."); return; }
+  // status controls (Overview buttons)
+  on("#btnSetOnSale","click", async ()=>{
+    const ev = currentEvent(); if(!ev) return;
+    if(isReadOnly()) return;
+    if(ev.status!=="Draft"){ toast("Not allowed","Only Draft events can be set On Sale."); return; }
 
-  ev.status = "On Sale";
-  addActivity(ev, "Status changed", "Draft → On Sale", "info");
-  saveData();
+    ev.status = "On Sale";
+    addActivity(ev, "Status changed", "Draft → On Sale", "info");
+    saveData();
 
-  // publish/update public marketplace copy
-  try{ await syncEventToPublic(ev); }catch(err){ console.error(err); }
+    try{ await syncEventToPublic(ev); }catch(err){ console.error(err); }
 
-  renderEventWorkspace();
-  toast("On Sale", "Event is now On Sale.");
-});
-
-on("#btnGoLive","click", async ()=>{
-  const ev = currentEvent(); if(!ev) return;
-  if(isReadOnly()) return;
-
-  const today = (()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
-  if(ev.date && ev.date > today){ toast("Too early","Live is available on (or after) the event date."); return; }
-  if(ev.status==="Ended"){ toast("Ended","This event already ended."); return; }
-
-  ev.status = "Live";
-  addActivity(ev, "Status changed", `${statusText("On Sale")} → Live`, "ok");
-  saveData();
-
-  // publish/update public marketplace copy
-  try{ await syncEventToPublic(ev); }catch(err){ console.error(err); }
-
-  renderEventWorkspace();
-  toast("Live", "Event is now Live.");
-});
-
-on("#btnEndEvent","click", async ()=>{
-  const ev = currentEvent(); if(!ev) return;
-  if(isReadOnly()) return;
-  if(ev.status==="Ended"){ toast("Already ended",""); return; }
-
-  const prev = ev.status || "Draft";
-  ev.status = "Ended";
-  addActivity(ev, "Status changed", `${statusText(prev)} → Ended`, "warn");
-  saveData();
-
-  // update public marketplace copy too (so customer app sees Ended)
-  try{ await syncEventToPublic(ev); }catch(err){ console.error(err); }
-
-  renderEventWorkspace();
-  toast("Ended", "Event marked as ended.");
-});
-
-on("#btnDeleteEvent","click", ()=>{
-  const ev = currentEvent(); if(!ev) return;
-  if(isReadOnly()) return;
-
-  openConfirmModal({
-    title: "Delete event?",
-    body: "This will permanently remove the event from the dashboard and marketplace.",
-    danger: true,
-    onConfirm: async ()=>{
-      // 🔴 remove public marketplace copy
-      try{
-        await deleteDoc(doc(db,"events", ev.id));
-      }catch(e){
-        console.error("Failed to delete public event", e);
-      }
-
-      // 🔴 remove owner copy
-      data.events = data.events.filter(e=>e.id!==ev.id);
-      saveData();
-
-      state.activeEventId = null;
-      setRoute("hub");
-      renderAll();
-      toast("Deleted","Event removed successfully.");
-    }
+    renderEventWorkspace();
+    renderHub();
+    toast("On Sale", "Event is now On Sale.");
   });
-});
+
+  on("#btnGoLive","click", async ()=>{
+    const ev = currentEvent(); if(!ev) return;
+    if(isReadOnly()) return;
+
+    const today = (()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
+    if(ev.date && ev.date > today){ toast("Too early","Live is available on (or after) the event date."); return; }
+    if(ev.status==="Ended"){ toast("Ended","This event already ended."); return; }
+
+    ev.status = "Live";
+    addActivity(ev, "Status changed", `${statusText("On Sale")} → Live`, "ok");
+    saveData();
+
+    try{ await syncEventToPublic(ev); }catch(err){ console.error(err); }
+
+    renderEventWorkspace();
+    renderHub();
+    toast("Live", "Event is now Live.");
+  });
+
+  on("#btnEndEvent","click", async ()=>{
+    const ev = currentEvent(); if(!ev) return;
+    if(isReadOnly()) return;
+    if(ev.status==="Ended"){ toast("Already ended",""); return; }
+
+    const prev = ev.status || "Draft";
+    ev.status = "Ended";
+    addActivity(ev, "Status changed", `${statusText(prev)} → Ended`, "warn");
+    saveData();
+
+    try{ await syncEventToPublic(ev); }catch(err){ console.error(err); }
+
+    renderEventWorkspace();
+    renderHub();
+    toast("Ended", "Event marked as ended.");
+  });
 
   // subtabs
-  $$("#subTabs .subTab").forEach(b=>{
+  document.querySelectorAll("#subTabs .subTab").forEach(b=>{
     b.addEventListener("click", ()=>{
-      $$("#subTabs .subTab").forEach(x=>x.classList.remove("active"));
+      document.querySelectorAll("#subTabs .subTab").forEach(x=>x.classList.remove("active"));
       b.classList.add("active");
       switchTab(b.dataset.tab);
       renderEventWorkspace();
-      // ensure automation webhook loads
       if(b.dataset.tab==="automation"){
         const ev = currentEvent(); if(ev) renderAutomation(ev);
       }
@@ -5851,38 +5750,33 @@ on("#btnDeleteEvent","click", ()=>{
 
   // orders filters
   ["ordFrom","ordTo","ordWave","ordTier","ordStatus"].forEach(id=>{
-    $("#"+id).addEventListener("change", ()=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener("change", ()=>{
       const ev = currentEvent(); if(!ev) return;
       renderOrdersTable(ev);
     });
   });
   on("#ordClear","click", ()=>{
-    ["ordFrom","ordTo"].forEach(id=>$("#"+id).value="");
-    ["ordWave","ordTier","ordStatus"].forEach(id=>$("#"+id).value="");
+    ["ordFrom","ordTo","ordWave","ordTier","ordStatus"].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.value="";
+    });
     const ev = currentEvent(); if(ev) renderOrdersTable(ev);
   });
 
-  // exports
-  on("#btnExportOrders","click", ()=>{ const ev=currentEvent(); if(ev) exportOrders(ev); });
-  on("#btnExportFinance","click", ()=>{ const ev=currentEvent(); if(ev) exportFinance(ev); });
-  on("#btnExportFinance2","click", ()=>{ const ev=currentEvent(); if(ev) exportFinance(ev); });
-  on("#btnExportAllFinance","click", exportAllFinance);
-
-  on("#btnExportAtt","click", ()=>{ const ev=currentEvent(); if(ev) exportAttendees(ev,false); });
-  on("#btnExportCheckins","click", ()=>{ const ev=currentEvent(); if(ev) exportAttendees(ev,true); });
-
-  on("#btnExportIncidents","click", ()=>{ const ev=currentEvent(); if(ev) exportIncidents(ev); });
-
   // customer filters
   ["attSearch","attStatus","attWave","attTier"].forEach(id=>{
-    $("#"+id).addEventListener("input", ()=>{ const ev=currentEvent(); if(ev) renderAttendeesTable(ev); });
-    $("#"+id).addEventListener("change", ()=>{ const ev=currentEvent(); if(ev) renderAttendeesTable(ev); });
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener("input", ()=>{ const ev=currentEvent(); if(ev) renderAttendeesTable(ev); });
+    el.addEventListener("change", ()=>{ const ev=currentEvent(); if(ev) renderAttendeesTable(ev); });
   });
   on("#attClear","click", ()=>{
-    $("#attSearch").value="";
-    $("#attStatus").value="";
-    $("#attWave").value="";
-    $("#attTier").value="";
+    ["attSearch","attStatus","attWave","attTier"].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.value="";
+    });
     const ev=currentEvent(); if(ev) renderAttendeesTable(ev);
   });
 
@@ -5899,26 +5793,8 @@ on("#btnDeleteEvent","click", ()=>{
   });
 
   // links copy
-  on("#copyUsher","click", ()=> copyText($("#linkUsher").value, "Usher link copied"));
-  on("#copyDesk","click", ()=> copyText($("#linkDesk").value, "Manual Desk link copied"));
-
-  // automation
-  on("#btnTestWebhook","click", ()=>{
-    const ev = currentEvent(); if(!ev) return;
-    if(isReadOnly()){ toast("Read-only mode","Switch to Owner to test webhook."); return; }
-    ev.webhookUrl = $("#webhookUrl").value.trim();
-    saveData();
-    addActivity(ev, "Test receipt sent", "A sample receipt was generated for testing.", "info");
-    addIncident(ev, "—", "system", "Sample Customer", "Test receipt sent", "Webhook test receipt triggered.");
-    toast("Test receipt sent", "A sample test receipt was generated and logged.");
-    renderEventWorkspace();
-  });
-  on("#webhookUrl","change", ()=>{
-    const ev = currentEvent(); if(!ev) return;
-    if(isReadOnly()) return;
-    ev.webhookUrl = $("#webhookUrl").value.trim();
-    saveData();
-  });
+  on("#copyUsher","click", ()=> copyText(document.getElementById("linkUsher")?.value || "", "Usher link copied"));
+  on("#copyDesk","click", ()=> copyText(document.getElementById("linkDesk")?.value || "", "Manual Desk link copied"));
 
   // attention page clear
   on("#btnClearAttention","click", ()=>{
@@ -5927,7 +5803,72 @@ on("#btnDeleteEvent","click", ()=>{
     toast("Feed cleared","Attention feed cleared.");
   });
 
+  // automation
+  on("#btnTestWebhook","click", ()=>{
+    const ev = currentEvent(); if(!ev) return;
+    if(isReadOnly()){ toast("Read-only mode","Switch to Owner to test webhook."); return; }
+    ev.webhookUrl = (document.getElementById("webhookUrl")?.value || "").trim();
+    saveData();
+    addActivity(ev, "Test receipt sent", "A sample receipt was generated for testing.", "info");
+    addIncident(ev, "—", "system", "Sample Customer", "Test receipt sent", "Webhook test receipt triggered.");
+    toast("Test receipt sent", "A sample test receipt was generated and logged.");
+    renderEventWorkspace();
+  });
 
+  on("#webhookUrl","change", ()=>{
+    const ev = currentEvent(); if(!ev) return;
+    if(isReadOnly()) return;
+    ev.webhookUrl = (document.getElementById("webhookUrl")?.value || "").trim();
+    saveData();
+  });
+}
+
+async function onOverviewStatusChange(e){
+  const sel = e.target;
+  const ev = currentEvent();
+  if(!ev) return;
+
+  // Viewer mode: block change and revert UI
+  if(isReadOnly()){
+    sel.value = ev.status || "Draft";
+    return;
+  }
+
+  const newStatus = sel.value;
+  const oldStatus = ev.status || "Draft";
+
+  // Confirm end
+  if(newStatus === "Ended"){
+    const ok = confirm("Are you sure you want to end this event? This usually stops ticket sales and check-ins.");
+    if(!ok){
+      sel.value = oldStatus;
+      return;
+    }
+  }
+
+  // Update local
+  ev.status = newStatus;
+  addActivity(ev, "Status Changed", `Manually changed from ${oldStatus} to ${newStatus}`, "info");
+  saveData();
+
+  // Persist (optional)
+  try{
+    if(window.__firebaseReady && !window.__demoMode){
+      const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+      const eventRef = doc(window.db, "events", ev.id);
+      await updateDoc(eventRef, { status: newStatus });
+    }
+    toast("Status Updated", `Event is now ${newStatus}`);
+    renderEventWorkspace();
+    renderHub();
+  }catch(err){
+    console.error("Update failed", err);
+    toast("Error", "Failed to update status.");
+    ev.status = oldStatus;
+    sel.value = oldStatus;
+    saveData();
+  }
+}
 
 async function copyText(text, okMsg){
   try{
