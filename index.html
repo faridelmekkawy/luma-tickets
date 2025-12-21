@@ -1094,7 +1094,8 @@ option{ background-color: rgba(11,16,32,.98); }
             <h2 style="margin:0;font-size:18px">Welcome back</h2>
             <div class="muted small" style="margin-top:6px">Sign in to access your Events Hub.</div>
           </div>
-</div>
+          <span class="badge info"><strong>Demo</strong> data included</span>
+        </div>
 
         <form class="authForm" id="form-signin">
           <div class="field">
@@ -1117,10 +1118,186 @@ option{ background-color: rgba(11,16,32,.98); }
               <svg width="18" height="18"><use href="#i-workspace"/></svg>
               Enter Dashboard
             </button>
-</div>
+            <button class="btn ghost" type="button" id="btn-quick-demo">
+              <svg width="18" height="18"><use href="#i-events"/></svg>
+              Use Demo
+            </button>
+          </div>
 
           <div class="hint">
-<small id="menuEmail">—</small>
+            <b>Tip:</b> You can try the dashboard immediately using the <b>Use Demo</b> button.
+          </div>
+        </form>
+      </div>
+
+      <!-- Sign up -->
+      <div id="auth-signup" class="hidden">
+        <h2 style="margin:0;font-size:18px">Create your account</h2>
+        <div class="muted small" style="margin-top:6px">This will create a secure owner profile for your Events Hub.</div>
+
+        <form class="authForm" id="form-signup">
+          <div class="field">
+            <label>Full name</label>
+            <div class="input">
+              <svg width="18" height="18" style="color:var(--muted)"><use href="#i-user"/></svg>
+              <input id="signup-name" type="text" placeholder="Your name" required>
+            </div>
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <div class="input">
+              <svg width="18" height="18" style="color:var(--muted)"><use href="#i-user"/></svg>
+              <input id="signup-email" type="email" placeholder="name@company.com" required>
+            </div>
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <div class="input">
+              <svg width="18" height="18" style="color:var(--muted)"><use href="#i-lock"/></svg>
+              <input id="signup-pass" type="password" placeholder="Create a password" minlength="6" required>
+            </div>
+          </div>
+
+          <button class="btn primary" type="submit">
+            <svg width="18" height="18"><use href="#i-plus"/></svg>
+            Create account
+          </button>
+
+          <div class="muted small">Already have an account? <a href="#" id="go-signin">Sign in</a></div>
+        </form>
+      </div>
+
+      <!-- Forgot -->
+      <div id="auth-forgot" class="hidden">
+        <h2 style="margin:0;font-size:18px">Reset password</h2>
+        <div class="muted small" style="margin-top:6px">Enter your email and we’ll send you a reset link.</div>
+
+        <form class="authForm" id="form-forgot">
+          <div class="field">
+            <label>Email</label>
+            <div class="input">
+              <svg width="18" height="18" style="color:var(--muted)"><use href="#i-user"/></svg>
+              <input id="forgot-email" type="email" placeholder="name@company.com" required>
+            </div>
+          </div>
+          <button class="btn primary" type="submit">
+            <svg width="18" height="18"><use href="#i-webhook"/></svg>
+            Send reset link
+          </button>
+          <div class="muted small">Remembered it? <a href="#" id="go-signin2">Back to sign in</a></div>
+        </form>
+      </div>
+
+      <div class="footer">
+        <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+        <span class="muted2">© <span id="year"></span> Luma</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DASHBOARD APP -->
+<section id="dash" class="app hidden">
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar">
+    <div class="brandRow">
+      <div class="logoMark"><svg width="22" height="22"><use href="#i-luma"/></svg></div>
+      <div class="brandText">
+        <b>Luma Tickets</b>
+        <span id="sideSubtitle">Events Hub</span>
+      </div>
+    </div>
+
+    <div class="sideActions">
+      <button class="pill ghost" id="btnToggleSide" title="Toggle sidebar">
+        <svg width="18" height="18"><use href="#i-menu"/></svg>
+        <span class="lbl">Menu</span>
+      </button>
+      <button class="pill primary" id="btnCreateEvent">
+        <svg width="18" height="18"><use href="#i-plus"/></svg>
+        <span class="lbl">New event</span>
+      </button>
+    </div>
+
+    <nav class="nav">
+      <div class="navItem active" data-route="hub">
+        <div class="ic"><svg width="18" height="18"><use href="#i-events"/></svg></div>
+        <div class="txt">
+          <b>Events Hub</b>
+          <span>All events + quick KPIs</span>
+        </div>
+      </div>
+      <div class="navItem" data-route="workspace">
+        <div class="ic"><svg width="18" height="18"><use href="#i-workspace"/></svg></div>
+        <div class="txt">
+          <b>Workspace</b>
+          <span>Open an event workspace</span>
+        </div>
+      </div>
+      <div class="navItem" data-route="notifications">
+        <div class="ic"><svg width="18" height="18"><use href="#i-bell"/></svg></div>
+        <div class="txt">
+          <b>Attention</b>
+          <span>What needs attention</span>
+        </div>
+      </div>
+      <div class="navItem" data-route="analytics">
+        <div class="ic"><svg width="18" height="18"><use href="#i-chart"/></svg></div>
+        <div class="txt">
+          <b>Analytics</b>
+          <span>Overview across events</span>
+        </div>
+      </div>
+
+      <div class="navItem" data-route="demo">
+        <div class="ic"><svg width="18" height="18"><use href="#i-play"/></svg></div>
+        <div class="txt">
+          <b>Demo</b>
+          <span>Sandbox</span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebarFooter">
+      <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+      <div class="pf" id="pfMini">Owner</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <header class="topbar">
+      <div class="titleWrap">
+        <span class="badge" id="roleBadge"><strong>Owner</strong> access</span>
+        <div class="crumb" id="crumb">You are in <b>Events Hub</b></div>
+      </div>
+
+      <div class="search" title="Search events, customers, orders">
+        <svg width="18" height="18" style="color:var(--muted)"><use href="#i-search"/></svg>
+        <input id="globalSearch" placeholder="Search events, orders, customers...">
+      </div>
+
+      <div class="topActions">
+        <button class="btn sm ghost" id="btnDemo" title="Open Demo Sandbox">
+          <svg width="18" height="18"><use href="#i-bell"/></svg>
+          Simulate
+        </button>
+
+        <div class="menu">
+          <div class="avatar" id="avatarBtn" aria-haspopup="true" aria-expanded="false">
+            <div class="ava" id="avaInitials">LU</div>
+            <div class="meta">
+              <b id="avaName">Owner</b>
+              <span id="avaEmail" class="muted">—</span>
+            </div>
+          </div>
+          <div class="menuPanel" id="menuPanel">
+            <div class="menuRow" style="cursor:default">
+              <div class="left">
+                <div class="ava" style="width:38px;height:38px;border-radius:14px" id="avaInitials2">LU</div>
+                <div>
+                  <b id="menuName" style="font-size:12px">Owner</b><br>
+                  <small id="menuEmail">—</small>
                 </div>
               </div>
               <span class="chip info" id="menuPlan">Owner</span>
@@ -1140,7 +1317,15 @@ option{ background-color: rgba(11,16,32,.98); }
                 <option value="Viewer">Viewer</option>
               </select>
             </div>
-</div>
+
+            <div class="menuRow" id="btnResetDemo">
+              <div class="left">
+                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-trash"/></svg>
+                <div>
+                  <b style="font-size:12px">Reset demo data</b><br>
+                  <small>Restore default sample events</small>
+                </div>
+              </div>
             </div>
 
             <div class="menuSep"></div>
@@ -1415,7 +1600,14 @@ option{ background-color: rgba(11,16,32,.98); }
 
       <!-- Event Workspace -->
       <div 
-      <div class="right">
+      <!-- Demo (Sandbox) -->
+      <div id="page-demo" class="hidden">
+        <div class="split">
+          <div>
+            <h2 style="margin:0;font-size:18px">Demo Sandbox</h2>
+            <div class="muted small" style="margin-top:6px">This sandbox is <b>separate</b> from your real events. Demo changes do not touch your owner data.</div>
+          </div>
+          <div class="right">
             <button class="btn" id="btnExitDemo"><svg width="18" height="18"><use href="#i-back"/></svg> Exit Demo</button>
           </div>
         </div>
@@ -2120,6 +2312,7 @@ option{ background-color: rgba(11,16,32,.98); }
 <div class="toasts" id="toasts"></div>
 
 <script type="module">
+
 /* =========================
    Luma Tickets — Owner Dashboard (Single-file demo app)
    ========================= */
@@ -2143,7 +2336,7 @@ const firebaseConfig = {
 // - If the SDK can't be loaded (common when opening via file://), we fall back to local DEMO mode
 let initializeApp, getApp, getApps;
 let getAuth, onAuthStateChanged, signInWithEmailAndPassword, sendPasswordResetEmail, fbSignOut, createUserWithEmailAndPassword, updateProfile;
-let getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, getDocs, orderBy, limit, serverTimestamp, Timestamp;
+let getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, query, where, getDocs, orderBy, limit, serverTimestamp, Timestamp;
 let getStorage, stRef, uploadBytes, getDownloadURL, deleteObject;
 
 // Initialized by __loadFirebase()
@@ -2155,7 +2348,9 @@ let storage = null;
 async function __loadFirebase(){
   // If the user opens the file directly (file://), most browsers will block ESM imports.
   // Auto-switch to DEMO mode in that case.
-  if(location.protocol==="file:"){ throw new Error("This app must be served over http(s). Use Firebase Hosting or any local dev server."); }
+  if(location.protocol === "file:"){
+    window.__demoMode = true;
+  }
 
   // If DEMO is forced, don't attempt to load SDK.
   if(window.__demoMode){
@@ -2184,7 +2379,7 @@ async function __loadFirebase(){
     fbSignOut = authMod.signOut;
 
     const fsMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
-    ({ getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, getDocs, orderBy, limit, serverTimestamp, Timestamp } = fsMod);
+({ getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, query, where, getDocs, orderBy, limit, serverTimestamp, Timestamp } = fsMod);
 
     const stMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js");
     ({ getStorage, uploadBytes, getDownloadURL, deleteObject } = stMod);
@@ -2218,7 +2413,120 @@ await __loadFirebase();
 function ownerDocRef(uid){
   return doc(db, "owners", uid, "apps", "lumaTicketsOwnerDashboard");
 }
+// Public marketplace doc for customers to browse
+function publicEventRef(eventId){
+  return doc(db, "events", eventId);
+}
 
+// Push a public-safe copy of an event to Firestore for the customer marketplace
+async function syncEventToPublic(ev){
+  // If you're in local demo mode, skip
+  if(window.__demoMode) return;
+
+  const ownerId = auth.currentUser?.uid || null;
+
+  // Only expose what customer marketplace needs
+  const publicPayload = {
+    published: (ev.status === "On Sale" || ev.status === "Live" || ev.status === "Ended"), // keep ended visible if you want
+    status: ev.status || "Draft",
+    name: ev.name || "",
+    venue: ev.venue || "",
+    city: ev.city || "",
+    category: ev.category || "",
+    bannerUrl: ev.bannerUrl || "",
+    logoUrl: ev.logoUrl || "",
+
+    // customer.html expects dateISO. owner data often uses ev.date (YYYY-MM-DD).
+    dateISO: ev.dateISO || (ev.date ? `${ev.date}T00:00:00.000Z` : ""),
+
+    // tiers + waves the customer needs to render details/purchase
+    tiers: Array.isArray(ev.tiers) ? ev.tiers : [],
+    waves: Array.isArray(ev.waves) ? ev.waves : [],
+
+    ownerId,
+    updatedAt: serverTimestamp(),
+  };
+
+  await setDoc(publicEventRef(ev.id), publicPayload, { merge:true });
+}
+
+// PUBLIC EVENTS (what the customer app reads)
+function publicEventRef(eventId){
+  return doc(db, "events", eventId);
+}
+
+async function uploadDataUrlIfNeeded(dataUrl, storagePath){
+  if(!dataUrl) return "";
+  // already a URL
+  if(/^https?:\/\//i.test(dataUrl)) return dataUrl;
+  // only upload if it's a data URL
+  if(!/^data:/i.test(dataUrl)) return dataUrl;
+
+  if(!storage || !stRef){
+    throw new Error("Storage not ready. Make sure Firebase Storage SDK is loaded.");
+  }
+
+  const res = await fetch(dataUrl);
+  const blob = await res.blob();
+  const contentType = blob.type || "image/jpeg";
+
+  const r = stRef(storage, storagePath);
+  await uploadBytes(r, blob, { contentType });
+  return await getDownloadURL(r);
+}
+
+// Sync one event to /events/{eventId} so customer.html can see it
+async function syncEventToPublic(ev){
+  if(window.__demoMode) return;                 // never publish in demo
+  if(!window.__firebaseReady) return;
+
+  const uid = auth.currentUser?.uid;
+  if(!uid) throw new Error("Not signed in.");
+
+  const eventId = ev?.id;
+  if(!eventId) throw new Error("Event has no id.");
+
+  // Map fields expected by customer.html
+  const dateISO = ev.date || ev.dateISO || "";  // owner uses `date`
+  const city = ev.city || ev.locationCity || ""; // optional
+
+  // Upload images if they are data URLs (from file picker previews)
+  const bannerUrl = await uploadDataUrlIfNeeded(
+    ev.bannerDataUrl || ev.bannerUrl || "",
+    `publicEvents/${eventId}/banner`
+  );
+
+  const logoUrl = await uploadDataUrlIfNeeded(
+    ev.logoDataUrl || ev.logoUrl || "",
+    `publicEvents/${eventId}/logo`
+  );
+
+  const payload = {
+    // visibility
+    published: true,
+    status: ev.status || "Draft",
+
+    // basic info
+    name: ev.name || "",
+    dateISO,
+    venue: ev.venue || "",
+    city,
+
+    // visuals
+    bannerUrl,
+    logoUrl,
+
+    // pricing structure
+    tiers: Array.isArray(ev.tiers) ? ev.tiers : [],
+    waves: Array.isArray(ev.waves) ? ev.waves : [],
+
+    // ownership / audit
+    ownerId: uid,
+    updatedAt: serverTimestamp(),
+  };
+
+  await setDoc(publicEventRef(eventId), payload, { merge: true });
+}
 
 
 const $ = (q, el=document)=>el.querySelector(q);
@@ -2624,66 +2932,6 @@ async function loadData(){
   return seed;
 }
 
-// --- Public events publishing (Customer marketplace compatibility) ---
-// Customer app reads: events/{eventId} and writes orders to events/{eventId}/orders
-function eventDocRef(eventId){
-  return doc(db, "events", String(eventId));
-}
-
-function publicEventPayload(ev, ownerUid){
-  // Keep only fields the customer app needs (avoid leaking private staff pins, etc.)
-  const clean = {
-    id: ev.id,
-    ownerUid: ownerUid || null,
-    name: ev.name || "",
-    date: ev.date || "",
-    venue: ev.venue || "",
-    city: ev.city || "",
-    status: ev.status || "Draft",
-    published: !!(ev.published ?? ev.design?.published ?? (String(ev.status||"").toLowerCase().includes("sale") || String(ev.status||"").toLowerCase().includes("live"))),
-    currency: ev.currency || "EGP",
-    bannerDataUrl: ev.bannerDataUrl || ev.design?.bannerDataUrl || "",
-    logoDataUrl: ev.logoDataUrl || ev.design?.logoDataUrl || "",
-    tiers: Array.isArray(ev.tiers) ? ev.tiers.map(t=>({
-      id: t.id, name: t.name, desc: t.desc || "", baseCap: Number(t.baseCap||0)
-    })) : [],
-    waves: Array.isArray(ev.waves) ? ev.waves.map(w=>({
-      id: w.id, name: w.name,
-      start: w.start || null,
-      end: w.end || null,
-      tiersActive: Array.isArray(w.tiersActive) ? w.tiersActive : [],
-      pricing: w.pricing || {},
-      qty: w.qty || {},
-      sold: w.sold || {}
-    })) : [],
-    updatedAt: serverTimestamp(),
-  };
-  return clean;
-}
-
-async function publishEventToMarketplace(ev){
-  try{
-    const ownerUid = auth.currentUser?.uid || null;
-    if(!ownerUid) return; // publish only when signed-in
-    if(!ev?.id) return;
-    await setDoc(eventDocRef(ev.id), publicEventPayload(ev, ownerUid), { merge:true });
-  }catch(err){
-    console.warn("publishEventToMarketplace failed", err);
-  }
-}
-
-async function publishAllEventsToMarketplace(){
-  try{
-    if(!auth.currentUser?.uid) return;
-    const evs = data?.events || [];
-    for(const ev of evs){
-      await publishEventToMarketplace(ev);
-    }
-  }catch(err){
-    console.warn("publishAllEventsToMarketplace failed", err);
-  }
-}
-
 let __saveTimer = null;
 function saveData(){
   // Demo mode: save only to demo localStorage (never Firestore)
@@ -2703,8 +2951,6 @@ function saveData(){
         const uid = auth.currentUser?.uid;
         if(uid){
           await setDoc(ownerDocRef(uid), { data, updatedAt: serverTimestamp() }, { merge: true });
-          // Also publish events to the public marketplace collection for customer.html
-          await publishAllEventsToMarketplace();
         }
       }
     }catch(err){
@@ -2754,9 +3000,9 @@ async function appSignOut(){
   state.route = "hub";
   state.activeTab = "overview";
   window.__demoMode = false;
-  $("#dash").classList.add("hidden");
-  $("#auth").classList.remove("hidden");
-  $("#menuPanel").classList.remove("open");
+  document.getElementById("dash")?.classList.add("hidden");
+  document.getElementById("auth")?.classList.remove("hidden");
+  document.getElementById("menuPanel")?.classList.remove("open");
   toast("Signed out", "You’re now signed out of the dashboard.");
 }
 
@@ -2768,15 +3014,13 @@ function signOut(){
 
 function setAuthTab(tab){
   $$(".tabBtn").forEach(b=>b.classList.toggle("active", b.dataset.authTab===tab));
-  $("#auth-signin").classList.toggle("hidden", tab!=="signin");
-  $("#auth-signup").classList.toggle("hidden", tab!=="signup");
-  $("#auth-forgot").classList.toggle("hidden", tab!=="forgot");
+  document.getElementById("auth-signin")?.classList.toggle("hidden", tab!=="signin");
+  document.getElementById("auth-signup")?.classList.toggle("hidden", tab!=="signup");
+  document.getElementById("auth-forgot")?.classList.toggle("hidden", tab!=="forgot");
 }
 
 function authInit(){
-  // Some deployments remove the footer year node; guard against null.
-  const y = $("#year");
-  if(y) y.textContent = new Date().getFullYear();
+  if(document.getElementById("year")) document.getElementById("year")?.textContent = new Date().getFullYear();
   $$(".tabBtn").forEach(b=>b.addEventListener("click", ()=> setAuthTab(b.dataset.authTab)));
   $("#go-signin")?.addEventListener("click", (e)=>{ e.preventDefault(); setAuthTab("signin"); });
   $("#go-signin2")?.addEventListener("click", (e)=>{ e.preventDefault(); setAuthTab("signin"); });
@@ -2891,7 +3135,14 @@ function toast(title, msg){
     <button class="x" title="Close"><svg width="18" height="18"><use href="#i-close"/></svg></button>
   `;
   el.querySelector(".x").addEventListener("click", ()=> el.remove());
-  $("#toasts").appendChild(el);
+  const wrap = $("#toasts") || (()=>{
+    const w = document.createElement("div");
+    w.id = "toasts";
+    w.className = "toasts";
+    document.body.appendChild(w);
+    return w;
+  })();
+  wrap.appendChild(el);
   setTimeout(()=>{ if(el.isConnected) el.remove(); }, 5200);
 }
 function escapeHtml(s){
@@ -2926,17 +3177,17 @@ function openModal({title, desc, bodyHtml, footButtons=[]}){
     btn.addEventListener("click", b.onClick || closeModal);
     foot.appendChild(btn);
   }
-  $("#modalOverlay").classList.add("open");
+  document.getElementById("modalOverlay")?.classList.add("open");
 }
-function closeModal(){ $("#modalOverlay").classList.remove("open"); }
+function closeModal(){ document.getElementById("modalOverlay")?.classList.remove("open"); }
 
 function openDrawer(title, sub, bodyHtml){
   $("#drawerTitle").textContent = title || "Details";
   $("#drawerSub").textContent = sub || "";
   $("#drawerBody").innerHTML = bodyHtml || "";
-  $("#drawerOverlay").classList.add("open");
+  document.getElementById("drawerOverlay")?.classList.add("open");
 }
-function closeDrawer(){ $("#drawerOverlay").classList.remove("open"); }
+function closeDrawer(){ document.getElementById("drawerOverlay")?.classList.remove("open"); }
 
 
 
@@ -3022,12 +3273,12 @@ function setRoute(route, opts={}){
   // sidebar active
   $$(".navItem").forEach(x=>x.classList.toggle("active", x.dataset.route===route));
   // pages
-  $("#page-hub").classList.toggle("hidden", route!=="hub");
-  $("#page-workspace").classList.toggle("hidden", route!=="workspace");
-  $("#page-notifications").classList.toggle("hidden", route!=="notifications");
-  $("#page-analytics").classList.toggle("hidden", route!=="analytics");
-  $("#page-demo").classList.toggle("hidden", route!=="demo");
-  $("#page-event").classList.toggle("hidden", route!=="event");
+  document.getElementById("page-hub")?.classList.toggle("hidden", route!=="hub");
+  document.getElementById("page-workspace")?.classList.toggle("hidden", route!=="workspace");
+  document.getElementById("page-notifications")?.classList.toggle("hidden", route!=="notifications");
+  document.getElementById("page-analytics")?.classList.toggle("hidden", route!=="analytics");
+  document.getElementById("page-demo")?.classList.toggle("hidden", route!=="demo");
+  document.getElementById("page-event")?.classList.toggle("hidden", route!=="event");
 
   $("#sideSubtitle").textContent =
     route==="hub" ? "Events Hub" :
@@ -3368,7 +3619,8 @@ function switchTab(tab){
   state.activeTab = tab;
   const tabs = ["overview","ticketing","orders","customers","staff","design","analytics","incidents","links","automation"];
   for(const t of tabs){
-    $("#tab-"+t).classList.toggle("hidden", t!==tab);
+    const el = $("#tab-"+t);
+    if(el) el.classList.toggle("hidden", t!==tab);
   }
   if(tab==="analytics"){
     // ensure charts draw after visible
@@ -4487,6 +4739,7 @@ function renderDesignStudio(ev){
   };
   ["dsPrimary","dsAccent","dsHeadline","dsEmailText"].forEach(id=>{
     const el = $("#"+id);
+    if(!el) return;
     if(!el._wired){
       el.addEventListener("input", updatePreview);
       el._wired = true;
@@ -4499,8 +4752,9 @@ function renderDesignStudio(ev){
   wireFileInput("#dsBg", (dataUrl)=>{ ev.design.bgDataUrl = dataUrl; saveData(); updatePreview(); toast("Background updated","Preview updated."); });
 
   // preview mode buttons
-  if(!$("#previewMode")._wired){
-    $$("#previewMode button").forEach(b=>{
+  const __pm = $("#previewMode");
+  if(__pm && !__pm._wired){
+$$("#previewMode button").forEach(b=>{
       b.addEventListener("click", ()=>{
         $$("#previewMode button").forEach(x=>x.classList.remove("active"));
         b.classList.add("active");
@@ -4508,14 +4762,15 @@ function renderDesignStudio(ev){
         buildPreview(getDesignDraft(ev));
       });
     });
-    $("#previewMode")._wired = true;
+    __pm._wired = true;
   }
 
   // buttons
-  lockIfReadOnly($("#btnSaveDesign"));
-  lockIfReadOnly($("#btnPublishDesign"));
+  lockIfReadOnly($("#btnSaveDesign") || null);
+  lockIfReadOnly($("#btnPublishDesign") || null);
 
-  if(!$("#btnSaveDesign")._wired){
+  const __btnSave = $("#btnSaveDesign");
+  if(__btnSave && !__btnSave._wired){
     on("#btnSaveDesign","click", ()=>{
       if(isReadOnly()) return;
       const draft = getDesignDraft(ev);
@@ -4525,9 +4780,10 @@ function renderDesignStudio(ev){
       toast("Draft saved", "Your design draft was saved.");
       renderEventWorkspace();
     });
-    $("#btnSaveDesign")._wired = true;
+    __btnSave._wired = true;
   }
-  if(!$("#btnPublishDesign")._wired){
+  const __btnPub = $("#btnPublishDesign");
+  if(__btnPub && !__btnPub._wired){
     on("#btnPublishDesign","click", ()=>{
       if(isReadOnly()) return;
       const draft = getDesignDraft(ev);
@@ -4537,7 +4793,7 @@ function renderDesignStudio(ev){
       toast("Design published", "Your design is now published for this event.");
       renderEventWorkspace();
     });
-    $("#btnPublishDesign")._wired = true;
+    __btnPub._wired = true;
   }
 
   // initial preview
@@ -5291,7 +5547,7 @@ function duplicateEvent(eventId){
 function wireDashboardUI(){
   // Sidebar
   on("#btnToggleSide","click", ()=>{
-    $("#sidebar").classList.toggle("collapsed");
+    document.getElementById("sidebar")?.classList.toggle("collapsed");
   });
 
   // nav
@@ -5339,10 +5595,10 @@ function wireDashboardUI(){
 
   // menu
   on("#avatarBtn","click", ()=>{
-    $("#menuPanel").classList.toggle("open");
+    document.getElementById("menuPanel")?.classList.toggle("open");
   });
   document.addEventListener("click", (e)=>{
-    if(!e.target.closest(".menu")) $("#menuPanel").classList.remove("open");
+    if(!e.target.closest(".menu")) document.getElementById("menuPanel")?.classList.remove("open");
   });
 
   on("#btnLogout","click", appSignOut);
@@ -5398,7 +5654,7 @@ function wireDashboardUI(){
   on("#btnDemoSim","click", ()=>{
     if(!state.demoMode){ toast("Not in demo","Load demo first."); return; }
     state.simulateOn = !state.simulateOn;
-    $("#btnDemoSim").classList.toggle("good", state.simulateOn);
+    document.getElementById("btnDemoSim")?.classList.toggle("good", state.simulateOn);
     toast("Simulation", state.simulateOn ? "Demo simulation started." : "Simulation stopped.");
   });
 
@@ -5426,43 +5682,86 @@ function wireDashboardUI(){
     deleteEventModal(ev.id);
   });
 
-  // status controls (Overview)
-  on("#btnSetOnSale","click", ()=>{
-    const ev = currentEvent(); if(!ev) return;
-    if(isReadOnly()) return;
-    if(ev.status!=="Draft"){ toast("Not allowed","Only Draft events can be set On Sale."); return; }
-    ev.status = "On Sale";
-    addActivity(ev, "Status changed", "Draft → On Sale", "info");
-    saveData();
-    renderEventWorkspace();
-    toast("On Sale", "Event is now On Sale.");
+// status controls (Overview)
+on("#btnSetOnSale","click", async ()=>{
+  const ev = currentEvent(); if(!ev) return;
+  if(isReadOnly()) return;
+  if(ev.status!=="Draft"){ toast("Not allowed","Only Draft events can be set On Sale."); return; }
+
+  ev.status = "On Sale";
+  addActivity(ev, "Status changed", "Draft → On Sale", "info");
+  saveData();
+
+  // publish/update public marketplace copy
+  try{ await syncEventToPublic(ev); }catch(err){ console.error(err); }
+
+  renderEventWorkspace();
+  toast("On Sale", "Event is now On Sale.");
+});
+
+on("#btnGoLive","click", async ()=>{
+  const ev = currentEvent(); if(!ev) return;
+  if(isReadOnly()) return;
+
+  const today = (()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
+  if(ev.date && ev.date > today){ toast("Too early","Live is available on (or after) the event date."); return; }
+  if(ev.status==="Ended"){ toast("Ended","This event already ended."); return; }
+
+  ev.status = "Live";
+  addActivity(ev, "Status changed", `${statusText("On Sale")} → Live`, "ok");
+  saveData();
+
+  // publish/update public marketplace copy
+  try{ await syncEventToPublic(ev); }catch(err){ console.error(err); }
+
+  renderEventWorkspace();
+  toast("Live", "Event is now Live.");
+});
+
+on("#btnEndEvent","click", async ()=>{
+  const ev = currentEvent(); if(!ev) return;
+  if(isReadOnly()) return;
+  if(ev.status==="Ended"){ toast("Already ended",""); return; }
+
+  const prev = ev.status || "Draft";
+  ev.status = "Ended";
+  addActivity(ev, "Status changed", `${statusText(prev)} → Ended`, "warn");
+  saveData();
+
+  // update public marketplace copy too (so customer app sees Ended)
+  try{ await syncEventToPublic(ev); }catch(err){ console.error(err); }
+
+  renderEventWorkspace();
+  toast("Ended", "Event marked as ended.");
+});
+
+on("#btnDeleteEvent","click", ()=>{
+  const ev = currentEvent(); if(!ev) return;
+  if(isReadOnly()) return;
+
+  openConfirmModal({
+    title: "Delete event?",
+    body: "This will permanently remove the event from the dashboard and marketplace.",
+    danger: true,
+    onConfirm: async ()=>{
+      // 🔴 remove public marketplace copy
+      try{
+        await deleteDoc(doc(db,"events", ev.id));
+      }catch(e){
+        console.error("Failed to delete public event", e);
+      }
+
+      // 🔴 remove owner copy
+      data.events = data.events.filter(e=>e.id!==ev.id);
+      saveData();
+
+      state.activeEventId = null;
+      setRoute("hub");
+      renderAll();
+      toast("Deleted","Event removed successfully.");
+    }
   });
-
-  on("#btnGoLive","click", ()=>{
-    const ev = currentEvent(); if(!ev) return;
-    if(isReadOnly()) return;
-    const today = (()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
-    if(ev.date && ev.date > today){ toast("Too early","Live is available on (or after) the event date."); return; }
-    if(ev.status==="Ended"){ toast("Ended","This event already ended."); return; }
-    ev.status = "Live";
-    addActivity(ev, "Status changed", `${statusText("On Sale")} → Live`, "ok");
-    saveData();
-    renderEventWorkspace();
-    toast("Live", "Event is now Live.");
-  });
-
-  on("#btnEndEvent","click", ()=>{
-    const ev = currentEvent(); if(!ev) return;
-    if(isReadOnly()) return;
-    if(ev.status==="Ended"){ toast("Already ended",""); return; }
-    ev.status = "Ended";
-    addActivity(ev, "Status changed", `${statusText(ev.status)} → Ended`, "warn");
-    saveData();
-    renderEventWorkspace();
-    toast("Ended", "Event marked as ended.");
-  });
-
-
+});
 
   // subtabs
   $$("#subTabs .subTab").forEach(b=>{
@@ -5682,9 +5981,9 @@ function renderDemoPage(){
 
 
 async function bootDashboard(){
-  $("#auth").classList.add("hidden");
-  $("#dash").classList.remove("hidden");
-
+  // Defensive: the DOM might not contain these sections in some deployments
+  document.getElementById("auth")?.classList.add("hidden");
+  document.getElementById("dash")?.classList.remove("hidden");
   // sync user labels
   const name = state.user?.name || "Owner";
   const email = state.user?.email || "—";
@@ -5723,12 +6022,12 @@ async function bootDashboard(){
 function start(){
   authInit();
   const ok = loadAuth();
-  $("#auth").classList.toggle("hidden", ok);
-  $("#dash").classList.toggle("hidden", !ok);
+  // Defensive: if sections are missing (or replaced by another index shell), avoid crashing.
+  document.getElementById("auth")?.classList.toggle("hidden", ok);
+  document.getElementById("dash")?.classList.toggle("hidden", !ok);
   if(ok) bootDashboard();
   else setAuthTab("signin");
 }
-
 /* ---------- Misc buttons for hub/workspace ---------- */
 
 $("#btnCreateEvent2")?.addEventListener?.("click", ()=>{});
@@ -5789,8 +6088,7 @@ openEventWorkspace = function(eventId){
 $("#ordClear")?.addEventListener?.("click", ()=>{});
 
 /* ---------- Start ---------- */
-
-start();
+window.addEventListener('DOMContentLoaded', start);
 </script>
 
 </body>
