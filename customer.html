@@ -970,6 +970,18 @@ function toast(title, msg=""){
   wrap.appendChild(el);
   setTimeout(()=>{ if(el.isConnected) el.remove(); }, 5200);
 }
+
+  function formatDateNice(dateLike){
+  if(!dateLike) return "-";
+  const d = new Date(dateLike);
+  if(isNaN(d)) return "-";
+  return d.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+}
+
 function initials(nameOrEmail){
   const s = (nameOrEmail||"").trim();
   if(!s) return "LU";
