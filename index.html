@@ -8,7 +8,7 @@
   <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
       --bg0:#0b1020;
@@ -2049,6 +2049,22 @@ option{ background-color: rgba(11,16,32,.98); }
                     <div class="input"><input id="dsAccent" type="color" value="#22c55e"></div>
                   </div>
                   <div class="field">
+                    <label>Font</label>
+                    <div class="input">
+                      <select id="dsFontFamily">
+                        <option value="Montserrat">Montserrat</option>
+                        <option value="Inter">Inter</option>
+                        <option value="Poppins">Poppins</option>
+                        <option value="Cairo">Cairo</option>
+                      </select>
+                    </div>
+                    <div class="hint">Used for ticket + receipt UI in customer-facing screens.</div>
+                  </div>
+                  <div class="field">
+                    <label>Font color</label>
+                    <div class="input"><input id="dsTextColor" type="color" value="#f8fafc"></div>
+                  </div>
+                  <div class="field">
                     <label>Ticket headline</label>
                     <div class="input"><input id="dsHeadline" placeholder="e.g., Your ticket is ready"></div>
                   </div>
@@ -2475,19 +2491,42 @@ async function syncEventToPublic(ev){
   if(!eventId) throw new Error("Event has no id.");
 
   // Map fields expected by customer.html
-  const dateISO = ev.date || ev.dateISO || "";  // owner uses `date`
-  const city = ev.city || ev.locationCity || ""; // optional
+  const dateISO = ev.date || ev.dateISO || "";       // owner uses `date`
+  const time = ev.time || "";
+  const city = ev.city || ev.locationCity || "";     // optional
+  const locationText = ev.locationText || ev.location || "";
+  const locationUrl = ev.locationUrl || "";          // explicit URL (maps/website)
+
+  // Design/branding (ticket + marketplace visuals)
+  const d = ev.design || {};
 
   // Upload images if they are data URLs (from file picker previews)
+  const bannerSource = d.bannerDataUrl || ev.bannerDataUrl || d.bannerUrl || ev.bannerUrl || "";
+  const logoSource   = d.logoDataUrl   || ev.logoDataUrl   || d.logoUrl   || ev.logoUrl   || "";
+  const bgSource     = d.bgDataUrl     || d.bgUrl          || "";
+
   const bannerUrl = await uploadDataUrlIfNeeded(
-    ev.bannerDataUrl || ev.bannerUrl || "",
+    bannerSource,
     `publicEvents/${eventId}/banner`
   );
 
   const logoUrl = await uploadDataUrlIfNeeded(
-    ev.logoDataUrl || ev.logoUrl || "",
+    logoSource,
     `publicEvents/${eventId}/logo`
   );
+
+  const bgUrl = await uploadDataUrlIfNeeded(
+    bgSource,
+    `publicEvents/${eventId}/bg`
+  );
+
+  // Keep local cache in sync (so we don't re-upload on every save)
+  ev.bannerUrl = bannerUrl || ev.bannerUrl || "";
+  ev.logoUrl = logoUrl || ev.logoUrl || "";
+  if(!ev.design) ev.design = {};
+  ev.design.bannerUrl = bannerUrl || ev.design.bannerUrl || "";
+  ev.design.logoUrl = logoUrl || ev.design.logoUrl || "";
+  ev.design.bgUrl = bgUrl || ev.design.bgUrl || "";
 
   const payload = {
     // visibility
@@ -2495,16 +2534,34 @@ async function syncEventToPublic(ev){
     status: ev.status || "Draft",
 
     // basic info
+    id: eventId,
     name: ev.name || "",
     dateISO,
+    time,
     venue: ev.venue || "",
     city,
+    locationText,
+    locationUrl,
 
-    // visuals
+    // visuals (marketplace)
     bannerUrl,
     logoUrl,
 
-    // pricing structure
+    // design (ticket + email previews)
+    design: {
+      primary: d.primary || "#7c3aed",
+      accent: d.accent || "#22c55e",
+      fontFamily: d.fontFamily || "Montserrat",
+      textColor: d.textColor || "#f8fafc",
+      headline: d.headline || "Your ticket is ready",
+      emailText: d.emailText || "",
+      bannerUrl: bannerUrl || d.bannerUrl || "",
+      logoUrl: logoUrl || d.logoUrl || "",
+      bgUrl: bgUrl || d.bgUrl || "",
+      updatedAt: serverTimestamp(),
+    },
+
+    // ticket structure
     tiers: Array.isArray(ev.tiers) ? ev.tiers : [],
     waves: Array.isArray(ev.waves) ? ev.waves : [],
 
@@ -3542,7 +3599,7 @@ function renderHub(){
               <div class="row"><span class="chip ${badgeClass}">${escapeHtml(statusText(ev.status))}</span></div>
               <div class="row"><span class="muted2">Date:</span> ${escapeHtml(ev.date)}${ev.time?` • ${escapeHtml(ev.time)}`:""}</div>
               <div class="row"><span class="muted2">Venue:</span> ${escapeHtml(ev.venue)}</div>
-              ${ev.locationText?`<div class="row"><span class="muted2">Location:</span> <a class="link" href="${mapsLink(ev.locationText)}" target="_blank" rel="noopener">${escapeHtml(ev.locationText)}</a></div>`:""}            </div>
+              ${ev.locationText?`<div class="row"><span class="muted2">Location:</span> <a class="link" href="${escapeHtml(ev.locationUrl||mapsLink(ev.locationText))}" target="_blank" rel="noopener">${escapeHtml(ev.locationText)}</a></div>`:""}            </div>
           </div>
         </div>
 
@@ -3641,7 +3698,7 @@ function renderEventWorkspace(){
     $("#ovVenue").textContent = ev.venue || "—";
     $("#ovDate").textContent = `${ev.date}${ev.time?` • ${ev.time}`:""}`.trim();
     const loc = ev.locationText || ev.venue || "";
-    $("#ovMapsLink").href = loc ? mapsLink(loc) : "#";
+    $("#ovMapsLink").href = (ev.locationUrl ? ev.locationUrl : (loc ? mapsLink(loc) : "#"));
     $("#ovMapsLink").style.pointerEvents = loc ? "auto" : "none";
     $("#ovMapsLink").style.opacity = loc ? "1" : ".5";
     
@@ -4829,13 +4886,25 @@ function renderDesignStudio(ev){
   if($("#dsEmailText").value === "") $("#dsEmailText").value = d.emailText || "";
   $("#dsPrimary").value = d.primary || "#7c3aed";
   $("#dsAccent").value = d.accent || "#22c55e";
+  if($("#dsFontFamily")) $("#dsFontFamily").value = d.fontFamily || "Montserrat";
+  if($("#dsTextColor")) $("#dsTextColor").value = d.textColor || "#f8fafc";
 
   // hook inputs
   const updatePreview = ()=>{
     const snapshot = getDesignDraft(ev);
+    // Persist draft into the event object so it can be saved + published
+    ev.design = ev.design || {};
+    ev.design.primary = snapshot.primary;
+    ev.design.accent = snapshot.accent;
+    ev.design.fontFamily = snapshot.fontFamily;
+    ev.design.textColor = snapshot.textColor;
+    ev.design.headline = snapshot.headline;
+    ev.design.emailText = snapshot.emailText;
+    ev.design.updatedAt = nowISO();
+    saveData();
     buildPreview(snapshot);
   };
-  ["dsPrimary","dsAccent","dsHeadline","dsEmailText"].forEach(id=>{
+  ["dsPrimary","dsAccent","dsFontFamily","dsTextColor","dsHeadline","dsEmailText"].forEach(id=>{
     const el = $("#"+id);
     if(!el) return;
     if(!el._wired){
@@ -4845,8 +4914,8 @@ function renderDesignStudio(ev){
   });
 
   // file upload previews
-  wireFileInput("#dsBanner", (dataUrl)=>{ ev.design.bannerDataUrl = dataUrl; saveData(); updatePreview(); toast("Banner updated","Preview updated."); });
-  wireFileInput("#dsLogo", (dataUrl)=>{ ev.design.logoDataUrl = dataUrl; saveData(); updatePreview(); toast("Logo updated","Preview updated."); });
+  wireFileInput("#dsBanner", (dataUrl)=>{ ev.design.bannerDataUrl = dataUrl; ev.bannerDataUrl = dataUrl; saveData(); updatePreview(); toast("Banner updated","Preview updated."); });
+  wireFileInput("#dsLogo", (dataUrl)=>{ ev.design.logoDataUrl = dataUrl; ev.logoDataUrl = dataUrl; saveData(); updatePreview(); toast("Logo updated","Preview updated."); });
   wireFileInput("#dsBg", (dataUrl)=>{ ev.design.bgDataUrl = dataUrl; saveData(); updatePreview(); toast("Background updated","Preview updated."); });
 
   // preview mode buttons
@@ -4906,6 +4975,8 @@ function getDesignDraft(ev){
     bgDataUrl: d.bgDataUrl || "",
     primary: $("#dsPrimary").value || d.primary || "#7c3aed",
     accent: $("#dsAccent").value || d.accent || "#22c55e",
+    fontFamily: ($("#dsFontFamily")?.value) || d.fontFamily || "Montserrat",
+    textColor: ($("#dsTextColor")?.value) || d.textColor || "#f8fafc",
     headline: $("#dsHeadline").value.trim() || d.headline || "Your ticket is ready",
     emailText: $("#dsEmailText").value.trim() || d.emailText || "",
     published: !!d.published,
@@ -4938,6 +5009,8 @@ function buildPreview(design){
   const pv = state.designPreview.mode || "mobile";
   const pb = $("#previewBody");
   pb.innerHTML = "";
+  pb.style.fontFamily = `${design.fontFamily||"Montserrat"}, system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+  pb.style.color = design.textColor || "#f8fafc";
 
   // inject a small style for the preview colors
   const style = document.createElement("style");
@@ -5467,6 +5540,11 @@ function createEventModal(){
           <div class="input"><input id="mEvLocation" placeholder="Street, area, city..."></div>
           <div class="hint">This will be shown to customers. Clicking it opens Maps.</div>
         </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Location URL (Google Maps / website)</label>
+          <div class="input"><input id="mEvLocationUrl" placeholder="https://..."></div>
+          <div class="hint">If provided, customer app will open this exact link instead of auto-generated Maps search.</div>
+        </div>
       </div>
       <div class="hr"></div>
       <div class="hint"><b>Event ID:</b> generated automatically from name + venue + date.</div>
@@ -5479,6 +5557,7 @@ function createEventModal(){
         const time = $("#mEvTime").value || "";
         const venue = $("#mEvVenue").value.trim();
         const locationText = $("#mEvLocation").value.trim();
+        const locationUrl = ($("#mEvLocationUrl")?.value || "").trim();
 
         if(!name || !date || !venue){
           toast("Missing details","Event name, date, and venue are required.");
@@ -5492,7 +5571,7 @@ function createEventModal(){
 
         const ev = {
           id, name, date, time, venue,
-          locationText,
+          locationText, locationUrl,
           status:"Draft",
           bannerDataUrl:"", logoDataUrl:"",
           tiers: [],
@@ -5506,6 +5585,7 @@ function createEventModal(){
           design: {
             bannerDataUrl:"", logoDataUrl:"", bgDataUrl:"",
             primary:"#7c3aed", accent:"#22c55e",
+            fontFamily:"Montserrat", textColor:"#f8fafc",
             headline:"Your ticket is ready",
             emailText:"Thanks for joining us. Show this QR code at the gate to check in.",
             published:false, updatedAt: nowISO()
@@ -5557,6 +5637,11 @@ function editEventModal(eventId){
           <div class="input"><input id="mEvLocation" value="${escapeHtml(ev.locationText||"")}"></div>
           <div class="hint">Shown to customers. Clicking it opens Maps.</div>
         </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Location URL (Google Maps / website)</label>
+          <div class="input"><input id="mEvLocationUrl" value="${escapeHtml(ev.locationUrl||"")}" placeholder="https://..."></div>
+          <div class="hint">If provided, customer app will open this exact link.</div>
+        </div>
       </div>
       <div class="hr"></div>
       <div class="hint"><b>Status</b> is controlled from the Overview tab (Draft → On Sale → Live → Ended).</div>
@@ -5571,6 +5656,7 @@ function editEventModal(eventId){
         const time = $("#mEvTime").value || "";
         const venue = $("#mEvVenue").value.trim();
         const locationText = $("#mEvLocation").value.trim();
+        const locationUrl = ($("#mEvLocationUrl")?.value || "").trim();
 
         if(!name || !date || !venue){
           toast("Missing details","Event name, date, and venue are required.");
@@ -5582,6 +5668,7 @@ function editEventModal(eventId){
         ev.time = time;
         ev.venue = venue;
         ev.locationText = locationText;
+        ev.locationUrl = locationUrl;
 
         const changes = [];
         if(before.name!==name) changes.push(`Name: ${before.name} → ${name}`);
