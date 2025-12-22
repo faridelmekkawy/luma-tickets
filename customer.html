@@ -1,1811 +1,1678 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>Luma Tickets — Customer</title>
-  <link rel="icon" href="data:,">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      /* Match owner-dashboard.fixed.html theme */
-      --bg0:#0b1020;
-      --bg1:#0b0f1a;
-      --panel:rgba(255,255,255,.06);
-      --panel2:rgba(255,255,255,.08);
-      --stroke:rgba(255,255,255,.10);
-      --stroke2:rgba(255,255,255,.14);
-      --ink:#f8fafc;
-      --muted:rgba(248,250,252,.70);
-      --muted2:rgba(248,250,252,.55);
-      --brand:#7c3aed;
-      --brand2:#22c55e;
-      --warn:#f59e0b;
-      --danger:#ef4444;
-      --info:#60a5fa;
-      --radius:18px;
-      --radius2:14px;
-      --shadow:0 18px 55px rgba(0,0,0,.45);
-      --shadow2:0 10px 32px rgba(0,0,0,.35);
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      color:var(--ink);
-      background:
-        radial-gradient(1000px 700px at 18% -10%, rgba(124,58,237,.35), transparent 55%),
-        radial-gradient(900px 700px at 95% 10%, rgba(34,197,94,.20), transparent 50%),
-        radial-gradient(900px 700px at 60% 120%, rgba(96,165,250,.14), transparent 55%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
-      overflow:auto;
-    }
-    a{color:inherit}
-    button,input,select,textarea{font-family:inherit}
-    .hidden{display:none !important}
-    .sr{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
-    .mono{font-family:var(--mono)}
-    .muted{color:var(--muted)}
-    .muted2{color:var(--muted2)}
-    .small{font-size:12px}
-    .hr{height:1px;background:rgba(255,255,255,.08);margin:12px 0}
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Luma Tickets — Customer</title>
 
-    /* Basic blocks (matching dashboard atoms) */
-    .btn{
-      display:inline-flex;align-items:center;justify-content:center;gap:10px;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid var(--stroke);
-      background:rgba(255,255,255,.05);
-      color:var(--ink);
-      cursor:pointer;
-      user-select:none;
-      transition:.12s ease;
-      box-shadow:0 10px 24px rgba(0,0,0,.18);
-      font-weight:800;
-      font-size:13px;
-      text-decoration:none;
-    }
-    .btn:hover{background:rgba(255,255,255,.07);border-color:var(--stroke2)}
-    .btn:active{transform:translateY(1px)}
-    .btn.sm{padding:8px 10px;border-radius:12px;font-size:12px;box-shadow:none}
-    .btn.ghost{background:transparent;box-shadow:none}
-    .btn.primary{border-color:rgba(124,58,237,.5);background:linear-gradient(135deg, rgba(124,58,237,.22), rgba(255,255,255,.04))}
-    .btn.good{border-color:rgba(34,197,94,.45);background:linear-gradient(135deg, rgba(34,197,94,.18), rgba(255,255,255,.04))}
-    .btn.danger{border-color:rgba(239,68,68,.45);background:linear-gradient(135deg, rgba(239,68,68,.14), rgba(255,255,255,.04))}
-    .btn[disabled]{
-      opacity:.55; cursor:not-allowed !important; filter:saturate(.8);
-      transform:none !important;
-    }
-    .badge{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:7px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.04);
-      color:var(--muted);
-      font-size:12px;
-      white-space:nowrap;
-    }
-    .badge strong{color:var(--ink)}
-    .badge.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:rgba(248,250,252,.88)}
-    .badge.warn{border-color:rgba(245,158,11,.38);background:rgba(245,158,11,.10);color:rgba(248,250,252,.88)}
-    .badge.danger{border-color:rgba(239,68,68,.38);background:rgba(239,68,68,.10);color:rgba(248,250,252,.88)}
-    .badge.info{border-color:rgba(96,165,250,.38);background:rgba(96,165,250,.10);color:rgba(248,250,252,.88)}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    .card{
-      border:1px solid var(--stroke);
-      background:rgba(255,255,255,.05);
-      border-radius:var(--radius);
-      box-shadow: 0 14px 38px rgba(0,0,0,.25);
-      overflow:hidden;
-    }
-    .cardHead{
-      padding:14px 14px 10px;
-      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-      background:rgba(255,255,255,.02);
-    }
-    .cardHead h3{margin:0;font-size:14px;letter-spacing:.2px}
-    .cardHead p{margin:6px 0 0;color:var(--muted);font-size:12px}
-    .cardBody{padding:14px}
+<!-- QR generator (tiny + reliable). Used only on Ticket page. -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 
-    .input{
-      display:flex;align-items:center;gap:10px;
-      padding:12px 12px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.04);
-    }
-    .input input, .input select, .input textarea{
-      width:100%;
-      border:0;outline:0;background:transparent;color:var(--ink);
-      font-size:13px;
-    }
-    select, option{
-      background-color: rgba(11,16,32,.96);
-      color: var(--ink);
-    }
+<style>
+  :root{
+    --bg0:#0b1020;
+    --bg1:#0b0f1a;
+    --panel:rgba(255,255,255,.06);
+    --panel2:rgba(255,255,255,.08);
+    --ink:#f8fafc;
+    --muted:rgba(248,250,252,.70);
+    --border:rgba(255,255,255,.10);
+    --shadow:0 18px 50px rgba(0,0,0,.35);
+    --radius:18px;
+    --radius2:22px;
+    --accent:#7c3aed;  /* matches owner-dashboard vibe */
+    --good:#22c55e;
+    --warn:#f59e0b;
+    --danger:#ef4444;
+    --font:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:var(--font);
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(124,58,237,.35), transparent 55%),
+      radial-gradient(900px 500px at 90% -20%, rgba(34,197,94,.20), transparent 55%),
+      linear-gradient(180deg, var(--bg1), var(--bg0));
+  }
+  a{color:inherit}
+  .wrap{max-width:1100px;margin:0 auto;padding:18px 16px 28px}
+  .topbar{
+    position:sticky;top:0;z-index:30;
+    backdrop-filter: blur(10px);
+    background: linear-gradient(180deg, rgba(11,15,26,.92), rgba(11,15,26,.60));
+    border-bottom:1px solid var(--border);
+  }
+  .topbar .in{max-width:1100px;margin:0 auto;padding:14px 16px;display:flex;gap:12px;align-items:center}
+  .brand{
+    display:flex;gap:10px;align-items:center;min-width:220px;
+  }
+  .logoMark{
+    width:40px;height:40px;border-radius:14px;
+    display:grid;place-items:center;
+    background: radial-gradient(circle at 30% 20%, rgba(124,58,237,.35), transparent 55%),
+                rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow:0 18px 40px rgba(0,0,0,.25);
+  }
+  .brand b{display:block;font-size:14px;letter-spacing:.2px}
+  .brand small{display:block;color:var(--muted);font-weight:600}
+  .nav{
+    margin-left:auto;
+    display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  }
+  .pill{
+    display:inline-flex;gap:8px;align-items:center;
+    padding:10px 12px;border-radius:999px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+    color:var(--ink);
+    font-weight:800;
+    font-size:12px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .pill.active{border-color:rgba(124,58,237,.55);box-shadow:0 0 0 3px rgba(124,58,237,.14)}
+  .pill.ghost{background:transparent}
+  .btn{
+    display:inline-flex;gap:10px;align-items:center;justify-content:center;
+    padding:12px 14px;border-radius:14px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+    color:var(--ink);
+    font-weight:900;
+    cursor:pointer;
+  }
+  .btn.primary{background:linear-gradient(135deg, rgba(124,58,237,.95), rgba(124,58,237,.55)); border-color:rgba(124,58,237,.45)}
+  .btn.good{background:linear-gradient(135deg, rgba(34,197,94,.95), rgba(34,197,94,.55)); border-color:rgba(34,197,94,.45)}
+  .btn.danger{background:linear-gradient(135deg, rgba(239,68,68,.95), rgba(239,68,68,.55)); border-color:rgba(239,68,68,.45)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .btn.sm{padding:10px 12px;border-radius:12px;font-size:12px}
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap:12px;
+  }
+  .card{
+    background:rgba(255,255,255,.06);
+    border:1px solid var(--border);
+    border-radius:var(--radius2);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .sectionTitle{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:6px 0 12px}
+  .sectionTitle h1{margin:0;font-size:18px;letter-spacing:.2px}
+  .sectionTitle p{margin:0;color:var(--muted);font-weight:700;font-size:12px}
 
-    /* Layout */
-    .shell{
-      min-height:100%;
-      display:flex;flex-direction:column;
-    }
-    .topbar{
-      height:64px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:10px 16px;
-      border-bottom:1px solid var(--stroke);
-      background: rgba(10,14,26,.35);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      position:sticky;top:0;z-index:40;
-    }
-    .titleWrap{display:flex;align-items:center;gap:12px;min-width:0}
-    .logoMark{
-      width:40px;height:40px;border-radius:14px;
-      background: radial-gradient(16px 16px at 30% 30%, rgba(255,255,255,.18), transparent 55%),
-                  linear-gradient(135deg, rgba(124,58,237,.95), rgba(34,197,94,.75));
-      box-shadow: 0 12px 30px rgba(0,0,0,.35);
-      border:1px solid rgba(255,255,255,.12);
-      display:grid;place-items:center;
-    }
-    .brandText{display:flex;flex-direction:column;line-height:1.05;min-width:0}
-    .brandText b{font-size:14px;letter-spacing:.2px}
-    .brandText span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .content{padding:16px;max-width:1180px;width:100%;margin:0 auto;flex:1}
-    .footer{
-      padding:12px 16px 16px;
-      color:var(--muted2);
-      font-size:12px;
-      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-      max-width:1180px;width:100%;margin:0 auto;
-    }
-    .powered{display:flex;align-items:center;gap:8px;opacity:.95}
-    .dot{width:8px;height:8px;border-radius:999px;background:rgba(34,197,94,.85);box-shadow:0 0 0 4px rgba(34,197,94,.14)}
-    .tabs{
-      display:flex;gap:8px;flex-wrap:wrap;
-      padding:10px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.04);
-      border-radius:18px;
-      margin: 0 0 14px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      position:sticky;top:74px;z-index:35;
-    }
-    .tab{
-      padding:9px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background:transparent;
-      color:var(--muted);
-      font-weight:900;font-size:12px;
-      cursor:pointer;
-      user-select:none;
-      display:inline-flex;align-items:center;gap:8px;
-    }
-    .tab.active{
-      background:linear-gradient(135deg, rgba(124,58,237,.22), rgba(255,255,255,.03));
-      border-color:rgba(124,58,237,.35);
-      color:var(--ink);
-    }
-    .grid{
-      display:grid;
-      gap:14px;
-    }
-    .grid.cols2{grid-template-columns: 1.05fr .95fr}
-    @media(max-width:980px){ .grid.cols2{grid-template-columns:1fr} .tabs{top:64px} }
+  /* Marketplace header like tickets apps */
+  .hero{
+    display:flex;flex-direction:column;gap:12px;
+    padding:16px;
+  }
+  .searchRow{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+  }
+  .input{
+    display:flex;gap:10px;align-items:center;
+    padding:12px 14px;border-radius:16px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+    flex:1;min-width:240px;
+  }
+  .input input, .input select{
+    width:100%;
+    border:0;outline:0;background:transparent;color:var(--ink);
+    font-family:var(--font); font-weight:800;
+  }
+  .input select{appearance:none}
+  .muted{color:var(--muted)}
+  .chipRow{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{
+    padding:10px 12px;border-radius:999px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+    color:var(--ink);
+    font-weight:900;
+    font-size:12px;
+    cursor:pointer;
+  }
+  .chip.active{border-color:rgba(124,58,237,.55);box-shadow:0 0 0 3px rgba(124,58,237,.14)}
+  .eventGrid{
+    display:grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap:12px;
+    padding:0 16px 16px;
+  }
+  .eventCard{
+    grid-column: span 4;
+    border-radius:22px;
+    overflow:hidden;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+    box-shadow:var(--shadow);
+    cursor:pointer;
+    transition: transform .12s ease, border-color .12s ease;
+  }
+  .eventCard:hover{transform: translateY(-2px); border-color: rgba(255,255,255,.18)}
+  @media (max-width:1000px){ .eventCard{grid-column:span 6} }
+  @media (max-width:640px){ .eventCard{grid-column:span 12} }
 
-    /* Auth */
-    .authWrap{
-      min-height:calc(100vh - 64px);
-      display:grid;
-      place-items:center;
-      padding:18px;
-    }
-    .authCard{
-      width:min(980px, 100%);
-      border-radius:24px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.05);
-      box-shadow:var(--shadow);
-      overflow:hidden;
-      display:grid;
-      grid-template-columns: 1.05fr .95fr;
-      min-height: 560px;
-    }
-    .authLeft{
-      padding:26px 24px;
-      border-right:1px solid rgba(255,255,255,.08);
-      background:
-        radial-gradient(900px 520px at 20% 10%, rgba(124,58,237,.30), transparent 60%),
-        radial-gradient(900px 520px at 95% 35%, rgba(34,197,94,.16), transparent 55%),
-        rgba(255,255,255,.02);
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-    }
-    .authRight{padding:26px 24px;display:flex;flex-direction:column;gap:14px}
-    .hero{display:flex;flex-direction:column;gap:10px;margin-top:6px}
-    .hero h1{margin:0;font-size:28px;letter-spacing:.2px}
-    .hero p{margin:0;color:var(--muted);font-size:13px;max-width: 42ch;line-height:1.5}
-    .featureList{margin-top:10px;display:flex;flex-direction:column;gap:10px}
-    .feat{
-      display:flex;gap:12px;align-items:flex-start;
-      padding:12px 12px;border-radius:18px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(0,0,0,.10);
-    }
-    .feat .ic{
-      width:42px;height:42px;border-radius:14px;
-      display:grid;place-items:center;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.05);
-      flex:0 0 auto;
-    }
-    .feat b{font-size:13px}
-    .feat p{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.45}
-    .authTabs{display:flex;gap:8px;flex-wrap:wrap}
-    .tabBtn{
-      padding:9px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
-      color:var(--muted);
-      cursor:pointer;
-      font-weight:900;font-size:12px;
-      user-select:none;
-    }
-    .tabBtn.active{
-      background:linear-gradient(135deg, rgba(124,58,237,.24), rgba(255,255,255,.03));
-      border-color:rgba(124,58,237,.35);
-      color:var(--ink);
-    }
-    @media(max-width:980px){
-      .authCard{grid-template-columns:1fr}
-      .authLeft{border-right:0;border-bottom:1px solid rgba(255,255,255,.08)}
-    }
+  .banner{
+    position:relative;
+    height:150px;
+    background: rgba(255,255,255,.04);
+  }
+  .banner img{width:100%;height:100%;object-fit:cover;display:block}
+  .eLogo{
+    position:absolute;left:14px;bottom:-18px;
+    width:42px;height:42px;border-radius:16px;
+    background:rgba(11,15,26,.85);
+    border:1px solid rgba(255,255,255,.12);
+    display:grid;place-items:center;
+    overflow:hidden;
+  }
+  .eLogo img{width:100%;height:100%;object-fit:cover}
+  .eBody{padding:26px 14px 14px}
+  .eTitle{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .eTitle b{font-size:14px;letter-spacing:.2px}
+  .eMeta{margin-top:8px;color:var(--muted);font-weight:700;font-size:12px;display:grid;gap:6px}
+  .eMeta .row{display:flex;gap:8px;align-items:center}
+  .kbar{display:flex;gap:8px;align-items:center;margin-top:12px}
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:9px 10px;border-radius:999px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+    font-weight:900;font-size:12px;
+  }
+  .badge.ok{border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.10)}
+  .badge.info{border-color: rgba(124,58,237,.35); background: rgba(124,58,237,.10)}
+  .badge.warn{border-color: rgba(245,158,11,.35); background: rgba(245,158,11,.10)}
+  .badge.danger{border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.10)}
 
-    /* Marketplace */
-    .filtersRow{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:flex-end;
-      margin-bottom:14px;
-    }
-    .filtersRow .input{padding:10px 10px}
-    .filtersRow .input input{font-size:13px}
-    .seg{
-      display:flex;
-      padding:4px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
-      height:42px;
-      align-items:center;
-    }
-    .seg button{
-      border:0;background:transparent;color:var(--muted);
-      padding:8px 10px;border-radius:999px;
-      cursor:pointer;font-weight:900;font-size:12px;
-    }
-    .seg button.active{
-      background:linear-gradient(135deg, rgba(124,58,237,.22), rgba(255,255,255,.03));
-      color:var(--ink);
-      border:1px solid rgba(124,58,237,.35);
-    }
+  /* Pages */
+  .page{display:none}
+  .page.active{display:block}
 
-    .eventGrid{
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap:14px;
-    }
-    @media (max-width:1200px){ .eventGrid{grid-template-columns:1fr 1fr} }
-    @media (max-width:720px){ .eventGrid{grid-template-columns:1fr} }
+  /* Event page */
+  .eventPageHead{
+    position:relative;
+    overflow:hidden;
+    border-radius:26px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+    box-shadow:var(--shadow);
+  }
+  .eventPageBanner{height:240px;background:rgba(255,255,255,.04)}
+  .eventPageBanner img{width:100%;height:100%;object-fit:cover;display:block}
+  .eventPageInfo{
+    padding:16px;
+    display:grid;
+    grid-template-columns: 1.1fr .9fr;
+    gap:14px;
+    align-items:start;
+  }
+  @media (max-width:900px){ .eventPageInfo{grid-template-columns:1fr} }
+  .eventName{margin:0;font-size:22px;letter-spacing:.3px}
+  .subLine{margin:6px 0 0;color:var(--muted);font-weight:750}
+  .ticketsCard{padding:14px}
+  .waveBlock{
+    border:1px solid var(--border);
+    border-radius:18px;
+    background:rgba(255,255,255,.05);
+    padding:12px;
+    margin-top:12px;
+  }
+  .waveTitle{display:flex;justify-content:space-between;gap:10px;align-items:center}
+  .waveTitle b{font-size:14px}
+  .table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0 10px;
+    margin-top:8px;
+  }
+  .table th{
+    text-align:left;
+    font-size:11px;
+    color:var(--muted);
+    font-weight:900;
+    letter-spacing:.2px;
+    padding:0 6px;
+  }
+  .table td{
+    padding:12px 10px;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.10);
+  }
+  .table tr td:first-child{border-top-left-radius:16px;border-bottom-left-radius:16px}
+  .table tr td:last-child{border-top-right-radius:16px;border-bottom-right-radius:16px}
+  .qty{
+    display:flex;gap:8px;align-items:center;justify-content:flex-end;
+  }
+  .qty input{
+    width:70px;
+    padding:10px 10px;border-radius:14px;
+    border:1px solid rgba(255,255,255,.14);
+    background:rgba(0,0,0,.20);
+    color:var(--ink);
+    text-align:center;
+    font-weight:900;
+    font-family:var(--font);
+  }
+  .qty .qbtn{
+    width:38px;height:38px;border-radius:14px;
+    border:1px solid rgba(255,255,255,.14);
+    background:rgba(255,255,255,.06);
+    display:grid;place-items:center;
+    cursor:pointer;font-weight:1000;
+    user-select:none;
+  }
+  .totRow{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:12px}
+  .totRow .sum{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .hr{height:1px;background:rgba(255,255,255,.10);margin:10px 0}
 
-    .eventCard{
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.04);
-      border-radius:22px;
-      overflow:hidden;
-      box-shadow:0 18px 52px rgba(0,0,0,.25);
-      display:flex;
-      flex-direction:column;
-      min-height: 320px;
-    }
-    .eventBanner{
-      height:120px;
-      background:
-        radial-gradient(700px 240px at 20% 30%, rgba(124,58,237,.40), transparent 62%),
-        radial-gradient(700px 240px at 85% 10%, rgba(34,197,94,.20), transparent 58%),
-        linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
-      position:relative;
-    }
-    .eventBanner img{width:100%;height:100%;object-fit:cover;display:block}
-    .eventLogo{
-      position:absolute;left:14px;bottom:-18px;
-      width:52px;height:52px;border-radius:18px;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(15,18,28,.65);
-      display:grid;place-items:center;
-      box-shadow:0 14px 34px rgba(0,0,0,.35);
-      overflow:hidden;
-    }
-    .eventLogo img{width:100%;height:100%;object-fit:cover}
-    .eventBody{padding:14px 14px 14px;margin-top:14px;display:flex;flex-direction:column;gap:10px;flex:1}
-    .eventTitle{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-    .eventTitle b{font-size:14px}
-    .eventMeta{display:flex;flex-direction:column;gap:6px}
-    .eventMeta .row{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}
-    .eventActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+  /* Tickets list */
+  .ticketList{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+  .ticketCard{
+    grid-column: span 6;
+    border-radius:22px;
+    overflow:hidden;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+    box-shadow:var(--shadow);
+    cursor:pointer;
+  }
+  @media (max-width:900px){ .ticketCard{grid-column:span 12} }
+  .ticketCard .banner{height:120px}
+  .ticketCard .eBody{padding:22px 14px 14px}
+  .ticketCard .eTitle b{font-size:13px}
+  .right{margin-left:auto}
 
-    /* Drawer (details / ticket) */
-    .drawerOverlay{
-      position:fixed;inset:0;
-      background:rgba(0,0,0,.50);
-      z-index:60;
-      display:none;
-    }
-    .drawerOverlay.open{display:block}
-    .drawer{
-      position:absolute;right:0;top:0;height:100%;
-      width:min(560px, 94vw);
-      background:rgba(18,22,36,.98);
-      border-left:1px solid rgba(255,255,255,.12);
-      box-shadow: -20px 0 70px rgba(0,0,0,.55);
-      padding:14px;
-      display:flex;flex-direction:column;gap:12px;
-    }
-    .drawerHead{
-      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
-      padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.08);
-    }
-    .drawerHead h3{margin:0;font-size:14px}
-    .drawerHead p{margin:6px 0 0;color:var(--muted);font-size:12px}
-    .drawerBody{overflow:auto;padding-right:2px}
-    .kv{display:grid;grid-template-columns: 1fr 1.2fr; gap:10px; margin:10px 0}
-    .kv div{
-      padding:10px;border-radius:14px;border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
-    }
-    .kv b{display:block;font-size:11px;color:var(--muted2);margin-bottom:6px}
-    .kv span{font-size:12px}
-    .prices{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
-    .pricePill{
-      padding:7px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.03);
-      font-size:12px;color:rgba(248,250,252,.90);
-      display:inline-flex;align-items:center;gap:8px;
-    }
-    .pricePill small{color:var(--muted2)}
-    .hint{
-      padding:12px 12px;border-radius:18px;
-      border:1px solid rgba(96,165,250,.22);
-      background:rgba(96,165,250,.08);
-      color:rgba(248,250,252,.92);
-      font-size:12px;line-height:1.45;
-    }
+  /* Ticket page (QR) */
+  .ticketPageGrid{
+    display:grid;
+    grid-template-columns:1.05fr .95fr;
+    gap:12px;
+    align-items:start;
+  }
+  @media (max-width:900px){ .ticketPageGrid{grid-template-columns:1fr} }
+  .qrPanel{padding:14px}
+  .qrFrame{
+    border:1px solid rgba(255,255,255,.12);
+    background:rgba(0,0,0,.22);
+    border-radius:24px;
+    padding:14px;
+  }
+  .qrTop{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .qrBox{
+    width:210px;height:210px;border-radius:18px;
+    background:#fff;
+    display:grid;place-items:center;
+    overflow:hidden;
+    margin:12px auto 8px;
+  }
+  .qrBox canvas, .qrBox img{width:100%;height:100%}
+  .countdown{
+    text-align:center;
+    color:var(--muted);
+    font-weight:900;
+    margin-top:6px;
+  }
+  .codeText{
+    text-align:center;
+    font-family:var(--mono);
+    font-weight:900;
+    letter-spacing:.8px;
+    font-size:14px;
+    margin-top:6px;
+  }
+  .hint{
+    border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.06);
+    padding:12px;border-radius:18px;
+    color:var(--muted);
+    font-weight:800;
+  }
 
-    /* Ticket QR */
-    .ticketWrap{
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-    }
-    .ticketCard{
-      border-radius:22px;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.04);
-    }
-    .ticketBanner{height:140px;background:rgba(255,255,255,.06);position:relative}
-    .ticketBanner img{width:100%;height:100%;object-fit:cover;display:block}
-    .ticketInfo{padding:12px;display:flex;flex-direction:column;gap:8px}
-    .ticketInfo b{font-size:14px}
-    .ticketInfo .line{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted)}
-    .qrArea{
-      padding:14px;
-      border-top:1px solid rgba(255,255,255,.08);
-      background:
-        radial-gradient(500px 200px at 20% 0%, rgba(124,58,237,.20), transparent 60%),
-        radial-gradient(500px 200px at 95% 10%, rgba(34,197,94,.14), transparent 60%),
-        rgba(255,255,255,.02);
-    }
-    .qrFrame{
-      display:grid;place-items:center;
-      gap:12px;
-      padding:14px;
-      border-radius:18px;
-      border:1px dashed rgba(255,255,255,.22);
-      background:rgba(0,0,0,.12);
-    }
-    .qrRing{
-      width:196px;height:196px;border-radius:999px;
-      display:grid;place-items:center;
-      position:relative;
-    }
-    .qrRing svg{position:absolute;inset:0;transform:rotate(-90deg)}
-    .qrBox{
-      width:170px;height:170px;border-radius:16px;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.12);
-      display:grid;place-items:center;
-      position:relative;
-      overflow:hidden;
-      box-shadow:0 18px 50px rgba(0,0,0,.35);
-    }
-    .qrBox:before{
-      content:"";
-      position:absolute;inset:-40px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
-      transform:rotate(20deg);
-      animation: shine 2.6s linear infinite;
-    }
-    @keyframes shine{
-      0%{transform:translateX(-40%) rotate(20deg)}
-      100%{transform:translateX(40%) rotate(20deg)}
-    }
-    .qrInner{
-      width:132px;height:132px;border-radius:12px;
-      background:
-        repeating-linear-gradient(0deg, rgba(255,255,255,.85) 0 6px, rgba(0,0,0,.06) 6px 10px),
-        repeating-linear-gradient(90deg, rgba(255,255,255,.85) 0 6px, rgba(0,0,0,.06) 6px 10px);
-      mix-blend-mode: screen;
-      opacity:.68;
-    }
-    .countdown{font-size:12px;color:var(--muted)}
-    .bigCode{
-      font-family:var(--mono);
-      font-size:12px;
-      letter-spacing:.4px;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
-      width:100%;
-      overflow:auto;
-      white-space:nowrap;
-    }
+  /* Auth page */
+  .authGrid{display:grid;grid-template-columns: 1fr;gap:12px}
+  .authCard{padding:14px}
+  .tabs{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .tabBtn{
+    padding:10px 12px;border-radius:999px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+    cursor:pointer;
+    font-weight:900;font-size:12px;
+  }
+  .tabBtn.active{border-color:rgba(124,58,237,.55);box-shadow:0 0 0 3px rgba(124,58,237,.14)}
+  form{display:grid;gap:10px;margin-top:12px}
+  label{font-size:12px;color:var(--muted);font-weight:800}
+  input[type="email"], input[type="password"], input[type="text"]{
+    width:100%;
+    padding:12px 14px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,.14);
+    background:rgba(0,0,0,.18);
+    color:var(--ink);
+    outline:0;
+    font-weight:800;
+    font-family:var(--font);
+  }
+  .link{color:rgba(124,58,237,.95);font-weight:900;text-decoration:none}
+  .small{font-size:12px;color:var(--muted);font-weight:800}
+  .center{text-align:center}
 
-    /* Toast */
-    .toasts{
-      position:fixed;right:14px;bottom:14px;
-      display:flex;flex-direction:column;gap:10px;
-      z-index:120;
-      max-width:min(440px, 92vw);
-    }
-    .toast{
-      padding:12px 12px;
-      border-radius:18px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(18,22,36,.98);
-      box-shadow:0 16px 46px rgba(0,0,0,.45);
-      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
-    }
-    .toast b{font-size:12px}
-    .toast p{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.45}
-    .toast .x{border:0;background:transparent;color:var(--muted);cursor:pointer}
-    .toast .x:hover{color:var(--ink)}
-  </style>
+  /* Toasts */
+  #toasts{position:fixed;right:14px;bottom:14px;display:grid;gap:10px;z-index:90;max-width:min(420px,calc(100vw - 28px))}
+  .toast{
+    display:flex;gap:12px;align-items:flex-start;justify-content:space-between;
+    padding:12px 12px;border-radius:16px;
+    border:1px solid rgba(255,255,255,.12);
+    background:rgba(10,14,26,.92);
+    box-shadow:var(--shadow);
+  }
+  .toast p{margin:6px 0 0;color:var(--muted);font-weight:750;font-size:12px}
+  .toast .x{
+    border:0;background:transparent;color:var(--muted);
+    cursor:pointer;font-size:16px;line-height:1;margin-top:2px
+  }
+
+  footer{
+    margin-top:18px;
+    padding:18px 0 6px;
+    text-align:center;
+    color:var(--muted);
+    font-weight:800;
+    font-size:12px;
+  }
+</style>
 </head>
+
 <body>
-  <!-- SVG icon sprites (simple, clean, not emojis) -->
-  <svg class="sr" xmlns="http://www.w3.org/2000/svg">
-    <symbol id="i-luma" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M12 3l8 5v8l-8 5-8-5V8l8-5z"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M12 3v18M4 8l8 5 8-5"/>
-    </symbol>
-    <symbol id="i-search" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16.5 16.5 21 21"/>
-    </symbol>
-    <symbol id="i-user" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M20 21a8 8 0 1 0-16 0"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M12 13a4 4 0 1 0-4-4 4 4 0 0 0 4 4z"/>
-    </symbol>
-    <symbol id="i-lock" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M7 11V8a5 5 0 0 1 10 0v3"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M6 11h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z"/>
-    </symbol>
-    <symbol id="i-ticket" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M5 7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V7z"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 6v12"/>
-    </symbol>
-    <symbol id="i-home" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M4 11l8-7 8 7v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9z"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M9 22V12h6v10"/>
-    </symbol>
-    <symbol id="i-support" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M4 12a8 8 0 0 1 16 0v5a3 3 0 0 1-3 3h-1"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-        d="M6 14h-1a3 3 0 0 1-3-3v-1a3 3 0 0 1 3-3h1"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-        d="M20 14h1a3 3 0 0 0 3-3v-1a3 3 0 0 0-3-3h-1"/>
-    </symbol>
-    <symbol id="i-receipt" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M7 3h10v18l-2-1-2 1-2-1-2 1-2-1-2 1V3z"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M9 8h6M9 12h6M9 16h4"/>
-    </symbol>
-    <symbol id="i-logout" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M10 16l-4-4 4-4"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 12h9"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"/>
-    </symbol>
-    <symbol id="i-close" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/>
-    </symbol>
-  </svg>
-
-  <div class="shell">
-    <!-- TOPBAR -->
-    <header class="topbar">
-      <div class="titleWrap">
-        <div class="logoMark"><svg width="22" height="22"><use href="#i-luma"/></svg></div>
-        <div class="brandText">
+  <div class="topbar">
+    <div class="in">
+      <div class="brand" onclick="location.hash='#/'" style="cursor:pointer">
+        <div class="logoMark">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 2l8 5v10l-8 5-8-5V7l8-5z" stroke="rgba(255,255,255,.85)" stroke-width="1.6"/>
+            <path d="M7.5 9.5l4.5 3 4.5-3" stroke="rgba(124,58,237,.95)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M7.5 14.5l4.5 3 4.5-3" stroke="rgba(34,197,94,.90)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
           <b>Luma Tickets</b>
-          <span id="topSubtitle">Customer</span>
+          <small id="topSub">Customer</small>
         </div>
       </div>
 
-      <div style="display:flex;align-items:center;gap:10px;min-width:0">
-        <span class="badge" id="netBadge"><strong>Online</strong></span>
-        <button class="btn sm ghost hidden" id="btnTopSignout">
-          <svg width="18" height="18"><use href="#i-logout"/></svg>
-          Sign out
-        </button>
+      <div class="nav">
+        <div class="pill" id="navHome" data-nav="#/">Home</div>
+        <div class="pill" id="navTickets" data-nav="#/tickets">My Tickets <span class="badge info" id="ticketsCount" style="padding:6px 8px;border-radius:999px">0</span></div>
+        <div class="pill" id="navProfile" data-nav="#/profile">Profile</div>
+        <button class="btn sm ghost" id="btnAuth">Sign in</button>
       </div>
-    </header>
+    </div>
+  </div>
 
-    <!-- AUTH -->
-    <section id="auth" class="authWrap">
-      <div class="authCard">
-        <div class="authLeft">
-          <div class="titleWrap" style="gap:10px">
-            <div class="logoMark"><svg width="22" height="22"><use href="#i-luma"/></svg></div>
-            <div class="brandText">
-              <b>Luma Tickets</b>
-              <span>Customer marketplace</span>
+  <div id="toasts"></div>
+
+  <div class="wrap">
+    <!-- HOME -->
+    <section id="page-home" class="page active">
+      <div class="card">
+        <div class="hero">
+          <div class="sectionTitle">
+            <div>
+              <h1>Discover events</h1>
+              <p>Search & book. No PDFs. Your ticket is live in-app.</p>
+            </div>
+            <div class="badge" id="eventsCount">0</div>
+          </div>
+
+          <div class="searchRow">
+            <div class="input">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" stroke="rgba(255,255,255,.8)" stroke-width="1.6"/>
+                <path d="M16.5 16.5L21 21" stroke="rgba(255,255,255,.8)" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+              <input id="q" placeholder="Search events, venues, cities…" autocomplete="off"/>
+            </div>
+            <div class="input" style="max-width:260px">
+              <select id="city">
+                <option value="">All cities</option>
+              </select>
             </div>
           </div>
 
-          <div class="hero">
-            <h1>Your events, always in your pocket.</h1>
-            <p>Search events, buy tickets, and show a live ticket screen at the gate. Built for speed, clarity, and real-world operations.</p>
-          </div>
-
-          <div class="featureList">
-            <div class="feat">
-              <div class="ic"><svg width="22" height="22"><use href="#i-search"/></svg></div>
-              <div>
-                <b>Search-first marketplace</b>
-                <p>Find events fast using search + filters. Clear cards with banners, venues, and date/time.</p>
-              </div>
-            </div>
-            <div class="feat">
-              <div class="ic"><svg width="22" height="22"><use href="#i-ticket"/></svg></div>
-              <div>
-                <b>My Tickets</b>
-                <p>All your paid events in one list, with a single tap to open a live ticket screen.</p>
-              </div>
-            </div>
-            <div class="feat">
-              <div class="ic"><svg width="22" height="22"><use href="#i-lock"/></svg></div>
-              <div>
-                <b>Live ticket screen</b>
-                <p>A dynamic QR area refreshes every 30 seconds with a countdown ring. Screenshots won’t work.</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="footer" style="padding:0;margin-top:auto">
-            <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
-            <span class="muted2">Secure access • Customer</span>
-          </div>
-        </div>
-
-        <div class="authRight">
-          <div class="authTabs">
-            <button class="tabBtn active" data-auth-tab="signin">Sign in</button>
-            <button class="tabBtn" data-auth-tab="signup">Sign up</button>
-            <button class="tabBtn" data-auth-tab="forgot">Forgot password</button>
-          </div>
-
-          <!-- Sign in -->
-          <div id="auth-signin">
-            <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
-              <div>
-                <h2 style="margin:0;font-size:18px">Welcome back</h2>
-                <div class="muted small" style="margin-top:6px">Sign in to browse events and view your tickets.</div>
-              </div>
-              <span class="badge info"><strong>Live</strong> Firestore</span>
-            </div>
-
-            <form style="margin-top:10px;display:flex;flex-direction:column;gap:10px" id="form-signin">
-              <div class="input">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-user"/></svg>
-                <input id="signin-email" type="email" placeholder="Email" required>
-              </div>
-              <div class="input">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-lock"/></svg>
-                <input id="signin-pass" type="password" placeholder="Password" required>
-              </div>
-
-              <button class="btn primary" type="submit">
-                <svg width="18" height="18"><use href="#i-home"/></svg>
-                Enter Marketplace
-              </button>
-
-              <div class="muted small">New here? <a href="#" id="go-signup">Create an account</a></div>
-            </form>
-          </div>
-
-          <!-- Sign up -->
-          <div id="auth-signup" class="hidden">
-            <h2 style="margin:0;font-size:18px">Create account</h2>
-            <div class="muted small" style="margin-top:6px">Use your email and a password. Your tickets will be linked to this account.</div>
-
-            <form style="margin-top:10px;display:flex;flex-direction:column;gap:10px" id="form-signup">
-              <div class="input">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-user"/></svg>
-                <input id="signup-name" type="text" placeholder="Full name" required>
-              </div>
-              <div class="input">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-user"/></svg>
-                <input id="signup-email" type="email" placeholder="Email" required>
-              </div>
-              <div class="input">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-lock"/></svg>
-                <input id="signup-pass" type="password" placeholder="Password (min 6 chars)" minlength="6" required>
-              </div>
-
-              <button class="btn primary" type="submit">
-                <svg width="18" height="18"><use href="#i-ticket"/></svg>
-                Create account
-              </button>
-
-              <div class="muted small">Already have an account? <a href="#" id="go-signin">Sign in</a></div>
-            </form>
-          </div>
-
-          <!-- Forgot -->
-          <div id="auth-forgot" class="hidden">
-            <h2 style="margin:0;font-size:18px">Reset password</h2>
-            <div class="muted small" style="margin-top:6px">Enter your email and we’ll send a reset link.</div>
-
-            <form style="margin-top:10px;display:flex;flex-direction:column;gap:10px" id="form-forgot">
-              <div class="input">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-user"/></svg>
-                <input id="forgot-email" type="email" placeholder="Email" required>
-              </div>
-              <button class="btn primary" type="submit">
-                <svg width="18" height="18"><use href="#i-support"/></svg>
-                Send reset link
-              </button>
-              <div class="muted small">Remembered it? <a href="#" id="go-signin2">Back to sign in</a></div>
-            </form>
-          </div>
-
-          <div class="footer" style="padding:0;margin-top:auto">
-            <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
-            <span class="muted2">© <span id="year"></span> Luma</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- APP -->
-    <section id="app" class="content hidden">
-      <div class="tabs">
-        <button class="tab active" data-tab="home">
-          <svg width="16" height="16"><use href="#i-home"/></svg> Home
-        </button>
-        <button class="tab" data-tab="tickets">
-          <svg width="16" height="16"><use href="#i-ticket"/></svg> My Tickets
-        </button>
-        <button class="tab" data-tab="profile">
-          <svg width="16" height="16"><use href="#i-user"/></svg> Profile
-        </button>
-        <div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <span class="badge"><strong id="eventsCount">0</strong> events</span>
-          <span class="badge info"><strong id="ticketsCount">0</strong> tickets</span>
-        </div>
-      </div>
-
-      <!-- HOME -->
-      <section id="tab-home">
-        <div class="filtersRow">
-          <div class="input" style="flex:1;min-width:220px">
-            <svg width="18" height="18" style="color:var(--muted)"><use href="#i-search"/></svg>
-            <input id="q" placeholder="Search events (name, venue, city)…">
-          </div>
-
-          <div class="seg" title="Quick filters">
-            <button id="f-all" class="active" type="button">All</button>
-            <button id="f-today" type="button">Today</button>
-            <button id="f-week" type="button">This week</button>
-          </div>
-
-          <div class="input" style="min-width:180px">
-            <svg width="18" height="18" style="color:var(--muted)"><use href="#i-home"/></svg>
-            <select id="city">
-              <option value="">All cities</option>
-            </select>
+          <div class="chipRow">
+            <div class="chip active" id="f-all">All</div>
+            <div class="chip" id="f-today">Today</div>
+            <div class="chip" id="f-week">This week</div>
           </div>
         </div>
 
         <div class="eventGrid" id="eventsGrid"></div>
 
-        <div class="card" id="emptyEvents" style="display:none;margin-top:14px">
-          <div class="cardBody">
-            <b>No events found.</b>
-            <div class="muted small" style="margin-top:6px">Try clearing filters or search by a different keyword.</div>
-          </div>
+        <div class="center muted" id="emptyEvents" style="padding:16px;display:none">
+          No events found.
         </div>
-      </section>
-
-      <!-- MY TICKETS -->
-      <section id="tab-tickets" class="hidden">
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h3>My Tickets</h3>
-              <p>Your paid events. Open a ticket at the gate for live verification.</p>
-            </div>
-            <span class="badge info"><strong id="myTicketsNum">0</strong> total</span>
-          </div>
-          <div class="cardBody">
-            <div class="eventGrid" id="ticketsGrid"></div>
-            <div class="muted small" id="emptyTickets" style="display:none">No tickets yet. Go to Home and buy a ticket.</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- PROFILE -->
-      <section id="tab-profile" class="hidden">
-        <div class="grid cols2">
-          <div class="card">
-            <div class="cardHead">
-              <div>
-                <h3>Profile</h3>
-                <p>Your account and support options.</p>
-              </div>
-              <span class="badge"><strong id="profileInitials">—</strong></span>
-            </div>
-            <div class="cardBody">
-              <div class="kv">
-                <div><b>Name</b><span id="profileName">—</span></div>
-                <div><b>Email</b><span id="profileEmail">—</span></div>
-              </div>
-
-              <div class="hr"></div>
-
-              <div style="display:flex;gap:10px;flex-wrap:wrap">
-                <a class="btn" id="btnSupport" href="#" target="_blank" rel="noopener">
-                  <svg width="18" height="18"><use href="#i-support"/></svg> Support
-                </a>
-                <button class="btn danger" id="btnSignout">
-                  <svg width="18" height="18"><use href="#i-logout"/></svg> Sign out
-                </button>
-              </div>
-
-              <div class="hint" style="margin-top:12px">
-                <b>Security note:</b> At the gate, always open the ticket screen here. A live code refreshes every 30 seconds.
-                Screenshots won’t work.
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="cardHead">
-              <div>
-                <h3>Account status</h3>
-                <p>Connectivity and ticket verification readiness.</p>
-              </div>
-            </div>
-            <div class="cardBody">
-              <div style="display:flex;gap:10px;flex-wrap:wrap">
-                <span class="badge" id="badgeConn"><strong>Online</strong></span>
-                <span class="badge info" id="badgeAuth"><strong>Signed in</strong></span>
-              </div>
-              <div class="hr"></div>
-              <div class="muted small">
-                If you go offline, your ticket screen still refreshes locally, but entry verification depends on the gate system.
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      </div>
     </section>
 
-    <footer class="footer">
-      <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
-      <span class="muted2">© <span id="year2"></span> Luma</span>
-    </footer>
-  </div>
-
-  <!-- DRAWER -->
-  <div class="drawerOverlay" id="drawerOverlay" role="dialog" aria-modal="true">
-    <div class="drawer">
-      <div class="drawerHead">
-        <div>
-          <h3 id="drawerTitle">Event details</h3>
-          <p id="drawerSub">—</p>
-        </div>
-        <button class="btn sm ghost" id="drawerClose" title="Close">
-          <svg width="18" height="18"><use href="#i-close"/></svg>
-        </button>
+    <!-- EVENT DETAILS (full page) -->
+    <section id="page-event" class="page">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+        <button class="btn sm" id="btnBack">← Back</button>
+        <div class="badge info" id="eventBreadcrumb">Event</div>
       </div>
-      <div class="drawerBody" id="drawerBody"></div>
-    </div>
-  </div>
 
-  <!-- TOASTS -->
-  <div class="toasts" id="toasts"></div>
+      <div class="eventPageHead">
+        <div class="eventPageBanner" id="eventBanner"></div>
+        <div class="eventPageInfo">
+          <div>
+            <h2 class="eventName" id="eventName">—</h2>
+            <div class="subLine" id="eventSub">—</div>
+            <div class="hr"></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <div class="badge" id="eventDate">—</div>
+              <a class="badge info" id="eventVenueLink" href="#" target="_blank" rel="noopener" style="text-decoration:none;display:none"><strong>Open in Maps</strong></a>
+            </div>
+          </div>
 
-  
-  <script type="module">
-    /***************************************************************
-      Luma Tickets — customer.html (Production-style)
-      ✅ Compatible with your current Firestore schema (as shared):
+          <div class="card ticketsCard">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+              <b>Tickets</b>
+              <span class="badge" id="eventTotal">Total: —</span>
+            </div>
+            <div id="wavesArea"></div>
 
-      events/{eventId}
-        id: "shababco-cairo-2025-12-23"
-        name, venue, city, dateISO ("2025-12-23"), time ("19:00")
-        bannerUrl, logoUrl
-        locationText (maps link)
-        published: true
-        status: "On Sale" | "Live" | ...
-        tiers: [{id,name,desc,baseCap}]
-        waves: [{
-          id,name,
-          start:"2025-12-22T01:28", end:"2025-12-23T01:27",
-          tiersActive:[tierId...],
-          pricing:{[tierId]:number},
-          qty:{[tierId]:number},
-          sold:{[tierId]:number}
-        }]
-        design: { primary, accent, fontFamily, ... } (optional)
-
-      customers/{uid}
-        name,email,createdAt
-
-      customers/{uid}/tickets/{ticketId}
-        eventId,eventName,venue,city,startsAtISO
-        tierId,tierName,waveId,waveName
-        qty,unitPrice,currency,total,status,createdAt
-        bannerUrl,logoUrl,receiptUrl(optional)
-
-      events/{eventId}/orders/{orderId} (optional mirror)
-        uid,ticketId,tierId,waveId,qty,total,status,createdAt
-
-      ✅ Notes
-      - Ticket "QR/code" here is a VISUAL placeholder that rotates every 30s.
-        For real ultra-secure entry, issue short-lived signed tokens from server side
-        (Cloud Functions / your backend) and verify at the gate.
-    ***************************************************************/
-
-    // Firebase (Modular CDN)
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import {
-      getAuth,
-      onAuthStateChanged,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      sendPasswordResetEmail,
-      signOut,
-      updateProfile
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-
-    import {
-      getFirestore,
-      doc, getDoc, setDoc, addDoc, collection,
-      query, where, onSnapshot, serverTimestamp, limit
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
-    // =========================
-    // 1) PASTE YOUR FIREBASE CONFIG
-    // =========================
-    const firebaseConfig = {
-      apiKey:"AIzaSyA80bAAGPuyscnTVS-zwrxE9Jp3tPiS1gM",
-    authDomain:"events-339ce.firebaseapp.com",
-    databaseURL:"https://events-339ce-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId:"events-339ce",
-    storageBucket:"events-339ce.firebasestorage.app",
-    messagingSenderId:"175601544315",
-    appId:"1:175601544315:web:00c94b4affa972b3a286de"
-    };
-
-    // Support link (optional)
-    const SUPPORT_URL = "https://your-support-link.example";
-
-    // Ticket code "salt" (visual placeholder). For true security, generate server-side.
-    const TICKET_CODE_SALT = "LUMA_TICKETS_ROTATING_CODE_V1";
-
-    // Default currency
-    const DEFAULT_CURRENCY = "EGP";
-
-    // ===== Utilities
-    const $ = (q)=>document.querySelector(q);
-    const $$ = (q)=>Array.from(document.querySelectorAll(q));
-
-    function toast(title, msg="", kind="info"){
-      const wrap = $("#toasts");
-      const el = document.createElement("div");
-      el.className = "toast";
-      el.innerHTML = `
-        <div>
-          <b>${escapeHtml(title)}</b>
-          ${msg ? `<p>${escapeHtml(msg)}</p>` : ``}
+            <div class="totRow">
+              <div class="sum">
+                <span class="badge" id="selCount">0 selected</span>
+                <span class="badge info" id="selTotal">Total: —</span>
+              </div>
+              <button class="btn good" id="btnCheckout">Buy tickets</button>
+            </div>
+            <div class="small" id="checkoutNote" style="margin-top:8px"></div>
+          </div>
         </div>
-        <button class="x" aria-label="Close">✕</button>
-      `;
-      el.querySelector(".x").addEventListener("click", ()=> el.remove());
-      wrap.appendChild(el);
-      setTimeout(()=>{ if(el.isConnected) el.remove(); }, 5200);
-    }
-    function escapeHtml(s){
-      return String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-    }
-    function initials(nameOrEmail){
-      const s = (nameOrEmail||"").trim();
-      if(!s) return "LU";
-      const parts = s.split(/\s+/).filter(Boolean);
-      if(parts.length===1){
-        const x = parts[0];
-        return (x[0]||"U").toUpperCase() + (x[1]||"").toUpperCase();
-      }
-      return (parts[0][0]||"U").toUpperCase() + (parts[parts.length-1][0]||"").toUpperCase();
-    }
-    function money(n, currency=DEFAULT_CURRENCY){
-      const v = Number(n||0);
-      try{
-        return new Intl.NumberFormat(undefined, { style:"currency", currency }).format(v);
-      }catch{
-        return `${v.toFixed(2)} ${currency}`;
-      }
-    }
-    function safeId(prefix="id"){
-      return prefix + "_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
-    }
-    function configLooksFilled(cfg){
-      return cfg && Object.values(cfg).filter(Boolean).length >= 4;
-    }
+      </div>
+    </section>
 
-    // Date parsing helpers (your schema uses dateISO + time, and wave.start/end strings)
-    function parseISOish(s){
-      if(!s) return null;
-      const t = String(s).replace(" ", "T");
-      const d = new Date(t);
-      return isNaN(d.getTime()) ? null : d;
-    }
-    function eventStartDate(ev){
-      if(ev?.startsAt?.toDate) return ev.startsAt.toDate();
-      if(ev?.startsAt) {
-        const d = new Date(ev.startsAt);
-        if(!isNaN(d.getTime())) return d;
-      }
-      const dateISO = ev?.dateISO || "";
-      const time = ev?.time || "00:00";
-      const d = parseISOish(`${dateISO}T${time}`);
-      return d || null;
-    }
-    function fmtDate(dOrTs){
-      if(!dOrTs) return "—";
-      const d = dOrTs?.toDate ? dOrTs.toDate() : (dOrTs instanceof Date ? dOrTs : new Date(dOrTs));
-      if(isNaN(d.getTime())) return "—";
-      return d.toLocaleString(undefined, { weekday:"short", year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" });
-    }
-    function dayKey(d){
-      const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-      return x.getTime();
-    }
-    function isSameDay(a,b){ return dayKey(a) === dayKey(b); }
-    function inThisWeek(d){
-      const now = new Date();
-      const start = new Date(now);
-      start.setDate(now.getDate() - now.getDay());
-      start.setHours(0,0,0,0);
-      const end = new Date(start);
-      end.setDate(start.getDate() + 7);
-      return d >= start && d < end;
-    }
-
-    // ===== Firebase init
-    let app, auth, db;
-    try{
-      if(!configLooksFilled(firebaseConfig)){
-        toast("Firebase config missing", "Paste your firebaseConfig in the script (top of file).", "warn");
-      }else{
-        app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
-      }
-    }catch(err){
-      console.error(err);
-      toast("Firebase init error", String(err?.message||err), "danger");
-    }
-
-    // ===== State
-    let STATE = {
-      user: null,
-      profile: null,
-      events: [],
-      tickets: [],
-      filter: { q:"", mode:"all", city:"" },
-      unsubEvents: null,
-      unsubTickets: null,
-      qrTimer: null,
-      qrTick: null,
-      activeTicket: null
-    };
-
-    // =========================
-    // Auth UI
-    // =========================
-    function setAuthTab(tab){
-      $$(".tabBtn").forEach(b=>b.classList.toggle("active", b.dataset.authTab===tab));
-      $("#auth-signin")?.classList.toggle("hidden", tab!=="signin");
-      $("#auth-signup")?.classList.toggle("hidden", tab!=="signup");
-      $("#auth-forgot")?.classList.toggle("hidden", tab!=="forgot");
-    }
-    $$(".tabBtn").forEach(b=> b.addEventListener("click", ()=> setAuthTab(b.dataset.authTab)));
-    $("#go-signin")?.addEventListener("click", (e)=>{ e.preventDefault(); setAuthTab("signin"); });
-    $("#go-signin2")?.addEventListener("click", (e)=>{ e.preventDefault(); setAuthTab("signin"); });
-    $("#go-signup")?.addEventListener("click", (e)=>{ e.preventDefault(); setAuthTab("signup"); });
-
-    $("#btnSupport").href = SUPPORT_URL;
-    $("#year").textContent = new Date().getFullYear();
-    $("#year2").textContent = new Date().getFullYear();
-
-    async function ensureCustomerProfile(user, nameHint=""){
-      if(!db) return null;
-      const ref = doc(db, "customers", user.uid);
-      const snap = await getDoc(ref);
-      if(snap.exists()) return snap.data();
-      const profile = { name: nameHint || user.displayName || "", email: user.email || "", createdAt: serverTimestamp() };
-      await setDoc(ref, profile, { merge:true });
-      return profile;
-    }
-
-    $("#form-signup")?.addEventListener("submit", async (e)=>{
-      e.preventDefault();
-      if(!auth) return toast("Auth not ready", "Firebase config is missing or invalid.", "danger");
-      const name = $("#signup-name").value.trim();
-      const email = $("#signup-email").value.trim();
-      const pass = $("#signup-pass").value;
-      try{
-        const cred = await createUserWithEmailAndPassword(auth, email, pass);
-        await updateProfile(cred.user, { displayName: name });
-        await ensureCustomerProfile(cred.user, name);
-        toast("Account created", "Welcome to Luma Tickets.");
-      }catch(err){
-        console.error(err);
-        toast("Sign up failed", err?.message || String(err), "danger");
-      }
-    });
-
-    $("#form-signin")?.addEventListener("submit", async (e)=>{
-      e.preventDefault();
-      if(!auth) return toast("Auth not ready", "Firebase config is missing or invalid.", "danger");
-      const email = $("#signin-email").value.trim();
-      const pass = $("#signin-pass").value;
-      try{
-        await signInWithEmailAndPassword(auth, email, pass);
-      }catch(err){
-        console.error(err);
-        toast("Sign in failed", err?.message || String(err), "danger");
-      }
-    });
-
-    $("#form-forgot")?.addEventListener("submit", async (e)=>{
-      e.preventDefault();
-      if(!auth) return toast("Auth not ready", "Firebase config is missing or invalid.", "danger");
-      const email = $("#forgot-email").value.trim();
-      try{
-        await sendPasswordResetEmail(auth, email);
-        toast("Reset email sent", "Check your inbox for the reset link.");
-        setAuthTab("signin");
-      }catch(err){
-        console.error(err);
-        toast("Reset failed", err?.message || String(err), "danger");
-      }
-    });
-
-    $("#btnSignout")?.addEventListener("click", ()=> doSignout());
-    $("#btnTopSignout")?.addEventListener("click", ()=> doSignout());
-    async function doSignout(){
-      try{ await signOut(auth); }
-      catch(err){ toast("Sign out failed", err?.message || String(err), "danger"); }
-    }
-
-    // =========================
-    // App navigation
-    // =========================
-    function setTab(tab){
-      $$(".tab").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
-      $("#tab-home").classList.toggle("hidden", tab!=="home");
-      $("#tab-tickets").classList.toggle("hidden", tab!=="tickets");
-      $("#tab-profile").classList.toggle("hidden", tab!=="profile");
-    }
-    $$(".tab").forEach(b=> b.addEventListener("click", ()=> setTab(b.dataset.tab)));
-
-    // Filters
-    $("#q")?.addEventListener("input", ()=>{
-      STATE.filter.q = $("#q").value.trim().toLowerCase();
-      renderEvents();
-    });
-    $("#city")?.addEventListener("change", ()=>{
-      STATE.filter.city = $("#city").value;
-      renderEvents();
-    });
-    $("#f-all")?.addEventListener("click", ()=>{ setMode("all"); });
-    $("#f-today")?.addEventListener("click", ()=>{ setMode("today"); });
-    $("#f-week")?.addEventListener("click", ()=>{ setMode("week"); });
-    function setMode(mode){
-      STATE.filter.mode = mode;
-      $("#f-all").classList.toggle("active", mode==="all");
-      $("#f-today").classList.toggle("active", mode==="today");
-      $("#f-week").classList.toggle("active", mode==="week");
-      renderEvents();
-    }
-
-    // Drawer
-    $("#drawerClose")?.addEventListener("click", closeDrawer);
-    $("#drawerOverlay")?.addEventListener("click", (e)=>{ if(e.target?.id==="drawerOverlay") closeDrawer(); });
-    function openDrawer(title, subtitle, bodyNode){
-      $("#drawerTitle").textContent = title || "Details";
-      $("#drawerSub").textContent = subtitle || "";
-      const body = $("#drawerBody");
-      body.innerHTML = "";
-      body.appendChild(bodyNode);
-      $("#drawerOverlay").classList.add("open");
-    }
-    function closeDrawer(){
-      $("#drawerOverlay").classList.remove("open");
-      stopQr();
-      STATE.activeTicket = null;
-    }
-
-    // =========================
-    // Data subscriptions
-    // =========================
-    function subscribeEvents(){
-      if(!db) return;
-      STATE.unsubEvents?.();
-
-      const qy = query(
-        collection(db, "events"),
-        where("published", "==", true),
-        where("status", "in", ["On Sale", "Live"]),
-        limit(250)
-      );
-
-      STATE.unsubEvents = onSnapshot(qy, (snap)=>{
-        const arr = [];
-        snap.forEach(d=>{
-          const ev = d.data();
-          ev.id = ev.id || d.id;
-          arr.push(ev);
-        });
-
-        arr.sort((a,b)=>{
-          const da = eventStartDate(a)?.getTime() ?? 0;
-          const dbb = eventStartDate(b)?.getTime() ?? 0;
-          return da - dbb;
-        });
-
-        STATE.events = arr;
-        hydrateCityOptions();
-        renderEvents();
-        $("#eventsCount").textContent = String(arr.length);
-      }, (err)=>{
-        console.error(err);
-        toast("Events load failed", err?.message || String(err), "danger");
-      });
-    }
-
-    function subscribeTickets(uid){
-      if(!db) return;
-      STATE.unsubTickets?.();
-
-      const qy = query(collection(db, "customers", uid, "tickets"), limit(250));
-      STATE.unsubTickets = onSnapshot(qy, (snap)=>{
-        const arr = [];
-        snap.forEach(d=>{
-          const t = d.data();
-          t.id = t.id || d.id;
-          arr.push(t);
-        });
-        arr.sort((a,b)=>{
-          const ta = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
-          const tb = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
-          return tb - ta;
-        });
-        STATE.tickets = arr;
-        $("#ticketsCount").textContent = String(arr.length);
-        $("#myTicketsNum").textContent = String(arr.length);
-        renderTickets();
-      }, (err)=>{
-        console.error(err);
-        toast("Tickets load failed", err?.message || String(err), "danger");
-      });
-    }
-
-    function hydrateCityOptions(){
-      const sel = $("#city");
-      const cur = sel.value || "";
-      const cities = Array.from(new Set(STATE.events.map(e=> (e.city||"").trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b));
-      sel.innerHTML = `<option value="">All cities</option>` + cities.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-      sel.value = cities.includes(cur) ? cur : "";
-    }
-
-    // =========================
-    // Rendering
-    // =========================
-    function renderEvents(){
-      const grid = $("#eventsGrid");
-      const q = STATE.filter.q;
-      const mode = STATE.filter.mode;
-      const city = STATE.filter.city;
-
-      const now = new Date();
-      const filtered = STATE.events.filter(ev=>{
-        const name = (ev.name||"").toLowerCase();
-        const venue = (ev.venue||"").toLowerCase();
-        const cty = (ev.city||"").toLowerCase();
-
-        if(q && !(`${name} ${venue} ${cty}`.includes(q))) return false;
-        if(city && (ev.city||"") !== city) return false;
-
-        const start = eventStartDate(ev);
-        if(mode==="today" && start && !isSameDay(start, now)) return false;
-        if(mode==="week" && start && !inThisWeek(start)) return false;
-        return true;
-      });
-
-      grid.innerHTML = "";
-      $("#emptyEvents").style.display = filtered.length ? "none" : "block";
-
-      for(const ev of filtered){
-        const start = eventStartDate(ev);
-        const place = [ev.venue||"", ev.city||""].filter(Boolean).join(" • ") || "—";
-        const el = document.createElement("div");
-        el.className = "eventCard";
-        el.innerHTML = `
-          <div class="eventBanner">
-            ${ev.bannerUrl ? `<img src="${escapeHtml(ev.bannerUrl)}" alt="">` : ``}
-            <div class="eventLogo">${ev.logoUrl ? `<img src="${escapeHtml(ev.logoUrl)}" alt="">` : `<svg width="22" height="22" style="opacity:.85"><use href="#i-luma"/></svg>`}</div>
+    <!-- MY TICKETS -->
+    <section id="page-tickets" class="page">
+      <div class="card" style="padding:16px">
+        <div class="sectionTitle">
+          <div>
+            <h1>My Tickets</h1>
+            <p>Open a ticket to show the live QR to the usher.</p>
           </div>
-          <div class="eventBody">
-            <div class="eventTitle">
-              <b>${escapeHtml(ev.name || "Untitled event")}</b>
-              ${renderStatusBadge(ev.status)}
-            </div>
-            <div class="eventMeta">
-              <div class="row">📅 <span>${escapeHtml(fmtDate(start))}</span></div>
-              <div class="row">📍 <span>${escapeHtml(place)}</span></div>
-            </div>
-            <div class="eventActions">
-              <button class="btn sm primary" data-act="details">View Details</button>
-            </div>
+          <div class="badge info" id="myTicketsNum">0</div>
+        </div>
+
+        <div id="ticketsGate" class="hint" style="display:none">
+          You need to sign in to view your tickets.
+          <div style="margin-top:10px">
+            <button class="btn primary sm" id="btnGoAuthTickets">Sign in</button>
           </div>
-        `;
-        el.querySelector('[data-act="details"]').addEventListener("click", ()=> openEventDetails(ev));
-        grid.appendChild(el);
-      }
-    }
+        </div>
 
-    function renderTickets(){
-      const grid = $("#ticketsGrid");
-      grid.innerHTML = "";
-      $("#emptyTickets").style.display = STATE.tickets.length ? "none" : "block";
+        <div class="ticketList" id="ticketsGrid" style="margin-top:12px"></div>
 
-      for(const t of STATE.tickets){
-        const start = t.startsAt?.toDate ? t.startsAt.toDate() : (t.startsAtISO ? parseISOish(t.startsAtISO) : eventStartDate(t));
-        const el = document.createElement("div");
-        el.className = "eventCard";
-        el.innerHTML = `
-          <div class="eventBanner">
-            ${t.bannerUrl ? `<img src="${escapeHtml(t.bannerUrl)}" alt="">` : ``}
-            <div class="eventLogo">${t.logoUrl ? `<img src="${escapeHtml(t.logoUrl)}" alt="">` : `<svg width="22" height="22" style="opacity:.85"><use href="#i-ticket"/></svg>`}</div>
-          </div>
-          <div class="eventBody">
-            <div class="eventTitle">
-              <b>${escapeHtml(t.eventName || "Event")}</b>
-              ${renderTicketBadge(t.status)}
+        <div class="center muted" id="emptyTickets" style="padding:16px;display:none">
+          No tickets yet.
+        </div>
+      </div>
+    </section>
+
+    <!-- TICKET PAGE -->
+    <section id="page-ticket" class="page">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+        <button class="btn sm" id="btnBackTickets">← Back</button>
+        <div class="badge info" id="ticketBreadcrumb">Ticket</div>
+      </div>
+
+      <div class="ticketPageGrid">
+        <div class="card">
+          <div class="eventPageBanner" id="ticketBanner" style="height:220px"></div>
+          <div style="padding:16px">
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <span class="badge ok"><strong>Live Ticket</strong></span>
+              <span class="badge" id="tQty" style="display:none"><strong>Qty</strong> —</span>
+              <span class="badge" id="tCity" style="display:none">—</span>
             </div>
-            <div class="eventMeta">
-              <div class="row">📅 <span>${escapeHtml(fmtDate(start))}</span></div>
-              <div class="row">🎟️ <span>${escapeHtml((t.tierName||"—"))}${t.waveName ? " • " + escapeHtml(t.waveName) : ""} • Qty ${escapeHtml(String(t.qty||1))}</span></div>
-            </div>
-            <div class="eventActions">
-              <button class="btn sm primary" data-act="open">Open Ticket</button>
-            </div>
-          </div>
-        `;
-        el.querySelector('[data-act="open"]').addEventListener("click", ()=> openTicket(t));
-        grid.appendChild(el);
-      }
-    }
 
-    function renderStatusBadge(status="—"){
-      const s = String(status||"").toLowerCase();
-      if(s==="live") return `<span class="badge ok"><strong>Live</strong></span>`;
-      if(s==="on sale" || s==="onsale") return `<span class="badge info"><strong>On Sale</strong></span>`;
-      return `<span class="badge"><strong>${escapeHtml(status||"—")}</strong></span>`;
-    }
-    function renderTicketBadge(status="paid"){
-      const s = String(status||"").toLowerCase();
-      if(s==="paid") return `<span class="badge ok"><strong>Paid</strong></span>`;
-      if(s==="refunded") return `<span class="badge danger"><strong>Refunded</strong></span>`;
-      return `<span class="badge"><strong>${escapeHtml(status||"—")}</strong></span>`;
-    }
-
-    // =========================
-    // Event details & purchase
-    // =========================
-    function openEventDetails(ev){
-      const wrap = document.createElement("div");
-
-      const now = new Date();
-      const tiers = Array.isArray(ev.tiers) ? ev.tiers : [];
-      const waves = Array.isArray(ev.waves) ? ev.waves : [];
-
-      const availableWaves = waves.filter(w=>{
-        const start = parseISOish(w.start);
-        const end = parseISOish(w.end);
-        const okStart = !start || now >= start;
-        const okEnd = !end || now <= end;
-        return okStart && okEnd;
-      });
-
-      const start = eventStartDate(ev);
-      const currency = ev.currency || DEFAULT_CURRENCY;
-
-      wrap.innerHTML = `
-        <div class="card" style="overflow:hidden">
-          <div class="ticketBanner">${ev.bannerUrl ? `<img src="${escapeHtml(ev.bannerUrl)}" alt="">` : ``}</div>
-          <div class="cardBody">
-            <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
-              ${ev.city ? `<div class="badge"><strong>${escapeHtml(ev.city)}</strong></div>` : ``}
-              ${renderStatusBadge(ev.status)}
-              <div class="badge"><strong>${escapeHtml(fmtDate(start))}</strong></div>
-              ${ev.locationText ? `<a class="badge info" href="${escapeHtml(ev.locationText)}" target="_blank" rel="noopener"><strong>Open map</strong></a>` : ``}
-            </div>
-            <h2 style="margin:12px 0 6px;font-size:18px">${escapeHtml(ev.name || "Event")}</h2>
-            <div class="muted small">${escapeHtml(ev.venue || "—")}${ev.city ? " • " + escapeHtml(ev.city) : ""}</div>
+            <h2 class="eventName" id="tEvent">—</h2>
+            <div class="subLine" id="tMeta">—</div>
 
             <div class="hr"></div>
 
             <div class="hint">
-              <b>Available right now:</b> select a wave + tier below, then confirm purchase.
-              <div class="muted small" style="margin-top:6px">
-                Purchases create a real ticket record (no PDFs, no downloads).
-              </div>
-            </div>
-
-            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-              <div class="input" style="flex:1;min-width:220px">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-ticket"/></svg>
-                <select id="pickWave"></select>
-              </div>
-              <div class="input" style="flex:1;min-width:220px">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-ticket"/></svg>
-                <select id="pickTier"></select>
-              </div>
-              <div class="input" style="width:120px">
-                <select id="pickQty">
-                  ${[1,2,3,4,5,6].map(n=>`<option value="${n}">${n}</option>`).join("")}
-                </select>
-              </div>
-            </div>
-
-            <div class="prices" id="availabilityPills"></div>
-
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px">
-              <button class="btn good" id="btnBuy">
-                <svg width="18" height="18"><use href="#i-ticket"/></svg>
-                Purchase
-              </button>
-              <span class="badge" id="totalBadge"><strong>Total:</strong> —</span>
-              <span class="muted small" id="buyNote"></span>
+              <b>Ticket must be live.</b> Screenshots won’t work.
+              <div class="small" style="margin-top:6px">This QR refreshes every <b>30 seconds</b>.</div>
             </div>
 
             <div class="hr"></div>
 
-            <div class="muted small">
-              <b>Ultra-secure entry:</b> At the gate, open the ticket screen inside <b>My Tickets</b>.
-              A live code refreshes every <b>30 seconds</b>. Screenshots won’t work.
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <button class="btn sm" id="btnReceipt">View receipt</button>
+              <span class="small" id="receiptHint"></span>
             </div>
           </div>
         </div>
-      `;
 
-      const pickWave = wrap.querySelector("#pickWave");
-      const pickTier = wrap.querySelector("#pickTier");
-      const pills = wrap.querySelector("#availabilityPills");
-      const totalBadge = wrap.querySelector("#totalBadge");
-      const buyNote = wrap.querySelector("#buyNote");
-      const pickQty = wrap.querySelector("#pickQty");
-      const btnBuy = wrap.querySelector("#btnBuy");
-
-      const wavesForSelect = availableWaves.length ? availableWaves : waves;
-
-      if(!wavesForSelect.length || !tiers.length){
-        buyNote.textContent = "This event is missing tiers/waves configuration.";
-        btnBuy.disabled = true;
-      }
-
-      pickWave.innerHTML = wavesForSelect.map((w,i)=>`<option value="${escapeHtml(w.id || ("wave_"+i))}">${escapeHtml(w.name || ("Wave "+(i+1)))}</option>`).join("");
-
-      function getWaveById(id){
-        return wavesForSelect.find(w=> (w.id || "")===id) || wavesForSelect[0] || null;
-      }
-
-      function tiersForWave(w){
-        if(!w) return [];
-        const activeIds = Array.isArray(w.tiersActive) && w.tiersActive.length ? w.tiersActive : tiers.map(t=>t.id);
-        return tiers.filter(t=> activeIds.includes(t.id));
-      }
-
-      function unitPriceFor(w, tierId){
-        const p = (w?.pricing && (tierId in w.pricing)) ? Number(w.pricing[tierId]) : null;
-        if(p !== null && !isNaN(p)) return p;
-        const t = tiers.find(x=>x.id===tierId);
-        const fp = Number(t?.price||0);
-        return isNaN(fp) ? 0 : fp;
-      }
-
-      function availableCount(w, tierId){
-        const sold = (w?.sold && (tierId in w.sold)) ? Number(w.sold[tierId]) : 0;
-        const qty = (w?.qty && (tierId in w.qty)) ? Number(w.qty[tierId]) : 0;
-        if(!qty || qty<=0) return null;
-        return Math.max(0, qty - sold);
-      }
-
-      function renderTierSelect(){
-        const w = getWaveById(pickWave.value);
-        const list = tiersForWave(w);
-
-        pickTier.innerHTML = list.map(t=>{
-          const left = availableCount(w, t.id);
-          const price = unitPriceFor(w, t.id);
-          const suffix = (left===null) ? "" : (left===0 ? " — Sold out" : ` — ${left} left`);
-          return `<option value="${escapeHtml(t.id)}">${escapeHtml(t.name)} • ${money(price, currency)}${escapeHtml(suffix)}</option>`;
-        }).join("");
-
-        pills.innerHTML = "";
-        for(const t of list){
-          const left = availableCount(w, t.id);
-          const soldOut = left===0;
-          const price = unitPriceFor(w, t.id);
-          const pill = document.createElement("div");
-          pill.className = "pricePill";
-          pill.innerHTML = `${escapeHtml(t.name)} <small>${money(price, currency)}</small>${left===null ? "" : ` <small>• ${soldOut ? "Sold out" : left+" left"}</small>`}`;
-          pills.appendChild(pill);
-        }
-
-        updateTotal();
-      }
-
-      function updateTotal(){
-        const w = getWaveById(pickWave.value);
-        const tid = pickTier.value;
-        const t = tiers.find(x=> x.id===tid);
-        const qty = Number(pickQty.value||1);
-        const left = availableCount(w, tid);
-        const price = unitPriceFor(w, tid);
-        const canBuy = !!t && (left===null || left>=qty);
-        btnBuy.disabled = !canBuy || isReadOnlyCustomer();
-        const total = price * qty;
-        totalBadge.innerHTML = `<strong>Total:</strong> ${money(total, currency)}`;
-        buyNote.textContent = isReadOnlyCustomer() ? "Purchases are disabled (not signed in)." : (canBuy ? "" : "Not enough quantity available.");
-      }
-
-      pickWave.addEventListener("change", renderTierSelect);
-      pickTier.addEventListener("change", updateTotal);
-      pickQty.addEventListener("change", updateTotal);
-
-      btnBuy.addEventListener("click", async ()=>{
-        if(isReadOnlyCustomer()) return toast("Sign in required", "Please sign in to purchase tickets.", "warn");
-        const w = getWaveById(pickWave.value);
-        const tid = pickTier.value;
-        const t = tiers.find(x=> x.id===tid);
-        const qty = Number(pickQty.value||1);
-        if(!w || !t) return toast("Missing selection", "Please select a wave and tier.", "warn");
-
-        const left = availableCount(w, tid);
-        if(left !== null && left < qty) return toast("Sold out", "Not enough quantity available.", "warn");
-
-        try{
-          btnBuy.disabled = true;
-
-          const unitPrice = unitPriceFor(w, tid);
-          const total = unitPrice * qty;
-          const ticketId = safeId("tkt");
-
-          const startsISO = (start && !isNaN(start.getTime())) ? start.toISOString() : (ev.dateISO ? `${ev.dateISO}T${ev.time||"00:00"}` : "");
-
-          const ticketDoc = {
-            eventId: ev.id,
-            eventName: ev.name || "Event",
-            venue: ev.venue || "",
-            city: ev.city || "",
-            startsAtISO: startsISO,
-            bannerUrl: ev.bannerUrl || "",
-            logoUrl: ev.logoUrl || "",
-            tierId: t.id,
-            tierName: t.name || t.id,
-            waveId: w.id || "",
-            waveName: w.name || "",
-            qty,
-            unitPrice,
-            currency,
-            total,
-            status: "paid",
-            createdAt: serverTimestamp(),
-            receiptUrl: ev.locationText || ""
-          };
-
-          await setDoc(doc(db, "customers", STATE.user.uid, "tickets", ticketId), ticketDoc);
-
-          await addDoc(collection(db, "events", ev.id, "orders"), {
-            uid: STATE.user.uid,
-            ticketId,
-            tierId: t.id,
-            waveId: w.id || "",
-            qty,
-            unitPrice,
-            currency,
-            total,
-            status: "paid",
-            createdAt: serverTimestamp()
-          });
-
-          toast("Purchase complete", "Ticket added to My Tickets.");
-          closeDrawer();
-          setTab("tickets");
-        }catch(err){
-          console.error(err);
-          toast("Purchase failed", err?.message || String(err), "danger");
-        }finally{
-          btnBuy.disabled = false;
-        }
-      });
-
-      renderTierSelect();
-      openDrawer("Event details", ev.name || "Event", wrap);
-    }
-
-    // =========================
-    // Ticket screen (Ultra-secure)
-    // =========================
-    function openTicket(t){
-      const start = t.startsAt?.toDate ? t.startsAt.toDate() : (t.startsAtISO ? parseISOish(t.startsAtISO) : eventStartDate(t));
-      const subtitle = `${t.eventName || "Event"} • ${fmtDate(start)}`;
-
-      const wrap = document.createElement("div");
-      wrap.className = "ticketWrap";
-      wrap.innerHTML = `
-        <div class="ticketCard">
-          <div class="ticketBanner">${t.bannerUrl ? `<img src="${escapeHtml(t.bannerUrl)}" alt="">` : ``}</div>
-          <div class="ticketInfo">
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-              <span class="badge ok"><strong>Live Ticket</strong></span>
-              <span class="badge">${escapeHtml(t.city || "—")}</span>
-              <span class="badge"><strong>Qty</strong> ${escapeHtml(String(t.qty||1))}</span>
+        <div class="card qrPanel">
+          <div class="qrFrame">
+            <div class="qrTop">
+              <span class="badge info" id="qrEventId">—</span>
+              <span class="badge" id="qrTicketId">—</span>
             </div>
 
-            <b style="margin-top:6px">${escapeHtml(t.eventName || "Event")}</b>
-
-            <div class="line"><span>Date</span><span>${escapeHtml(fmtDate(start))}</span></div>
-            <div class="line"><span>Venue</span><span>${escapeHtml(t.venue || "—")}</span></div>
-            <div class="line"><span>Tier / Wave</span><span>${escapeHtml(t.tierName || "—")}${t.waveName ? " • " + escapeHtml(t.waveName) : ""}</span></div>
-
-            <div class="hint" style="margin-top:10px">
-              <b>Ticket must be live.</b> Screenshots won’t work.
-              <div class="muted small" style="margin-top:6px">This code refreshes every 30 seconds.</div>
-            </div>
-          </div>
-
-          <div class="qrArea">
-            <div class="qrFrame">
-              <div class="qrRing">
-                <svg width="196" height="196" viewBox="0 0 196 196" aria-hidden="true">
-                  <circle cx="98" cy="98" r="86" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="10"/>
-                  <circle id="ringProg" cx="98" cy="98" r="86" fill="none" stroke="rgba(34,197,94,.75)" stroke-width="10"
-                          stroke-linecap="round" stroke-dasharray="540" stroke-dashoffset="540"/>
-                </svg>
-                <div class="qrBox" aria-label="Dynamic QR placeholder">
-                  <div class="qrInner"></div>
-                </div>
-              </div>
-
-              <div class="countdown" id="cdText">Refreshing in —</div>
-              <div class="bigCode" id="codeText">—</div>
-            </div>
-
-            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px">
-              <button class="btn" id="btnReceipt">
-                <svg width="18" height="18"><use href="#i-receipt"/></svg>
-                View receipt
-              </button>
-              <span class="muted small" id="receiptHint"></span>
-            </div>
+            <div class="qrBox" id="qrBox" aria-label="Dynamic QR"></div>
+            <div class="countdown" id="cdText">Refreshing in —</div>
+            <div class="codeText" id="codeText">—</div>
           </div>
         </div>
-      `;
+      </div>
+    </section>
 
-      const btnReceipt = wrap.querySelector("#btnReceipt");
-      const receiptHint = wrap.querySelector("#receiptHint");
-      if(t.receiptUrl){
-        receiptHint.textContent = "Opens in a new tab.";
-        btnReceipt.addEventListener("click", ()=> window.open(t.receiptUrl, "_blank", "noopener"));
-      }else{
-        receiptHint.textContent = "Receipt link not available.";
-        btnReceipt.disabled = true;
+    <!-- PROFILE -->
+    <section id="page-profile" class="page">
+      <div class="card" style="padding:16px">
+        <div class="sectionTitle">
+          <div>
+            <h1>Profile</h1>
+            <p>Manage your account & support.</p>
+          </div>
+        </div>
+
+        <div id="profileGate" class="hint" style="display:none">
+          You need to sign in to view your profile.
+          <div style="margin-top:10px">
+            <button class="btn primary sm" id="btnGoAuthProfile">Sign in</button>
+          </div>
+        </div>
+
+        <div id="profileBody" style="display:none">
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <div class="logoMark" style="width:54px;height:54px;border-radius:20px">
+              <span style="font-weight:1000" id="profileInitials">LU</span>
+            </div>
+            <div>
+              <div style="font-weight:1000;font-size:16px" id="profileName">—</div>
+              <div class="small" id="profileEmail">—</div>
+            </div>
+            <div class="right">
+              <button class="btn danger sm" id="btnSignout" style="display:none">Logout</button>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <a class="btn sm" id="btnSupport" href="#" target="_blank" rel="noopener">Support</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AUTH (full page) -->
+    <section id="page-auth" class="page">
+      <div class="card authCard">
+        <div class="sectionTitle">
+          <div>
+            <h1 id="authTitle">Sign in</h1>
+            <p id="authSub">Continue to buy and access your tickets.</p>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <div class="tabBtn active" data-auth="signin">Sign in</div>
+          <div class="tabBtn" data-auth="signup">Sign up</div>
+          <div class="tabBtn" data-auth="forgot">Forgot</div>
+        </div>
+
+        <div id="auth-signin" class="authGrid">
+          <form id="form-signin">
+            <div>
+              <label>Email</label>
+              <input type="email" id="signin-email" autocomplete="email" required>
+            </div>
+            <div>
+              <label>Password</label>
+              <input type="password" id="signin-pass" autocomplete="current-password" required>
+            </div>
+            <button class="btn primary" type="submit">Sign in</button>
+            <div class="center small">
+              No account? <a class="link" href="#/auth?tab=signup">Create one</a>
+            </div>
+          </form>
+        </div>
+
+        <div id="auth-signup" class="authGrid" style="display:none">
+          <form id="form-signup">
+            <div>
+              <label>Full name</label>
+              <input type="text" id="signup-name" autocomplete="name" required>
+            </div>
+            <div>
+              <label>Email</label>
+              <input type="email" id="signup-email" autocomplete="email" required>
+            </div>
+            <div>
+              <label>Password</label>
+              <input type="password" id="signup-pass" autocomplete="new-password" required>
+            </div>
+            <button class="btn primary" type="submit">Create account</button>
+            <div class="center small">
+              Already have an account? <a class="link" href="#/auth?tab=signin">Sign in</a>
+            </div>
+          </form>
+        </div>
+
+        <div id="auth-forgot" class="authGrid" style="display:none">
+          <form id="form-forgot">
+            <div>
+              <label>Email</label>
+              <input type="email" id="forgot-email" autocomplete="email" required>
+            </div>
+            <button class="btn primary" type="submit">Send reset link</button>
+            <div class="center small">
+              Back to <a class="link" href="#/auth?tab=signin">Sign in</a>
+            </div>
+          </form>
+        </div>
+
+        <div class="hr"></div>
+        <div class="small muted">
+          By continuing, you agree to show a <b>live ticket</b> at entry. Screenshots will be rejected.
+        </div>
+      </div>
+    </section>
+
+    <footer>Powered by Luma • <span id="year"></span></footer>
+  </div>
+
+<script type="module">
+/* ============================================================
+   Luma Tickets — customer.html (Production-style)
+   Changes applied from your checklist:
+   ✅ (1) Browse events without login (login only needed on Buy / My Tickets / Profile)
+   ✅ (2) Event opens a full page (no modal)
+   ✅ (3) Maps link as button or venue hyperlink
+   ✅ (4) Removed On Sale badge/label from UI
+   ✅ (5) Removed “Available right now” note
+   ✅ (6) Waves are NOT dropdowns: wave blocks + tier rows with price + quantity stepper
+   ✅ (7) Don’t show “how many left”
+   ✅ (8) Removed weird extra price pills + sold-out counts
+   ✅ (9) Profile name displays from customers/{uid}.name (fallback to displayName)
+   ✅ (10) No account status badge/tab
+   ✅ (11) Handles lots of tickets: list + open each ticket by ticketId
+   ✅ (12) Removed stray “-” by hiding empty badges
+   ✅ (13) Real QR is rendered (using qrcode lib)
+   ✅ (14) Receipt opens receiptUrl only (not location)
+   ✅ (15)(16) Marketplace + ticket flow styled like ticket apps refs (cards, full pages)
+   ============================================================ */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  sendPasswordResetEmail, signOut, updateProfile
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {
+  getFirestore,
+  doc, getDoc, setDoc, addDoc, collection,
+  query, where, onSnapshot, serverTimestamp, limit
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+/* =========================
+   1) PASTE YOUR FIREBASE CONFIG
+   ========================= */
+const firebaseConfig = {
+  // apiKey: "",
+  // authDomain: "",
+  // projectId: "",
+  // storageBucket: "",
+  // messagingSenderId: "",
+  // appId: ""
+};
+
+const SUPPORT_URL = "https://your-support-link.example";
+const DEFAULT_CURRENCY = "EGP";
+
+/* Visual rotating token seed (for usher scan).
+   For TRUE security: generate short-lived signed tokens server-side (Cloud Functions/back-end)
+   and verify at scan time. This front-end still rotates every 30s and is NOT screenshot-friendly. */
+const TOKEN_SALT = "LUMA_ROTATING_TICKET_V1";
+const REFRESH_SEC = 30;
+
+/* ====== DOM helpers */
+const $ = (q)=>document.querySelector(q);
+const $$ = (q)=>Array.from(document.querySelectorAll(q));
+
+function escapeHtml(s){
+  return String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function toast(title, msg=""){
+  const wrap = $("#toasts");
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.innerHTML = `
+    <div>
+      <b>${escapeHtml(title)}</b>
+      ${msg ? `<p>${escapeHtml(msg)}</p>` : ``}
+    </div>
+    <button class="x" aria-label="Close">✕</button>
+  `;
+  el.querySelector(".x").addEventListener("click", ()=> el.remove());
+  wrap.appendChild(el);
+  setTimeout(()=>{ if(el.isConnected) el.remove(); }, 5200);
+}
+function initials(nameOrEmail){
+  const s = (nameOrEmail||"").trim();
+  if(!s) return "LU";
+  const parts = s.split(/\s+/).filter(Boolean);
+  if(parts.length===1){
+    const x = parts[0];
+    return (x[0]||"U").toUpperCase() + (x[1]||"").toUpperCase();
+  }
+  return (parts[0][0]||"U").toUpperCase() + (parts[parts.length-1][0]||"").toUpperCase();
+}
+function money(n, currency=DEFAULT_CURRENCY){
+  const v = Number(n||0);
+  try{ return new Intl.NumberFormat(undefined, { style:"currency", currency }).format(v); }
+  catch{ return `${v.toFixed(2)} ${currency}`; }
+}
+function parseISOish(s){
+  if(!s) return null;
+  const t = String(s).replace(" ", "T");
+  const d = new Date(t);
+  return isNaN(d.getTime()) ? null : d;
+}
+function eventStartDate(ev){
+  if(ev?.startsAt?.toDate) return ev.startsAt.toDate();
+  if(ev?.startsAt){
+    const d = new Date(ev.startsAt);
+    if(!isNaN(d.getTime())) return d;
+  }
+  const dateISO = ev?.dateISO || "";
+  const time = ev?.time || "00:00";
+  const d = parseISOish(`${dateISO}T${time}`);
+  return d || null;
+}
+function fmtDate(dOrTs){
+  if(!dOrTs) return "—";
+  const d = dOrTs?.toDate ? dOrTs.toDate() : (dOrTs instanceof Date ? dOrTs : new Date(dOrTs));
+  if(isNaN(d.getTime())) return "—";
+  return d.toLocaleString(undefined, { weekday:"short", year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" });
+}
+function dayKey(d){
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  return x.getTime();
+}
+function isSameDay(a,b){ return dayKey(a) === dayKey(b); }
+function inThisWeek(d){
+  const now = new Date();
+  const start = new Date(now);
+  start.setDate(now.getDate() - now.getDay());
+  start.setHours(0,0,0,0);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 7);
+  return d >= start && d < end;
+}
+function safeId(prefix="id"){
+  return prefix + "_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+}
+function configLooksFilled(cfg){
+  return cfg && Object.values(cfg).filter(Boolean).length >= 4;
+}
+
+/* ===== Firebase init */
+let app=null, auth=null, db=null;
+try{
+  if(!configLooksFilled(firebaseConfig)){
+    toast("Firebase config missing", "Paste your firebaseConfig in the script.");
+  }else{
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+  }
+}catch(err){
+  console.error(err);
+  toast("Firebase init error", err?.message || String(err));
+}
+
+/* ===== State */
+const STATE = {
+  user: null,
+  profile: null,
+  events: [],
+  tickets: [],
+  filter: { q:"", mode:"all", city:"" },
+  selected: {},         // { key: qty } where key = `${waveId}|${tierId}`
+  activeEventId: null,
+  activeTicketId: null,
+  returnTo: "#/",
+  unsubEvents: null,
+  unsubTickets: null,
+  qrTimer: null,
+};
+
+/* ===== Nav */
+const NAV = {
+  home: $("#page-home"),
+  event: $("#page-event"),
+  tickets: $("#page-tickets"),
+  ticket: $("#page-ticket"),
+  profile: $("#page-profile"),
+  auth: $("#page-auth"),
+};
+
+function setActiveNav(hash){
+  $("#navHome").classList.toggle("active", hash.startsWith("#/") && (hash==="#/" || hash.startsWith("#/event")));
+  $("#navTickets").classList.toggle("active", hash.startsWith("#/tickets") || hash.startsWith("#/ticket"));
+  $("#navProfile").classList.toggle("active", hash.startsWith("#/profile"));
+}
+function showPage(name){
+  Object.values(NAV).forEach(s=> s.classList.remove("active"));
+  NAV[name].classList.add("active");
+}
+
+/* ===== Router */
+function parseHash(){
+  const raw = location.hash || "#/";
+  const [path, queryStr] = raw.split("?");
+  const parts = path.replace("#","").split("/").filter(Boolean); // e.g. ["event","id"]
+  const q = new URLSearchParams(queryStr||"");
+  return { raw, parts, q };
+}
+
+function go(h){ location.hash = h; }
+
+window.addEventListener("hashchange", route);
+
+async function route(){
+  const { raw, parts, q } = parseHash();
+  setActiveNav(raw);
+
+  // quick nav clicks
+  $$("#navHome,#navTickets,#navProfile").forEach(n=>{
+    n.onclick = ()=> go(n.dataset.nav);
+  });
+
+  if(parts.length===0){ // "#"
+    go("#/");
+    return;
+  }
+
+  const root = parts[0];
+
+  if(root === ""){ // "#/"
+    showPage("home");
+    $("#topSub").textContent = "Customer";
+    renderEvents();
+    return;
+  }
+
+  if(root === "event"){
+    const id = parts[1] || "";
+    STATE.activeEventId = id;
+    await renderEventPage(id);
+    showPage("event");
+    $("#topSub").textContent = "Event";
+    return;
+  }
+
+  if(root === "tickets"){
+    $("#topSub").textContent = "My Tickets";
+    showPage("tickets");
+    renderTicketsPage();
+    return;
+  }
+
+  if(root === "ticket"){
+    const tid = parts[1] || "";
+    STATE.activeTicketId = tid;
+    await renderTicketPage(tid);
+    showPage("ticket");
+    $("#topSub").textContent = "Ticket";
+    return;
+  }
+
+  if(root === "profile"){
+    $("#topSub").textContent = "Profile";
+    showPage("profile");
+    renderProfilePage();
+    return;
+  }
+
+  if(root === "auth"){
+    $("#topSub").textContent = "Sign in";
+    showPage("auth");
+    const tab = (q.get("tab")||"signin").toLowerCase();
+    setAuthTab(["signin","signup","forgot"].includes(tab)?tab:"signin");
+    return;
+  }
+
+  // fallback
+  go("#/");
+}
+
+/* ===== Auth CTA button */
+function syncAuthButton(){
+  const b = $("#btnAuth");
+  if(STATE.user){
+    b.textContent = "Sign out";
+    b.classList.remove("ghost");
+    b.classList.add("btn");
+    b.onclick = ()=> doSignout();
+  }else{
+    b.textContent = "Sign in";
+    b.onclick = ()=>{
+      STATE.returnTo = location.hash || "#/";
+      go("#/auth?tab=signin");
+    };
+  }
+}
+async function doSignout(){
+  try{ await signOut(auth); }
+  catch(err){ toast("Sign out failed", err?.message||String(err)); }
+}
+
+/* ===== Customer profile ensure */
+async function ensureCustomerProfile(user, nameHint=""){
+  if(!db) return null;
+  const ref = doc(db, "customers", user.uid);
+  const snap = await getDoc(ref);
+  if(snap.exists()) return snap.data();
+  const profile = { name: nameHint || user.displayName || "", email: user.email || "", createdAt: serverTimestamp() };
+  await setDoc(ref, profile, { merge:true });
+  return profile;
+}
+
+/* ===== Auth UI */
+function setAuthTab(tab){
+  $$(".tabBtn").forEach(b=> b.classList.toggle("active", b.dataset.auth===tab));
+  $("#auth-signin").style.display = tab==="signin" ? "grid" : "none";
+  $("#auth-signup").style.display = tab==="signup" ? "grid" : "none";
+  $("#auth-forgot").style.display = tab==="forgot" ? "grid" : "none";
+  $("#authTitle").textContent = tab==="signup" ? "Create account" : tab==="forgot" ? "Reset password" : "Sign in";
+}
+
+$$(".tabBtn").forEach(b=> b.addEventListener("click", ()=> go(`#/auth?tab=${b.dataset.auth}`)));
+
+$("#form-signup")?.addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  if(!auth) return toast("Auth not ready", "Firebase config missing/invalid.");
+  const name = $("#signup-name").value.trim();
+  const email = $("#signup-email").value.trim();
+  const pass = $("#signup-pass").value;
+  try{
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await updateProfile(cred.user, { displayName: name });
+    await ensureCustomerProfile(cred.user, name);
+    toast("Account created", "Welcome.");
+    go(STATE.returnTo || "#/");
+  }catch(err){
+    console.error(err);
+    toast("Sign up failed", err?.message || String(err));
+  }
+});
+
+$("#form-signin")?.addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  if(!auth) return toast("Auth not ready", "Firebase config missing/invalid.");
+  const email = $("#signin-email").value.trim();
+  const pass = $("#signin-pass").value;
+  try{
+    await signInWithEmailAndPassword(auth, email, pass);
+    toast("Signed in", "Welcome back.");
+    go(STATE.returnTo || "#/");
+  }catch(err){
+    console.error(err);
+    toast("Sign in failed", err?.message || String(err));
+  }
+});
+
+$("#form-forgot")?.addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  if(!auth) return toast("Auth not ready", "Firebase config missing/invalid.");
+  const email = $("#forgot-email").value.trim();
+  try{
+    await sendPasswordResetEmail(auth, email);
+    toast("Reset email sent", "Check your inbox.");
+    go("#/auth?tab=signin");
+  }catch(err){
+    console.error(err);
+    toast("Reset failed", err?.message || String(err));
+  }
+});
+
+/* ===== Data subscriptions */
+function subscribeEvents(){
+  if(!db) return;
+  STATE.unsubEvents?.();
+  const qy = query(
+    collection(db, "events"),
+    where("published", "==", true),
+    where("status", "in", ["Live", "On Sale"]), // filter on back-end, but we won't DISPLAY status
+    limit(300)
+  );
+  STATE.unsubEvents = onSnapshot(qy, (snap)=>{
+    const arr = [];
+    snap.forEach(d=>{
+      const ev = d.data();
+      ev.id = ev.id || d.id;
+      arr.push(ev);
+    });
+    arr.sort((a,b)=> (eventStartDate(a)?.getTime()??0) - (eventStartDate(b)?.getTime()??0));
+    STATE.events = arr;
+    hydrateCityOptions();
+    $("#eventsCount").textContent = String(arr.length);
+    renderEvents();
+
+    // If currently on event page, refresh it live
+    const { parts } = parseHash();
+    if(parts[0]==="event" && parts[1]) renderEventPage(parts[1], true);
+  }, (err)=>{
+    console.error(err);
+    toast("Events load failed", err?.message || String(err));
+  });
+}
+
+function subscribeTickets(uid){
+  if(!db || !uid) return;
+  STATE.unsubTickets?.();
+  const qy = query(collection(db, "customers", uid, "tickets"), limit(400));
+  STATE.unsubTickets = onSnapshot(qy, (snap)=>{
+    const arr = [];
+    snap.forEach(d=>{
+      const t = d.data();
+      t.id = t.id || d.id;
+      arr.push(t);
+    });
+    arr.sort((a,b)=>{
+      const ta = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+      const tb = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+      return tb - ta;
+    });
+    STATE.tickets = arr;
+    $("#ticketsCount").textContent = String(arr.length);
+    $("#myTicketsNum").textContent = String(arr.length);
+
+    const { parts } = parseHash();
+    if(parts[0]==="tickets") renderTicketsPage();
+    if(parts[0]==="ticket" && parts[1]) renderTicketPage(parts[1], true);
+  }, (err)=>{
+    console.error(err);
+    toast("Tickets load failed", err?.message || String(err));
+  });
+}
+
+function hydrateCityOptions(){
+  const sel = $("#city");
+  const cur = sel.value || "";
+  const cities = Array.from(new Set(STATE.events.map(e=> (e.city||"").trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b));
+  sel.innerHTML = `<option value="">All cities</option>` + cities.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+  sel.value = cities.includes(cur) ? cur : "";
+}
+
+/* ===== Marketplace render */
+$("#q").addEventListener("input", ()=>{
+  STATE.filter.q = $("#q").value.trim().toLowerCase();
+  renderEvents();
+});
+$("#city").addEventListener("change", ()=>{
+  STATE.filter.city = $("#city").value;
+  renderEvents();
+});
+$("#f-all").addEventListener("click", ()=> setMode("all"));
+$("#f-today").addEventListener("click", ()=> setMode("today"));
+$("#f-week").addEventListener("click", ()=> setMode("week"));
+function setMode(mode){
+  STATE.filter.mode = mode;
+  $("#f-all").classList.toggle("active", mode==="all");
+  $("#f-today").classList.toggle("active", mode==="today");
+  $("#f-week").classList.toggle("active", mode==="week");
+  renderEvents();
+}
+
+function renderEvents(){
+  const grid = $("#eventsGrid");
+  const q = STATE.filter.q;
+  const mode = STATE.filter.mode;
+  const city = STATE.filter.city;
+
+  const now = new Date();
+  const filtered = STATE.events.filter(ev=>{
+    const name = (ev.name||"").toLowerCase();
+    const venue = (ev.venue||"").toLowerCase();
+    const cty = (ev.city||"").toLowerCase();
+
+    if(q && !(`${name} ${venue} ${cty}`.includes(q))) return false;
+    if(city && (ev.city||"") !== city) return false;
+
+    const start = eventStartDate(ev);
+    if(mode==="today" && start && !isSameDay(start, now)) return false;
+    if(mode==="week" && start && !inThisWeek(start)) return false;
+    return true;
+  });
+
+  grid.innerHTML = "";
+  $("#emptyEvents").style.display = filtered.length ? "none" : "block";
+
+  for(const ev of filtered){
+    const start = eventStartDate(ev);
+    const place = [ev.venue||"", ev.city||""].filter(Boolean).join(" • ") || "—";
+
+    const el = document.createElement("div");
+    el.className = "eventCard";
+    el.innerHTML = `
+      <div class="banner">
+        ${ev.bannerUrl ? `<img src="${escapeHtml(ev.bannerUrl)}" alt="">` : ``}
+        <div class="eLogo">
+          ${ev.logoUrl ? `<img src="${escapeHtml(ev.logoUrl)}" alt="">` : `<span style="font-weight:1000">L</span>`}
+        </div>
+      </div>
+      <div class="eBody">
+        <div class="eTitle">
+          <b>${escapeHtml(ev.name || "Untitled event")}</b>
+        </div>
+        <div class="eMeta">
+          <div class="row">📅 <span>${escapeHtml(fmtDate(start))}</span></div>
+          <div class="row">📍 <span>${escapeHtml(place)}</span></div>
+        </div>
+        <div class="kbar">
+          <span class="badge info">View details</span>
+        </div>
+      </div>
+    `;
+    el.addEventListener("click", ()=> go(`#/event/${encodeURIComponent(ev.id)}`));
+    grid.appendChild(el);
+  }
+}
+
+/* ===== Event page */
+$("#btnBack").addEventListener("click", ()=> history.back());
+
+function getEventById(id){
+  return STATE.events.find(e=> (e.id||"")===id) || null;
+}
+
+async function renderEventPage(eventId, silent=false){
+  const ev = getEventById(eventId);
+  if(!ev){
+    if(!silent) toast("Event not found", "This event may be unpublished.");
+    $("#eventName").textContent = "Event not found";
+    $("#wavesArea").innerHTML = "";
+    return;
+  }
+
+  // Apply event design if present
+  if(ev.design?.primary) document.documentElement.style.setProperty("--accent", ev.design.primary);
+  if(ev.design?.accent) document.documentElement.style.setProperty("--good", ev.design.accent);
+  if(ev.design?.fontFamily) document.documentElement.style.setProperty("--font", ev.design.fontFamily);
+
+  const start = eventStartDate(ev);
+  $("#eventBreadcrumb").textContent = ev.name || "Event";
+  $("#eventName").textContent = ev.name || "Event";
+  $("#eventSub").textContent = [ev.venue||"", ev.city||""].filter(Boolean).join(" • ") || "—";
+  $("#eventDate").innerHTML = `<strong>${escapeHtml(fmtDate(start))}</strong>`;
+
+  // banner
+  $("#eventBanner").innerHTML = ev.bannerUrl ? `<img src="${escapeHtml(ev.bannerUrl)}" alt="">` : "";
+
+  // map / venue
+  const venueLink = $("#eventVenueLink");
+  if(ev.locationText){
+    venueLink.style.display = "inline-flex";
+    venueLink.href = ev.locationText;
+  }else{
+    venueLink.style.display = "none";
+  }
+
+  // Total label
+  $("#eventTotal").textContent = "Tickets";
+
+  // Build wave blocks as lists (NO dropdown)
+  const tiers = Array.isArray(ev.tiers) ? ev.tiers : [];
+  const waves = Array.isArray(ev.waves) ? ev.waves : [];
+  const currency = ev.currency || DEFAULT_CURRENCY;
+
+  const wavesArea = $("#wavesArea");
+  wavesArea.innerHTML = "";
+  STATE.selected = {};
+
+  for(const w of waves){
+    const block = document.createElement("div");
+    block.className = "waveBlock";
+
+    const activeIds = Array.isArray(w.tiersActive) && w.tiersActive.length ? w.tiersActive : tiers.map(t=>t.id);
+    const waveTiers = tiers.filter(t=> activeIds.includes(t.id));
+
+    block.innerHTML = `
+      <div class="waveTitle">
+        <b>${escapeHtml(w.name || w.id || "Wave")}</b>
+        <span class="small muted">${escapeHtml(waveTiers.length ? `${waveTiers.length} tiers` : "No tiers")}</span>
+      </div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th style="width:50%">Ticket</th>
+            <th style="width:25%">Price</th>
+            <th style="width:25%;text-align:right">Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${waveTiers.map(t=>{
+            const price = (w.pricing && (t.id in w.pricing)) ? Number(w.pricing[t.id]) : 0;
+            const key = `${w.id||""}|${t.id}`;
+            return `
+              <tr data-key="${escapeHtml(key)}" data-wave="${escapeHtml(w.id||"")}" data-tier="${escapeHtml(t.id)}">
+                <td><b>${escapeHtml(t.name || t.id)}</b></td>
+                <td><b>${escapeHtml(money(price, currency))}</b></td>
+                <td>
+                  <div class="qty">
+                    <div class="qbtn" data-act="dec">−</div>
+                    <input type="number" min="0" step="1" value="0" inputmode="numeric" />
+                    <div class="qbtn" data-act="inc">+</div>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    `;
+
+    // Wire steppers
+    block.querySelectorAll("tr[data-key]").forEach(row=>{
+      const key = row.getAttribute("data-key");
+      const inp = row.querySelector("input");
+      const inc = row.querySelector('[data-act="inc"]');
+      const dec = row.querySelector('[data-act="dec"]');
+
+      function setVal(v){
+        const n = Math.max(0, Math.floor(Number(v||0)));
+        inp.value = String(n);
+        if(n>0) STATE.selected[key] = n;
+        else delete STATE.selected[key];
+        updateCheckoutSummary(ev);
       }
+      inc.addEventListener("click", ()=> setVal(Number(inp.value||0)+1));
+      dec.addEventListener("click", ()=> setVal(Number(inp.value||0)-1));
+      inp.addEventListener("input", ()=> setVal(inp.value));
+    });
 
-      STATE.activeTicket = t;
-      openDrawer("Ticket", subtitle, wrap);
-      startQr(t);
+    wavesArea.appendChild(block);
+  }
+
+  updateCheckoutSummary(ev);
+
+  // Buy
+  $("#btnCheckout").onclick = async ()=>{
+    if(Object.keys(STATE.selected).length===0){
+      return toast("Select tickets", "Choose quantities before buying.");
     }
-
-    function stopQr(){
-      if(STATE.qrTimer) clearInterval(STATE.qrTimer);
-      if(STATE.qrTick) cancelAnimationFrame(STATE.qrTick);
-      STATE.qrTimer = null;
-      STATE.qrTick = null;
-      const ring = document.getElementById("ringProg");
-      if(ring) ring.setAttribute("stroke-dashoffset","540");
+    if(!STATE.user){
+      STATE.returnTo = `#/event/${encodeURIComponent(ev.id)}`;
+      return go("#/auth?tab=signin");
     }
+    await purchaseSelected(ev);
+  };
+}
 
-    async function startQr(ticket){
-      stopQr();
-      const REFRESH_SEC = 30;
+function updateCheckoutSummary(ev){
+  const tiers = Array.isArray(ev.tiers) ? ev.tiers : [];
+  const waves = Array.isArray(ev.waves) ? ev.waves : [];
+  const currency = ev.currency || DEFAULT_CURRENCY;
 
-      const ring = document.getElementById("ringProg");
-      const cdText = document.getElementById("cdText");
-      const codeText = document.getElementById("codeText");
+  let count = 0;
+  let total = 0;
 
-      function secondsLeft(){
-        const now = Math.floor(Date.now()/1000);
-        return REFRESH_SEC - (now % REFRESH_SEC);
-      }
+  for(const [key, qty] of Object.entries(STATE.selected)){
+    const [waveId, tierId] = key.split("|");
+    const w = waves.find(x=> (x.id||"")===waveId);
+    const t = tiers.find(x=> x.id===tierId);
+    const price = (w?.pricing && (tierId in w.pricing)) ? Number(w.pricing[tierId]) : 0;
+    count += qty;
+    total += price * qty;
+  }
 
-      async function computeCode(){
-        const nowSlot = Math.floor(Date.now() / 1000 / REFRESH_SEC);
-        const raw = `${TICKET_CODE_SALT}|${STATE.user?.uid||""}|${ticket.id||""}|${ticket.eventId||""}|${nowSlot}`;
-        const hash = await sha256hex(raw);
-        return `${hash.slice(0,8)}-${hash.slice(8,16)}-${hash.slice(16,24)}`.toUpperCase();
-      }
+  $("#selCount").textContent = `${count} selected`;
+  $("#selTotal").textContent = `Total: ${money(total, currency)}`;
+  $("#eventTotal").textContent = `Tickets`;
+  $("#checkoutNote").textContent = !STATE.user
+    ? "You can browse without an account. Sign in only when you're ready to buy."
+    : "";
+}
 
-      async function refresh(){
-        const left = secondsLeft();
-        if(cdText) cdText.textContent = `Refreshing in ${left}s`;
-        if(codeText) codeText.textContent = "Generating…";
-        const code = await computeCode();
-        if(codeText) codeText.textContent = code;
-      }
+/* ===== Purchase */
+async function purchaseSelected(ev){
+  if(!db || !STATE.user) return;
 
-      function tick(){
-        const left = secondsLeft();
-        const prog = (REFRESH_SEC - left) / REFRESH_SEC;
-        const dash = 540;
-        const off = dash * (1 - prog);
-        if(ring) ring.setAttribute("stroke-dashoffset", String(off));
-        if(cdText) cdText.textContent = `Refreshing in ${left}s`;
-        STATE.qrTick = requestAnimationFrame(tick);
-      }
+  const tiers = Array.isArray(ev.tiers) ? ev.tiers : [];
+  const waves = Array.isArray(ev.waves) ? ev.waves : [];
+  const currency = ev.currency || DEFAULT_CURRENCY;
 
-      await refresh();
-      tick();
+  try{
+    $("#btnCheckout").disabled = true;
 
-      STATE.qrTimer = setInterval(async ()=>{
-        if(secondsLeft() === REFRESH_SEC){
-          await refresh();
-        }
-      }, 250);
-    }
+    const start = eventStartDate(ev);
+    const startsISO = (start && !isNaN(start.getTime())) ? start.toISOString() : (ev.dateISO ? `${ev.dateISO}T${ev.time||"00:00"}` : "");
 
-    async function sha256hex(str){
-      const enc = new TextEncoder().encode(str);
-      const buf = await crypto.subtle.digest("SHA-256", enc);
-      const bytes = Array.from(new Uint8Array(buf));
-      return bytes.map(b=>b.toString(16).padStart(2,"0")).join("");
-    }
+    // Create ONE ticket doc per selected tier (so user can open each ticket easily).
+    for(const [key, qty] of Object.entries(STATE.selected)){
+      const [waveId, tierId] = key.split("|");
+      const w = waves.find(x=> (x.id||"")===waveId);
+      const t = tiers.find(x=> x.id===tierId);
+      if(!w || !t || qty<=0) continue;
 
-    // =========================
-    // Boot
-    // =========================
-    function isReadOnlyCustomer(){
-      return !STATE.user || !db;
-    }
+      const unitPrice = (w.pricing && (tierId in w.pricing)) ? Number(w.pricing[tierId]) : 0;
+      const total = unitPrice * qty;
 
-    function showAuthedUI(){
-      $("#auth").classList.add("hidden");
-      $("#app").classList.remove("hidden");
-      $("#btnTopSignout").classList.remove("hidden");
-      $("#topSubtitle").textContent = "Marketplace";
-    }
-    function showAuthUI(){
-      $("#auth").classList.remove("hidden");
-      $("#app").classList.add("hidden");
-      $("#btnTopSignout").classList.add("hidden");
-      $("#topSubtitle").textContent = "Customer";
-    }
+      const ticketId = safeId("tkt");
+      const ticketDoc = {
+        eventId: ev.id,
+        eventName: ev.name || "Event",
+        venue: ev.venue || "",
+        city: ev.city || "",
+        startsAtISO: startsISO,
+        bannerUrl: ev.bannerUrl || "",
+        logoUrl: ev.logoUrl || "",
+        tierId: t.id,
+        tierName: t.name || t.id,
+        waveId: w.id || "",
+        waveName: w.name || "",
+        qty,
+        unitPrice,
+        currency,
+        total,
+        status: "paid",
+        createdAt: serverTimestamp(),
+        receiptUrl: "" // You can set this when you implement receipts
+      };
 
-    function setConnectivityBadge(){
-      const online = navigator.onLine;
-      $("#netBadge").className = "badge " + (online ? "" : "warn");
-      $("#netBadge").innerHTML = online ? "<strong>Online</strong>" : "<strong>Offline</strong>";
-      $("#badgeConn").className = "badge " + (online ? "" : "warn");
-      $("#badgeConn").innerHTML = online ? "<strong>Online</strong>" : "<strong>Offline</strong>";
-    }
-    window.addEventListener("online", setConnectivityBadge);
-    window.addEventListener("offline", setConnectivityBadge);
-    setConnectivityBadge();
+      await setDoc(doc(db, "customers", STATE.user.uid, "tickets", ticketId), ticketDoc, { merge:true });
 
-    if(auth){
-      onAuthStateChanged(auth, async (user)=>{
-        STATE.user = user || null;
-
-        if(!user){
-          STATE.profile = null;
-          STATE.events = [];
-          STATE.tickets = [];
-          STATE.unsubEvents?.(); STATE.unsubEvents = null;
-          STATE.unsubTickets?.(); STATE.unsubTickets = null;
-          closeDrawer();
-          showAuthUI();
-          $("#badgeAuth").className = "badge warn";
-          $("#badgeAuth").innerHTML = "<strong>Signed out</strong>";
-          return;
-        }
-
-        try{
-          const prof = await ensureCustomerProfile(user, user.displayName || "");
-          STATE.profile = prof;
-        }catch(err){
-          console.error(err);
-        }
-
-        $("#profileName").textContent = STATE.profile?.name || user.displayName || "—";
-        $("#profileEmail").textContent = user.email || "—";
-        $("#profileInitials").textContent = initials(STATE.profile?.name || user.email || "U");
-        $("#badgeAuth").className = "badge ok";
-        $("#badgeAuth").innerHTML = "<strong>Signed in</strong>";
-
-        showAuthedUI();
-        setTab("home");
-
-        subscribeEvents();
-        subscribeTickets(user.uid);
+      // Optional mirror
+      await addDoc(collection(db, "events", ev.id, "orders"), {
+        uid: STATE.user.uid,
+        ticketId,
+        tierId: t.id,
+        waveId: w.id || "",
+        qty,
+        unitPrice,
+        currency,
+        total,
+        status: "paid",
+        createdAt: serverTimestamp()
       });
+    }
+
+    toast("Purchase complete", "Your tickets are now in My Tickets.");
+    go("#/tickets");
+  }catch(err){
+    console.error(err);
+    toast("Purchase failed", err?.message || String(err));
+  }finally{
+    $("#btnCheckout").disabled = false;
+  }
+}
+
+/* ===== Tickets page */
+$("#btnGoAuthTickets").addEventListener("click", ()=>{
+  STATE.returnTo = "#/tickets";
+  go("#/auth?tab=signin");
+});
+
+function renderTicketsPage(){
+  const gate = $("#ticketsGate");
+  const grid = $("#ticketsGrid");
+  const empty = $("#emptyTickets");
+
+  if(!STATE.user){
+    gate.style.display = "block";
+    grid.innerHTML = "";
+    empty.style.display = "none";
+    return;
+  }
+
+  gate.style.display = "none";
+  grid.innerHTML = "";
+
+  empty.style.display = STATE.tickets.length ? "none" : "block";
+
+  for(const t of STATE.tickets){
+    const start = t.startsAt?.toDate ? t.startsAt.toDate() : (t.startsAtISO ? parseISOish(t.startsAtISO) : eventStartDate(t));
+    const place = [t.venue||"", t.city||""].filter(Boolean).join(" • ") || "—";
+    const el = document.createElement("div");
+    el.className = "ticketCard";
+    el.innerHTML = `
+      <div class="banner">
+        ${t.bannerUrl ? `<img src="${escapeHtml(t.bannerUrl)}" alt="">` : ``}
+        <div class="eLogo">
+          ${t.logoUrl ? `<img src="${escapeHtml(t.logoUrl)}" alt="">` : `<span style="font-weight:1000">T</span>`}
+        </div>
+      </div>
+      <div class="eBody">
+        <div class="eTitle">
+          <b>${escapeHtml(t.eventName || "Event")}</b>
+          <span class="badge ok">Paid</span>
+        </div>
+        <div class="eMeta">
+          <div class="row">📅 <span>${escapeHtml(fmtDate(start))}</span></div>
+          <div class="row">📍 <span>${escapeHtml(place)}</span></div>
+          <div class="row">🎟️ <span>${escapeHtml(t.tierName||"—")}${t.waveName?` • ${escapeHtml(t.waveName)}`:""} • Qty ${escapeHtml(String(t.qty||1))}</span></div>
+        </div>
+        <div class="kbar">
+          <span class="badge info">Open ticket</span>
+        </div>
+      </div>
+    `;
+    el.addEventListener("click", ()=> go(`#/ticket/${encodeURIComponent(t.id)}`));
+    grid.appendChild(el);
+  }
+}
+
+/* ===== Ticket page */
+$("#btnBackTickets").addEventListener("click", ()=> history.back());
+
+function getTicketById(id){
+  return STATE.tickets.find(t=> (t.id||"")===id) || null;
+}
+
+async function renderTicketPage(ticketId, silent=false){
+  stopQr();
+
+  if(!STATE.user){
+    if(!silent) toast("Sign in required", "Please sign in to view your ticket.");
+    STATE.returnTo = `#/ticket/${encodeURIComponent(ticketId)}`;
+    go("#/auth?tab=signin");
+    return;
+  }
+
+  const t = getTicketById(ticketId);
+  if(!t){
+    // If user opens from deep link, ticket may not be in memory yet. Wait briefly.
+    if(!silent) toast("Loading ticket", "If this persists, refresh.");
+    $("#tEvent").textContent = "Loading…";
+    return;
+  }
+
+  $("#ticketBreadcrumb").textContent = t.eventName || "Ticket";
+  $("#ticketBanner").innerHTML = t.bannerUrl ? `<img src="${escapeHtml(t.bannerUrl)}" alt="">` : "";
+  $("#tEvent").textContent = t.eventName || "Event";
+
+  const start = t.startsAt?.toDate ? t.startsAt.toDate() : (t.startsAtISO ? parseISOish(t.startsAtISO) : null);
+  const place = [t.venue||"", t.city||""].filter(Boolean).join(" • ") || "—";
+  $("#tMeta").textContent = `${fmtDate(start)} • ${place} • ${t.tierName||"—"}${t.waveName?` • ${t.waveName}`:""}`;
+
+  // Hide empty badges (fixes your “-” issue)
+  const qtyBadge = $("#tQty");
+  qtyBadge.style.display = t.qty ? "inline-flex" : "none";
+  qtyBadge.innerHTML = `<strong>Qty</strong> ${escapeHtml(String(t.qty||""))}`;
+
+  const cityBadge = $("#tCity");
+  cityBadge.style.display = t.city ? "inline-flex" : "none";
+  cityBadge.textContent = t.city || "";
+
+  $("#qrEventId").textContent = `Event: ${t.eventId || "—"}`;
+  $("#qrTicketId").textContent = `Ticket: ${t.id || "—"}`;
+
+  // Receipt
+  const btnR = $("#btnReceipt");
+  const hint = $("#receiptHint");
+  if(t.receiptUrl){
+    btnR.disabled = false;
+    hint.textContent = "Opens in a new tab.";
+    btnR.onclick = ()=> window.open(t.receiptUrl, "_blank", "noopener");
+  }else{
+    btnR.disabled = true;
+    hint.textContent = "Receipt not available.";
+    btnR.onclick = null;
+  }
+
+  startQr(t);
+}
+
+/* ===== Rotating QR token */
+function secondsLeft(){
+  const now = Math.floor(Date.now()/1000);
+  return REFRESH_SEC - (now % REFRESH_SEC);
+}
+async function sha256hex(str){
+  const enc = new TextEncoder().encode(str);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  const bytes = Array.from(new Uint8Array(buf));
+  return bytes.map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function buildRotatingPayload(ticket){
+  const slot = Math.floor(Date.now()/1000/REFRESH_SEC);
+  const raw = `${TOKEN_SALT}|${STATE.user.uid}|${ticket.id}|${ticket.eventId}|${slot}`;
+  const h = await sha256hex(raw);
+
+  // Payload scanned by usher app (string, stable format)
+  // Example: LUMA|<eventId>|<ticketId>|<uid>|<slot>|<sig>
+  const payload = `LUMA|${ticket.eventId}|${ticket.id}|${STATE.user.uid}|${slot}|${h.slice(0,18)}`;
+  const displayCode = `${h.slice(0,8)}-${h.slice(8,16)}-${h.slice(16,24)}`.toUpperCase();
+  return { payload, displayCode };
+}
+
+async function drawQr(text){
+  const box = $("#qrBox");
+  box.innerHTML = "";
+  const canvas = document.createElement("canvas");
+  box.appendChild(canvas);
+
+  // QRCode library global "QRCode" exists because of CDN script
+  await QRCode.toCanvas(canvas, text, {
+    errorCorrectionLevel: "M",
+    margin: 1,
+    width: 210
+  });
+}
+
+async function refreshQr(ticket){
+  const left = secondsLeft();
+  $("#cdText").textContent = `Refreshing in ${left}s`;
+
+  const { payload, displayCode } = await buildRotatingPayload(ticket);
+  $("#codeText").textContent = displayCode;
+  await drawQr(payload);
+}
+
+function startQr(ticket){
+  stopQr();
+  refreshQr(ticket);
+
+  STATE.qrTimer = setInterval(async ()=>{
+    const left = secondsLeft();
+    $("#cdText").textContent = `Refreshing in ${left}s`;
+    if(left === REFRESH_SEC){
+      await refreshQr(ticket);
+    }
+  }, 250);
+}
+function stopQr(){
+  if(STATE.qrTimer) clearInterval(STATE.qrTimer);
+  STATE.qrTimer = null;
+}
+
+/* ===== Profile page */
+$("#btnGoAuthProfile").addEventListener("click", ()=>{
+  STATE.returnTo = "#/profile";
+  go("#/auth?tab=signin");
+});
+
+$("#btnSupport").href = SUPPORT_URL;
+
+function renderProfilePage(){
+  const gate = $("#profileGate");
+  const body = $("#profileBody");
+  const btnOut = $("#btnSignout");
+
+  if(!STATE.user){
+    gate.style.display = "block";
+    body.style.display = "none";
+    btnOut.style.display = "none";
+    return;
+  }
+
+  gate.style.display = "none";
+  body.style.display = "block";
+  btnOut.style.display = "inline-flex";
+
+  const name = STATE.profile?.name || STATE.user.displayName || "—";
+  $("#profileName").textContent = name;
+  $("#profileEmail").textContent = STATE.user.email || "—";
+  $("#profileInitials").textContent = initials(name || STATE.user.email || "U");
+}
+
+$("#btnSignout").addEventListener("click", ()=> doSignout());
+
+/* ===== Boot */
+$("#year").textContent = new Date().getFullYear();
+
+if(auth){
+  onAuthStateChanged(auth, async (user)=>{
+    STATE.user = user || null;
+    syncAuthButton();
+
+    if(user){
+      try{
+        STATE.profile = await ensureCustomerProfile(user, user.displayName || "");
+      }catch(err){ console.error(err); }
+      subscribeTickets(user.uid);
     }else{
-      showAuthUI();
+      STATE.profile = null;
+      STATE.tickets = [];
+      $("#ticketsCount").textContent = "0";
+      $("#myTicketsNum").textContent = "0";
+      STATE.unsubTickets?.(); STATE.unsubTickets = null;
     }
-  </script>
 
+    // Re-render current page if needed
+    const { parts } = parseHash();
+    if(parts[0]==="tickets") renderTicketsPage();
+    if(parts[0]==="profile") renderProfilePage();
+    if(parts[0]==="ticket" && parts[1]) renderTicketPage(parts[1], true);
+  });
+}
+
+subscribeEvents();
+route();
+
+</script>
 </body>
 </html>
