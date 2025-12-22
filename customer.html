@@ -831,7 +831,29 @@
   </div>
     </div>
   </div>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+<!-- QR generator (fallback loader) -->
+<script>
+(function(){
+  const urls = [
+    "https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js",
+    "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"
+  ];
+
+  function load(i){
+    if (window.QRCode) return; // already available
+    if (i >= urls.length) return;
+    const s = document.createElement("script");
+    s.src = urls[i];
+    s.async = true;
+    s.onload = ()=>{/* loaded */};
+    s.onerror = ()=>load(i+1);
+    document.head.appendChild(s);
+  }
+
+  load(0);
+})();
+</script>
 
 <script type="module">
 /* ============================================================
