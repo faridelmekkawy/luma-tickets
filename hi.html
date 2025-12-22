@@ -3039,11 +3039,6 @@ async function appSignOut(){
   toast("Signed out", "You’re now signed out of the dashboard.");
 }
 
-// Back-compat alias (some UI wiring may call signOut)
-function signOut(){
-  return appSignOut();
-}
-
 
 function setAuthTab(tab){
   $$(".tabBtn").forEach(b=>b.classList.toggle("active", b.dataset.authTab===tab));
