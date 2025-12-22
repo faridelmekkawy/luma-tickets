@@ -224,6 +224,8 @@
       width:8px;height:8px;border-radius:999px;background:rgba(34,197,94,.85);
       box-shadow:0 0 0 4px rgba(34,197,94,.14);
     }
+    .lumaMark{font-weight:900;letter-spacing:.14em;font-size:12px;line-height:1;display:inline-block;padding:2px 6px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
+
 
     /* Topbar */
     .titleWrap{display:flex;align-items:center;gap:12px;min-width:0}
@@ -1091,7 +1093,7 @@ option{ background-color: rgba(11,16,32,.98); }
       </div>
 
       <div class="footer">
-        <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+        <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
         <span class="muted2">Secure access • Owner workspace</span>
       </div>
     </div>
@@ -1202,7 +1204,7 @@ option{ background-color: rgba(11,16,32,.98); }
       </div>
 
       <div class="footer">
-        <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+        <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
         <span class="muted2">© <span id="year"></span> Luma</span>
       </div>
     </div>
@@ -1268,7 +1270,7 @@ option{ background-color: rgba(11,16,32,.98); }
 </nav>
 
     <div class="sidebarFooter">
-      <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+      <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
       <div class="pf" id="pfMini">Owner</div>
     </div>
   </aside>
@@ -1287,6 +1289,7 @@ option{ background-color: rgba(11,16,32,.98); }
       </div>
 
       <div class="topActions">
+        <button class="btn sm ghost hidden" id="btnTopEventSettings"><svg width="16" height="16"><use href="#i-settings"/></svg> Event Settings</button>
 <div class="menu">
           <div class="avatar" id="avatarBtn" aria-haspopup="true" aria-expanded="false">
             <div class="ava" id="avaInitials">LU</div>
@@ -1320,6 +1323,9 @@ option{ background-color: rgba(11,16,32,.98); }
                 <option value="Owner">Owner</option>
                 <option value="Viewer">Viewer</option>
               </select>
+            </div>
+
+            
             </div>
 
             <div class="menuSep"></div>
@@ -1393,7 +1399,7 @@ option{ background-color: rgba(11,16,32,.98); }
         <div class="eventGrid" id="eventsGrid"></div>
 
         <div class="footer">
-          <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+          <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
           <span class="muted2">Owner Dashboard</span>
         </div>
       </div>
@@ -1600,7 +1606,7 @@ option{ background-color: rgba(11,16,32,.98); }
         </div>
 
         <div class="footer">
-          <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+          <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
           <span class="muted2">Analytics overview</span>
         </div>
       </div>
@@ -1609,19 +1615,7 @@ option{ background-color: rgba(11,16,32,.98); }
       <div 
       
 
-          <div class="card">
-            <div class="cardBody">
-              <b>Use cases</b>
-              <ul class="muted small" style="margin:10px 0 0 18px;line-height:1.7">
-                <li>UX testing (buttons, filters, exports)</li>
-                <li>Client preview without touching real data</li>
-                <li>Staff training & onboarding</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
+          
 <div id="page-event" class="hidden">
         <div class="workspaceTop">
           <div class="right">
@@ -1712,7 +1706,7 @@ option{ background-color: rgba(11,16,32,.98); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
             <span class="muted2">Overview</span>
           </div>
         </div>
@@ -1767,7 +1761,7 @@ option{ background-color: rgba(11,16,32,.98); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
             <span class="muted2">Ticketing</span>
           </div>
         </div>
@@ -1836,7 +1830,7 @@ option{ background-color: rgba(11,16,32,.98); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
             <span class="muted2">Orders</span>
           </div>
         </div>
@@ -1903,7 +1897,7 @@ option{ background-color: rgba(11,16,32,.98); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
             <span class="muted2">Customers / Attendees</span>
           </div>
         </div>
@@ -1961,7 +1955,7 @@ option{ background-color: rgba(11,16,32,.98); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
             <span class="muted2">Staff & Gates</span>
           </div>
         </div>
@@ -1999,6 +1993,11 @@ option{ background-color: rgba(11,16,32,.98); }
                   <div class="field">
                     <label>Logo image</label>
                     <div class="input"><input id="dsLogo" type="file" accept="image/*"></div>
+                  </div>
+                  <div class="field">
+                    <label>Event owner logo</label>
+                    <div class="input"><input id="dsOwnerLogo" type="file" accept="image/*"></div>
+                    <div class="hint">Shown on tickets and can be sent to the public event payload.</div>
                   </div>
                   <div class="field">
                     <label>Optional background</label>
@@ -2064,7 +2063,7 @@ option{ background-color: rgba(11,16,32,.98); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
             <span class="muted2">Design Studio</span>
           </div>
         </div>
@@ -2144,7 +2143,7 @@ option{ background-color: rgba(11,16,32,.98); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
             <span class="muted2">Analytics</span>
           </div>
         </div>
@@ -2174,7 +2173,7 @@ option{ background-color: rgba(11,16,32,.98); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
             <span class="muted2">Incidents & Audit</span>
           </div>
         </div>
@@ -2230,7 +2229,7 @@ option{ background-color: rgba(11,16,32,.98); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
             <span class="muted2">Links</span>
           </div>
         </div>
@@ -2343,26 +2342,8 @@ option{ background-color: rgba(11,16,32,.98); }
 
 <!-- Toasts -->
 <div class="toasts" id="toasts"></div>
-<script>
-  // Optional: set this from Firestore / settings / env
-  window.LUMA_LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/events-339ce.firebasestorage.app/o/WhatsApp%20Image%202025-12-20%20at%204.40.03%20PM.jpeg?alt=media&token=63a5d3fc-7b01-4396-8c84-08533ad950d3"; 
-  // Example:
-  // window.LUMA_LOGO_URL = "https://yourdomain.com/luma-logo.png";
-
-  (function initLumaLogo(){
-    const img = document.getElementById("lumaLogoImgDash");
-    const svg = document.getElementById("lumaLogoSvgDash");
-
-    if (window.LUMA_LOGO_URL && img && svg) {
-      img.src = window.LUMA_LOGO_URL;
-      img.style.display = "block";
-      svg.style.display = "none";
-    }
-  })();
-</script>
 
 <script type="module">
-
 
 /* =========================
    Luma Tickets — Owner Dashboard (Single-file production app)
@@ -2569,7 +2550,7 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
 }
 
 // Sync one event to /events/{eventId} so customer.html can see it
-async function syncEventToPublic(ev){
+async async function syncEventToPublic(ev){
     if(!window.__firebaseReady) return;
 
   const uid = auth.currentUser?.uid;
@@ -2593,6 +2574,8 @@ async function syncEventToPublic(ev){
   const logoSource   = d.logoDataUrl   || ev.logoDataUrl   || d.logoUrl   || ev.logoUrl   || "";
   const bgSource     = d.bgDataUrl     || d.bgUrl          || "";
 
+  const ownerLogoSource = d.ownerLogoDataUrl || ev.ownerLogoDataUrl || ev.ownerLogoUrl || "";
+
   const bannerUrl = await uploadDataUrlIfNeeded(
     bannerSource,
     `publicEvents/${eventId}/banner`
@@ -2608,6 +2591,11 @@ async function syncEventToPublic(ev){
     `publicEvents/${eventId}/bg`
   );
 
+  const ownerLogoUrl = await uploadDataUrlIfNeeded(
+    ownerLogoSource,
+    `publicEvents/${eventId}/ownerLogo`
+  );
+
   // Keep local cache in sync (so we don't re-upload on every save)
   ev.bannerUrl = bannerUrl || ev.bannerUrl || "";
   ev.logoUrl = logoUrl || ev.logoUrl || "";
@@ -2615,6 +2603,7 @@ async function syncEventToPublic(ev){
   ev.design.bannerUrl = bannerUrl || ev.design.bannerUrl || "";
   ev.design.logoUrl = logoUrl || ev.design.logoUrl || "";
   ev.design.bgUrl = bgUrl || ev.design.bgUrl || "";
+  ev.ownerLogoUrl = ownerLogoUrl || ev.ownerLogoUrl || "";
 
   const payload = {
     // visibility
@@ -2627,6 +2616,7 @@ async function syncEventToPublic(ev){
     dateISO,
     time,
     venue: ev.venue || "",
+    description: ev.description || ev.desc || "",
     city,
     locationText,
     locationUrl,
@@ -2634,7 +2624,7 @@ async function syncEventToPublic(ev){
     // visuals (marketplace)
     bannerUrl,
     logoUrl,
-    ownerLogoUrl: ev.ownerLogoUrl || "",
+    ownerLogoUrl: ownerLogoUrl || ev.ownerLogoUrl || "",
 
     // details
     desc: ev.desc || ev.description || "",
@@ -2661,6 +2651,7 @@ async function syncEventToPublic(ev){
       name: t.name || "",
       desc: t.desc || "",
       capacity: Number(t.baseCap||t.capacity||0),
+      color: t.color || "#7c3aed",
       rules: Array.isArray(t.rules) ? t.rules : (typeof t.rulesText==="string" ? t.rulesText.split(/\n+/).map(s=>s.trim()).filter(Boolean) : [])
     })) : [],
     waves: Array.isArray(ev.waves) ? ev.waves : [],
@@ -2725,7 +2716,13 @@ const safe = s => (s ?? "").toString();
 const STORAGE = {
   userKey: "luma_owner_user",  authKey: "luma_owner_auth",
   dataKey: "luma_owner_data_v1",
-};
+}
+
+function dataCacheKey(uid){
+  const u = uid || "anon";
+  return `${STORAGE.dataKey}:${u}`;
+}
+;
 
 const ROLES = ["Usher","Manual Desk","Finance","Design","Viewer","Ops Manager"];
 
@@ -2879,7 +2876,7 @@ async function defaultData(){
 async function loadData(){
   // Production-only: load from Firestore (owners/{uid}) with local cache fallback
   const uid = auth.currentUser?.uid;
-  const cached = localStorage.getItem(STORAGE.dataKey);
+  const cached = localStorage.getItem(dataCacheKey(uid));
   if(uid){
     const ref = ownerDocRef(uid);
     const snap = await getDoc(ref);
@@ -2887,21 +2884,21 @@ async function loadData(){
       const d = snap.data()?.data;
       if(d){
         // cache for faster loads / offline
-        localStorage.setItem(STORAGE.dataKey, JSON.stringify(d));
+        localStorage.setItem(dataCacheKey(uid), JSON.stringify(d));
         return d;
       }
     }
     // First time: seed
     const seed = cached ? safeParseJSON(cached, defaultData()) : defaultData();
     await setDoc(ref, { data: seed, updatedAt: serverTimestamp() }, { merge: true });
-    localStorage.setItem(STORAGE.dataKey, JSON.stringify(seed));
+    localStorage.setItem(dataCacheKey(uid), JSON.stringify(seed));
     return seed;
   }
 
   // Not signed in: fallback to localStorage only
   if(cached) return safeParseJSON(cached, defaultData());
   const seed = defaultData();
-  localStorage.setItem(STORAGE.dataKey, JSON.stringify(seed));
+  localStorage.setItem(dataCacheKey(uid), JSON.stringify(seed));
   return seed;
 }
 
@@ -2912,7 +2909,7 @@ function saveData(){
   __saveTimer = setTimeout(async ()=>{
     try{
       const payload = JSON.stringify(data);
-      localStorage.setItem(STORAGE.dataKey, payload);
+      localStorage.setItem(dataCacheKey(uid), payload);
 
       {
         const uid = auth.currentUser?.uid;
@@ -3028,26 +3025,24 @@ function saveAuth(){
 
 async function appSignOut(){
   try{
-    // If running in simulation/offline mode, there may be no Firebase auth session.
-    if(!state.simulateOn && typeof auth !== "undefined" && auth){
-      await fbSignOut(auth);
-    }
+    if(!false) await fbSignOut(auth);
   }catch(_e){}
-
   localStorage.removeItem(STORAGE.authKey);
   state.user = null;
   state.activeEventId = null;
   state.route = "hub";
   state.activeTab = "overview";
-  state.viewAs = "Owner";
-  state.simulateOn = false;
-
+  false = false;
   document.getElementById("dash")?.classList.add("hidden");
   document.getElementById("auth")?.classList.remove("hidden");
   document.getElementById("menuPanel")?.classList.remove("open");
   toast("Signed out", "You’re now signed out of the dashboard.");
 }
 
+// Back-compat alias (some UI wiring may call signOut)
+function signOut(){
+  return appSignOut();
+}
 
 
 function setAuthTab(tab){
@@ -3488,8 +3483,10 @@ function renderHub(){
     const card = document.createElement("div");
     card.className = "eventCard";
 
-    const banner = ev.bannerDataUrl ? `<img alt="" src="${ev.bannerDataUrl}">` : "";
-    const logo = ev.logoDataUrl ? `<img alt="" src="${ev.logoDataUrl}">` : `<b style="font-size:14px">${initials(ev.name)}</b>`;
+    const bannerSrc = ev.design?.bannerDataUrl || ev.bannerDataUrl || ev.design?.bannerUrl || ev.bannerUrl || "";
+    const banner = bannerSrc ? `<img alt="" src="${bannerSrc}">` : "";
+    const logoSrc = ev.design?.logoDataUrl || ev.logoDataUrl || ev.design?.logoUrl || ev.logoUrl || "";
+    const logo = logoSrc ? `<img alt="" src="${logoSrc}">` : `<b style="font-size:14px">${initials(ev.name)}</b>`;
 
     card.innerHTML = `
       <div class="eventBanner">${banner}
@@ -3771,7 +3768,7 @@ function renderActivityLog(ev){
 
   const list = [...(ev.activity || [])]
     .sort((a, b) => toMs(b.time) - toMs(a.time)) // newest first
-    .slice(0, 10);
+    .slice(0, 7);
 
   if(list.length === 0){
     feed.innerHTML = `<div class="tItem"><b>No activity yet</b><div class="meta">Activity will appear here as the event runs.</div></div>`;
@@ -3838,6 +3835,12 @@ function tierModal(eventId, tierId=null){
           <div class="input"><input id="mTierName" value="${escapeHtml(editing?.name||"")}" placeholder="e.g., General" required></div>
         </div>
         <div class="field">
+          <label>Tier color</label>
+          <div class="input"><input id="mTierColor" type="color" value="${escapeHtml(editing?.color||"#7c3aed")}" title="Tier color"></div>
+          <div class="hint">Used for chips and highlights across orders and the marketplace.</div>
+        </div>
+
+        <div class="field">
           <label>Base capacity</label>
           <div class="input"><input id="mTierCap" type="number" min="0" value="${editing?.baseCap ?? 0}" placeholder="e.g., 2000"></div>
         </div>
@@ -3858,6 +3861,7 @@ function tierModal(eventId, tierId=null){
         const name = $("#mTierName").value.trim();
         const cap = Number($("#mTierCap").value||0);
         const desc = $("#mTierDesc").value.trim();
+        const color = ($("#mTierColor")?.value || "#7c3aed").trim();
         const rulesText = $("#mTierRules")?.value || "";
         const rules = rulesText.split(/\n+/).map(s=>s.trim().replace(/^[-•\s]+/,"")).filter(Boolean);
         if(!name){ toast("Missing name","Please enter a tier name."); return; }
@@ -3866,11 +3870,12 @@ function tierModal(eventId, tierId=null){
           editing.name = name;
           editing.baseCap = cap;
           editing.desc = desc;
+          editing.color = color;
           editing.rules = rules;
           addActivity(ev, "Ticketing updated", `Tier edited — ${name}`, "info");
         }else{
           const id = uid("T-");
-          ev.tiers.push({id, name, desc, baseCap:cap, rules});
+          ev.tiers.push({id, name, desc, baseCap:cap, color, rules});
           // make it available for pricing in waves later (no automatic activation)
           addActivity(ev, "Ticketing updated", `Tier added — ${name}`, "info");
         }
@@ -4853,7 +4858,9 @@ function renderDesignStudio(ev){
 
   // file upload previews
   wireFileInput("#dsBanner", (dataUrl)=>{ ev.design.bannerDataUrl = dataUrl; ev.bannerDataUrl = dataUrl; saveData(); updatePreview(); toast("Banner updated","Preview updated."); });
-  wireFileInput("#dsLogo", (dataUrl)=>{ ev.design.logoDataUrl = dataUrl; ev.logoDataUrl = dataUrl; saveData(); updatePreview(); toast("Logo updated","Preview updated."); });
+  wireFileInput("#dsLogo", (dataUrl)=>{ ev.design.logoDataUrl = dataUrl; ev.logoDataUrl = dataUrl; saveData();
+  wireFileInput("#dsOwnerLogo", (dataUrl)=>{ ev.design.ownerLogoDataUrl = dataUrl; ev.ownerLogoDataUrl = dataUrl; saveData(); updatePreview(); toast("Owner logo updated","Preview updated."); });
+ updatePreview(); toast("Logo updated","Preview updated."); });
   wireFileInput("#dsBg", (dataUrl)=>{ ev.design.bgDataUrl = dataUrl; saveData(); updatePreview(); toast("Background updated","Preview updated."); });
 
   // preview mode buttons
@@ -5758,7 +5765,9 @@ function wireDashboardUI(){
   on("#brandHome","click", ()=> goRoute("hub"));
 
   // Sidebar toggle
-  on("#btnToggleSide","click", ()=>{
+    on("#btnTopEventSettings","click", ()=>{ const ev=currentEvent(); if(!ev) return; setWorkspaceTab("overview"); try{ document.getElementById("ovSubnav")?.scrollIntoView({block:"start"});}catch(_){ } });
+
+on("#btnToggleSide","click", ()=>{
     document.getElementById("sidebar")?.classList.toggle("collapsed");
   });
 
@@ -5817,6 +5826,7 @@ function wireDashboardUI(){
   });
 
   on("#btnLogout","click", appSignOut);
+  });
 
   on("#viewAs","change", ()=>{
     state.viewAs = document.getElementById("viewAs")?.value || "Owner";
@@ -6238,7 +6248,6 @@ $("#ordClear")?.addEventListener?.("click", ()=>{});
 
 /* ---------- Start ---------- */
 window.addEventListener('DOMContentLoaded', start);
-
 </script>
 
 </body>
