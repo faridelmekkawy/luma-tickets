@@ -2550,7 +2550,7 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
 }
 
 // Sync one event to /events/{eventId} so customer.html can see it
- async function syncEventToPublic(ev){
+async function syncEventToPublic(ev){
     if(!window.__firebaseReady) return;
 
   const uid = auth.currentUser?.uid;
@@ -3025,14 +3025,14 @@ function saveAuth(){
 
 async function appSignOut(){
   try{
-    if(!false) await fbSignOut(auth);
+    await fbSignOut(auth);
   }catch(_e){}
   localStorage.removeItem(STORAGE.authKey);
   state.user = null;
   state.activeEventId = null;
   state.route = "hub";
   state.activeTab = "overview";
-  false = false;
+  // reset local UI state only (no-op placeholder removed)
   document.getElementById("dash")?.classList.add("hidden");
   document.getElementById("auth")?.classList.remove("hidden");
   document.getElementById("menuPanel")?.classList.remove("open");
