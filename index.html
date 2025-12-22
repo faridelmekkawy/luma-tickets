@@ -1322,9 +1322,6 @@ option{ background-color: rgba(11,16,32,.98); }
               </select>
             </div>
 
-            
-            </div>
-
             <div class="menuSep"></div>
             <div class="menuRow" id="btnLogout">
               <div class="left">
@@ -2349,6 +2346,7 @@ option{ background-color: rgba(11,16,32,.98); }
 
 <script type="module">
 
+
 /* =========================
    Luma Tickets — Owner Dashboard (Single-file production app)
    ========================= */
@@ -3013,24 +3011,26 @@ function saveAuth(){
 
 async function appSignOut(){
   try{
-    if(!false) await fbSignOut(auth);
+    // If running in simulation/offline mode, there may be no Firebase auth session.
+    if(!state.simulateOn && typeof auth !== "undefined" && auth){
+      await fbSignOut(auth);
+    }
   }catch(_e){}
+
   localStorage.removeItem(STORAGE.authKey);
   state.user = null;
   state.activeEventId = null;
   state.route = "hub";
   state.activeTab = "overview";
-  false = false;
+  state.viewAs = "Owner";
+  state.simulateOn = false;
+
   document.getElementById("dash")?.classList.add("hidden");
   document.getElementById("auth")?.classList.remove("hidden");
   document.getElementById("menuPanel")?.classList.remove("open");
   toast("Signed out", "You’re now signed out of the dashboard.");
 }
 
-// Back-compat alias (some UI wiring may call signOut)
-function signOut(){
-  return appSignOut();
-}
 
 
 function setAuthTab(tab){
@@ -5800,7 +5800,6 @@ function wireDashboardUI(){
   });
 
   on("#btnLogout","click", appSignOut);
-  });
 
   on("#viewAs","change", ()=>{
     state.viewAs = document.getElementById("viewAs")?.value || "Owner";
@@ -6222,6 +6221,7 @@ $("#ordClear")?.addEventListener?.("click", ()=>{});
 
 /* ---------- Start ---------- */
 window.addEventListener('DOMContentLoaded', start);
+
 </script>
 
 </body>
