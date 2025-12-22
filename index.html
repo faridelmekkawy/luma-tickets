@@ -2072,13 +2072,13 @@ option{ background-color: rgba(11,16,32,.98); }
                   </div>
                   <div class="field" style="grid-column:1/-1">
                     <label>Email receipt message</label>
-                    <div class="input"><textarea id="dsEmailText" rows="4" placeholder="Short friendly message shown in the receipt email..."></textarea></div>
+                    <div class="input"><textarea id="dsEmailText" placeholder="Friendly message shown in the receipt email..."></textarea></div>
                   </div>
                 </div>
 
                 <div class="hr"></div>
                 <div class="hint">
-                  <b>What you’re editing:</b> Ticket look in the customer app, the branded QR screen frame, and the email receipt styling — all with a live preview.
+                  <b>What you’re editing:</b> Ticket look & feel (banner/logo/colors), ticket frame, and receipt email styling — all with a live preview.
                 </div>
               </div>
             </div>
@@ -2450,7 +2450,7 @@ async function __loadFirebase(){
     fbSignOut = authMod.signOut;
 
     const fsMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
-({ getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, query, where, getDocs, orderBy, limit, serverTimestamp, Timestamp } = fsMod);
+    ({ getFirestore, doc, collection, query, where, onSnapshot, getDoc, getDocs, setDoc, updateDoc, deleteDoc, addDoc, orderBy, limit, startAfter, serverTimestamp, Timestamp, increment } = fsMod);
 
     const stMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js");
     ({ getStorage, uploadBytes, getDownloadURL, deleteObject } = stMod);
