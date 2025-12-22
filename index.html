@@ -1110,7 +1110,7 @@ option{ background-color: rgba(11,16,32,.98); }
             <h2 style="margin:0;font-size:18px">Welcome back</h2>
             <div class="muted small" style="margin-top:6px">Sign in to access your Events Hub.</div>
           </div>
-          <span class="badge info"><strong>Demo</strong> data included</span>
+          
         </div>
 
         <form class="authForm" id="form-signin">
@@ -1134,14 +1134,11 @@ option{ background-color: rgba(11,16,32,.98); }
               <svg width="18" height="18"><use href="#i-workspace"/></svg>
               Enter Dashboard
             </button>
-            <button class="btn ghost" type="button" id="btn-quick-demo">
-              <svg width="18" height="18"><use href="#i-events"/></svg>
-              Use Demo
-            </button>
+            
           </div>
 
           <div class="hint">
-            <b>Tip:</b> You can try the dashboard immediately using the <b>Use Demo</b> button.
+            <b>Tip:</b> You can try the dashboard immediately using the <b></b> button.
           </div>
         </form>
       </div>
@@ -1325,14 +1322,7 @@ option{ background-color: rgba(11,16,32,.98); }
               </select>
             </div>
 
-            <div class="menuRow" id="btnResetDemo">
-              <div class="left">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-trash"/></svg>
-                <div>
-                  <b style="font-size:12px">Reset demo data</b><br>
-                  <small>Restore default sample events</small>
-                </div>
-              </div>
+            
             </div>
 
             <div class="menuSep"></div>
@@ -1620,32 +1610,7 @@ option{ background-color: rgba(11,16,32,.98); }
 
       <!-- Event Workspace -->
       <div 
-      <!-- Demo (Sandbox) -->
-      <div id="page-demo" class="hidden">
-        <div class="split">
-          <div>
-            <h2 style="margin:0;font-size:18px">Demo Sandbox</h2>
-            <div class="muted small" style="margin-top:6px">This sandbox is <b>separate</b> from your real events. Demo changes do not touch your owner data.</div>
-          </div>
-          <div class="right">
-            <button class="btn" id="btnExitDemo"><svg width="18" height="18"><use href="#i-back"/></svg> Exit Demo</button>
-          </div>
-        </div>
-        <div class="hr"></div>
-
-        <div class="grid cols2">
-          <div class="card">
-            <div class="cardBody">
-              <b>Start here</b>
-              <div class="muted small" style="margin-top:6px">Load sample data, then use the normal Events Hub and Event Workspace to click around.</div>
-              <div class="row" style="margin-top:12px;gap:10px;flex-wrap:wrap">
-                <button class="btn primary" id="btnEnterDemo"><svg width="18" height="18"><use href="#i-play"/></svg> Load Demo Dataset</button>
-                <button class="btn" id="btnDemoSim"><svg width="18" height="18"><use href="#i-bolt"/></svg> Start / Stop Simulation</button>
-                <button class="btn danger" id="btnDemoReset"><svg width="18" height="18"><use href="#i-trash"/></svg> Reset Demo</button>
-              </div>
-              <div class="hint" style="margin-top:12px">Tip: Demo mode is isolated (local only). Exit demo to get back to your real data.</div>
-            </div>
-          </div>
+      
 
           <div class="card">
             <div class="cardBody">
@@ -2385,7 +2350,7 @@ option{ background-color: rgba(11,16,32,.98); }
 <script type="module">
 
 /* =========================
-   Luma Tickets — Owner Dashboard (Single-file demo app)
+   Luma Tickets — Owner Dashboard (Single-file production app)
    ========================= */
 
 /* =========================
@@ -2402,12 +2367,16 @@ const firebaseConfig = {
   appId: "1:175601544315:web:00c94b4affa972b3a286de"
 };
 
-// Firebase SDK dynamic imports
-// - Works when served over http(s)
-// - If the SDK can't be loaded (common when opening via file://), we fall back to local DEMO mode
+// Firebase SDK dynamic imports (PRODUCTION ONLY)
+// This app MUST be served over https/http (e.g. Vercel). Opening via file:// is not supported.
 let initializeApp, getApp, getApps;
-let getAuth, onAuthStateChanged, signInWithEmailAndPassword, sendPasswordResetEmail, fbSignOut, createUserWithEmailAndPassword, updateProfile;
-let getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, query, where, getDocs, orderBy, limit, serverTimestamp, Timestamp;
+
+let getAuth, onAuthStateChanged, signInWithEmailAndPassword, sendPasswordResetEmail,
+    signOut, createUserWithEmailAndPassword, updateProfile;
+
+let getFirestore, doc, collection, query, where, onSnapshot, getDoc, setDoc, updateDoc, deleteDoc,
+    addDoc, getDocs, orderBy, limit, startAfter, serverTimestamp, Timestamp, increment;
+
 let getStorage, stRef, uploadBytes, getDownloadURL, deleteObject;
 
 // Initialized by __loadFirebase()
@@ -2416,68 +2385,57 @@ let auth = null;
 let db = null;
 let storage = null;
 
-async function __loadFirebase(){
-  // If the user opens the file directly (file://), most browsers will block ESM imports.
-  // Auto-switch to DEMO mode in that case.
-  if(location.protocol === "file:"){
-    window.__demoMode = true;
-  }
+// Keep backward-compatible name used elsewhere in this file
+let fbSignOut = null;
 
-  // If DEMO is forced, don't attempt to load SDK.
-  if(window.__demoMode){
-    window.__firebaseReady = false;
-    // Minimal auth stubs used by UI flow
-    auth = {
-      currentUser: null,
-      onAuthStateChanged(cb){ cb(null); return ()=>{}; }
-    };
-    // Demo wrappers (so the rest of the code can call Firebase-like APIs safely)
-    onAuthStateChanged = (a, cb)=> a?.onAuthStateChanged?.(cb) ?? (()=>{});
-    signInWithEmailAndPassword = async ()=> { throw new Error("Demo mode: Sign in requires hosting over http(s). Use the 'Use Demo' button."); };
-    createUserWithEmailAndPassword = async ()=> { throw new Error("Demo mode: Sign up requires hosting over http(s)."); };
-    sendPasswordResetEmail = async ()=> { throw new Error("Demo mode: Password reset requires hosting over http(s)."); };
-    fbSignOut = async ()=> { /* noop */ };
-
-    return;
-  }
-
-  try{
-    const appMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
-    ({ initializeApp, getApp, getApps } = appMod);
-
-    const authMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
-    ({ getAuth, onAuthStateChanged, signInWithEmailAndPassword, sendPasswordResetEmail, createUserWithEmailAndPassword, updateProfile } = authMod);
-    fbSignOut = authMod.signOut;
-
-    const fsMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
-    ({ getFirestore, doc, collection, query, where, onSnapshot, getDoc, getDocs, setDoc, updateDoc, deleteDoc, addDoc, orderBy, limit, startAfter, serverTimestamp, Timestamp, increment } = fsMod);
-
-    const stMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js");
-    ({ getStorage, uploadBytes, getDownloadURL, deleteObject } = stMod);
-    stRef = stMod.ref;
-
-    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    storage = getStorage(app);
-    window.__firebaseReady = true;
-  }catch(err){
-    console.warn("[Luma] Firebase SDK not available; running in local DEMO mode.", err);
-    window.__demoMode = true;
-    window.__firebaseReady = false;
-    auth = {
-      currentUser: null,
-      onAuthStateChanged(cb){ cb(null); return ()=>{}; }
-    };
-  }
+function __fatalFirebase(msg, err){
+  console.error(msg, err || "");
+  try{ (window.toast ? window.toast : alert)(msg); }
+  catch(_e){ alert(msg); }
 }
 
-// Ensure auth/db/storage are ready (or DEMO stubs are set)
-await __loadFirebase();
+async function __loadFirebase(){
+  if(location.protocol === "file:"){
+    throw new Error("This app must be served over https/http (not opened directly from your computer).");
+  }
+
+  // Load Firebase modular SDK from official CDN.
+  const appMod  = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
+  ({ initializeApp, getApp, getApps } = appMod);
+
+  const authMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
+  ({ getAuth, onAuthStateChanged, signInWithEmailAndPassword, sendPasswordResetEmail,
+     signOut, createUserWithEmailAndPassword, updateProfile } = authMod);
+  fbSignOut = authMod.signOut;
+
+  const fsMod   = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
+  ({ getFirestore, doc, collection, query, where, onSnapshot, getDoc, setDoc, updateDoc, deleteDoc,
+     addDoc, getDocs, orderBy, limit, startAfter, serverTimestamp, Timestamp, increment } = fsMod);
+
+  const stMod   = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js");
+  ({ getStorage, uploadBytes, getDownloadURL, deleteObject } = stMod);
+  stRef = stMod.ref;
+
+  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
+
+  window.__firebaseReady = true;
+}
+
+// Ensure auth/db/storage are ready
+try{
+  await __loadFirebase();
+}catch(err){
+  window.__firebaseReady = false;
+  __fatalFirebase("Firebase failed to load. Check firebaseConfig and that the app is served over https.", err);
+  throw err;
+}
 
 
 // App init
-// (app/auth/db/storage are initialized above; DEMO mode uses local-only data)
+// (app/auth/db/storage are initialized above)
 
 
 // Canonical doc path for this single-file app
@@ -2534,7 +2492,7 @@ async function hydrateAllOrders(){
   state.ordersByEvent = state.ordersByEvent || {};
   state.ordersUnsubs = state.ordersUnsubs || {};
 
-  if(state.demoMode || window.__demoMode || !db) return;
+  if(!db) return;
   const evs = data?.events || [];
   await Promise.all(evs.map(async (ev)=>{
     if(!ev?.id) return;
@@ -2543,6 +2501,11 @@ async function hydrateAllOrders(){
 }
 
 async function ensureOrdersListener(eventId){
+  if(!window.__firebaseReady || typeof onSnapshot !== 'function'){
+    console.warn('[Orders] Firebase not ready; skipping realtime listener.');
+    return;
+  }
+
   if(state.ordersUnsubs?.[eventId]) return;
   try{
     const col = publicEventOrdersCol(eventId);
@@ -2592,8 +2555,7 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
 
 // Sync one event to /events/{eventId} so customer.html can see it
 async function syncEventToPublic(ev){
-  if(window.__demoMode) return;                 // never publish in demo
-  if(!window.__firebaseReady) return;
+    if(!window.__firebaseReady) return;
 
   const uid = auth.currentUser?.uid;
   if(!uid) throw new Error("Not signed in.");
@@ -2746,9 +2708,7 @@ const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
 const safe = s => (s ?? "").toString();
 
 const STORAGE = {
-  userKey: "luma_owner_user",
-  demoKey: "luma_owner_demo_v1",
-  authKey: "luma_owner_auth",
+  userKey: "luma_owner_user",  authKey: "luma_owner_auth",
   dataKey: "luma_owner_data_v1",
 };
 
@@ -2768,178 +2728,6 @@ let state = {
 
 /* ---------- Data ---------- */
 
-function defaultDemoData(){
-  // Minimal realistic sample data
-  const events = [
-    {
-      id: "EVT-AFCON-25",
-      name: "AFCON Nights — Opening Week",
-      date: "2025-12-27",
-      venue: "New Cairo Arena",
-      status: "On Sale",
-      bannerDataUrl: "",
-      logoDataUrl: "",
-      tiers: [
-        {id:"T-GEN", name:"General", desc:"Standard entry", baseCap: 3500},
-        {id:"T-VIP", name:"VIP", desc:"VIP lounge + fast lane", baseCap: 600},
-        {id:"T-VVIP", name:"VVIP", desc:"Backstage access", baseCap: 120},
-      ],
-      waves: [
-        {
-          id:"W1", name:"Wave 1",
-          start:"2025-12-10T10:00",
-          end:"2025-12-18T23:59",
-          tiersActive:["T-GEN","T-VIP"],
-          pricing:{ "T-GEN": 450, "T-VIP": 1200 },
-          qty:{ "T-GEN": 1800, "T-VIP": 320 },
-          sold:{ "T-GEN": 1415, "T-VIP": 300 }
-        },
-        {
-          id:"W2", name:"Wave 2",
-          start:"2025-12-19T00:00",
-          end:"2025-12-26T23:59",
-          tiersActive:["T-GEN","T-VIP","T-VVIP"],
-          pricing:{ "T-GEN": 520, "T-VIP": 1400, "T-VVIP": 3000 },
-          qty:{ "T-GEN": 1500, "T-VIP": 240, "T-VVIP": 90 },
-          sold:{ "T-GEN": 840, "T-VIP": 160, "T-VVIP": 44 }
-        },
-        {
-          id:"W3", name:"Wave 3",
-          start:"2025-12-27T00:00",
-          end:"2025-12-27T23:59",
-          tiersActive:["T-GEN","T-VIP","T-VVIP"],
-          pricing:{ "T-GEN": 600, "T-VIP": 1650, "T-VVIP": 3500 },
-          qty:{ "T-GEN": 800, "T-VIP": 120, "T-VVIP": 30 },
-          sold:{ "T-GEN": 90, "T-VIP": 18, "T-VVIP": 2 }
-        },
-      ],
-      gates: [
-        {id:"G-A", name:"Gate A", notes:"Main entrance"},
-        {id:"G-B", name:"Gate B", notes:"Parking side"},
-        {id:"G-VIP", name:"VIP Gate", notes:"VIP & VVIP only"}
-      ],
-      staff: [
-        {id:"S1", full:"Farid Elmekkawy", username:"farid", pin:"1243", role:"Usher", events:["EVT-AFCON-25"], gate:"G-A", disabled:false},
-        {id:"S2", full:"Mariam Salah", username:"mariam", pin:"8821", role:"Manual Desk", events:["EVT-AFCON-25"], gate:"", disabled:false},
-        {id:"S3", full:"Omar Adel", username:"omar", pin:"2210", role:"Viewer", events:["EVT-AFCON-25"], gate:"", disabled:false},
-      ],
-      orders: [],
-      attendees: [],
-      incidents: [],
-      activity: [],
-      design: {
-        bannerDataUrl:"",
-        logoDataUrl:"",
-        bgDataUrl:"",
-        primary:"#7c3aed",
-        accent:"#22c55e",
-        headline:"Your ticket is ready",
-        emailText:"Thanks for joining us. Show this QR code at the gate to check in.",
-        published:false,
-        updatedAt: nowISO()
-      },
-      webhookUrl:""
-    },
-    {
-      id: "EVT-BZR-12",
-      name: "Luma Bazaar — Winter Drop",
-      date: "2026-01-08",
-      venue: "Zamalek — Riverside Hall",
-      status: "Draft",
-      bannerDataUrl: "",
-      logoDataUrl: "",
-      tiers: [
-        {id:"T-STD", name:"Standard", desc:"Entry ticket", baseCap: 2200},
-        {id:"T-FAM", name:"Family", desc:"2 adults + 2 kids", baseCap: 260},
-      ],
-      waves: [
-        { id:"W1", name:"Wave 1", start:"2025-12-22T10:00", end:"2026-01-05T23:59",
-          tiersActive:["T-STD","T-FAM"],
-          pricing:{ "T-STD": 250, "T-FAM": 650 },
-          qty:{ "T-STD": 1200, "T-FAM": 180 },
-          sold:{ "T-STD": 0, "T-FAM": 0 }
-        }
-      ],
-      gates: [{id:"G-A", name:"Gate A", notes:"Main"}],
-      staff: [],
-      orders: [],
-      attendees: [],
-      incidents: [],
-      activity: [],
-      design: {
-        bannerDataUrl:"",
-        logoDataUrl:"",
-        bgDataUrl:"",
-        primary:"#7c3aed",
-        accent:"#22c55e",
-        headline:"Your ticket is ready",
-        emailText:"We can’t wait to see you. Keep this QR code ready for check-in.",
-        published:false,
-        updatedAt: nowISO()
-      },
-      webhookUrl:""
-    },
-    {
-      id: "EVT-CLUB-77",
-      name: "Underground Club Night",
-      date: "2025-12-21",
-      venue: "Downtown — Warehouse",
-      status: "Live",
-      bannerDataUrl: "",
-      logoDataUrl: "",
-      tiers: [
-        {id:"T-EARLY", name:"Early", desc:"Limited early entry", baseCap: 400},
-        {id:"T-REG", name:"Regular", desc:"Standard entry", baseCap: 1200}
-      ],
-      waves: [
-        { id:"W1", name:"Wave 1", start:"2025-12-10T12:00", end:"2025-12-18T23:59",
-          tiersActive:["T-EARLY","T-REG"],
-          pricing:{ "T-EARLY": 180, "T-REG": 260 },
-          qty:{ "T-EARLY": 400, "T-REG": 800 },
-          sold:{ "T-EARLY": 400, "T-REG": 780 }
-        },
-        { id:"W2", name:"Wave 2", start:"2025-12-19T00:00", end:"2025-12-21T23:59",
-          tiersActive:["T-REG"],
-          pricing:{ "T-REG": 320 },
-          qty:{ "T-REG": 420 },
-          sold:{ "T-REG": 190 }
-        },
-      ],
-      gates: [
-        {id:"G-A", name:"Gate A", notes:"Main entrance"},
-        {id:"G-B", name:"Gate B", notes:"Secondary entrance"},
-      ],
-      staff: [
-        {id:"S1", full:"Salma Nader", username:"salma", pin:"5544", role:"Usher", events:["EVT-CLUB-77"], gate:"G-A", disabled:false},
-        {id:"S2", full:"Youssef Kareem", username:"youssef", pin:"1900", role:"Ops Manager", events:["EVT-CLUB-77"], gate:"", disabled:false},
-      ],
-      orders: [],
-      attendees: [],
-      incidents: [],
-      activity: [],
-      design: {
-        bannerDataUrl:"",
-        logoDataUrl:"",
-        bgDataUrl:"",
-        primary:"#7c3aed",
-        accent:"#22c55e",
-        headline:"Your ticket is ready",
-        emailText:"Show your QR at the door. Have a great night.",
-        published:true,
-        updatedAt: nowISO()
-      },
-      webhookUrl:""
-    }
-  ];
-
-  // Generate realistic orders & attendees from waves
-  for(const ev of events){
-    seedOrdersAndAttendees(ev);
-    seedInitialLogs(ev);
-  }
-
-  return { events, updatedAt: nowISO() };
-}
 
 function seedOrdersAndAttendees(ev){
   const names = ["Farid Elmekkawy","Mariam Salah","Omar Adel","Nour Ayman","Hassan Said","Laila Mostafa","Ahmed Saad","Hoda Yassin","Karim Hany","Menna Sherif","Aya Magdy","Tarek Samy","Nada Wael","Yara Mahmoud","Mostafa Ali","Sarah Hesham"];
@@ -3062,7 +2850,18 @@ function seedInitialLogs(ev){
 /* ---------- Persistence ---------- */
 
 
-async function loadData(){
+async function defaultData(){
+  // Production default: no sample events.
+  return {
+    version: 1,
+    events: [],
+    staff: [],
+    settings: {},
+    automations: []
+  };
+}
+
+function loadData(){
   // Production-only: load from Firestore (owners/{uid}) with local cache fallback
   const uid = auth.currentUser?.uid;
   const cached = localStorage.getItem(STORAGE.dataKey);
@@ -3078,27 +2877,21 @@ async function loadData(){
       }
     }
     // First time: seed
-    const seed = cached ? safeParseJSON(cached, defaultDemoData()) : defaultDemoData();
+    const seed = cached ? safeParseJSON(cached, defaultData()) : defaultData();
     await setDoc(ref, { data: seed, updatedAt: serverTimestamp() }, { merge: true });
     localStorage.setItem(STORAGE.dataKey, JSON.stringify(seed));
     return seed;
   }
 
   // Not signed in: fallback to localStorage only
-  if(cached) return safeParseJSON(cached, defaultDemoData());
-  const seed = defaultDemoData();
+  if(cached) return safeParseJSON(cached, defaultData());
+  const seed = defaultData();
   localStorage.setItem(STORAGE.dataKey, JSON.stringify(seed));
   return seed;
 }
 
 let __saveTimer = null;
 function saveData(){
-  // Demo mode: save only to demo localStorage (never Firestore)
-  if(state.demoMode){
-    localStorage.setItem(STORAGE.demoKey, JSON.stringify(data));
-    return;
-  }
-
   // Debounced save (keeps UI snappy)
   clearTimeout(__saveTimer);
   __saveTimer = setTimeout(async ()=>{
@@ -3106,7 +2899,7 @@ function saveData(){
       const payload = JSON.stringify(data);
       localStorage.setItem(STORAGE.dataKey, payload);
 
-      if(!window.__demoMode){
+      {
         const uid = auth.currentUser?.uid;
         if(uid){
           await setDoc(ownerDocRef(uid), { data, updatedAt: serverTimestamp() }, { merge: true });
@@ -3119,13 +2912,6 @@ function saveData(){
   }, 250);
 }
 
-function resetDemoData(){
-  data = defaultDemoData();
-  saveData();
-  toast("Demo data reset", "Your sample events were restored.");
-  // keep route as is
-  renderAll();
-}
 let data = loadData();
 
 /* ---------- Auto sync to Public Events (Customer Marketplace) ---------- */
@@ -3140,7 +2926,7 @@ let data = loadData();
 const __publicSyncTimers = new Map();
 
 function __isPublicSyncEnabled(){
-  return window.__firebaseReady && !window.__demoMode && !state.demoMode;
+  return window.__firebaseReady;
 }
 
 function markEventDirtyForPublic(ev){
@@ -3227,14 +3013,14 @@ function saveAuth(){
 
 async function appSignOut(){
   try{
-    if(!window.__demoMode) await fbSignOut(auth);
+    if(!false) await fbSignOut(auth);
   }catch(_e){}
   localStorage.removeItem(STORAGE.authKey);
   state.user = null;
   state.activeEventId = null;
   state.route = "hub";
   state.activeTab = "overview";
-  window.__demoMode = false;
+  false = false;
   document.getElementById("dash")?.classList.add("hidden");
   document.getElementById("auth")?.classList.remove("hidden");
   document.getElementById("menuPanel")?.classList.remove("open");
@@ -3334,16 +3120,7 @@ function authInit(){
       toast("Reset failed", niceAuthError(err));
     }
   });
-
-  // Demo button (still available)
-  $("#btn-quick-demo")?.addEventListener("click", async ()=>{
-    // Uses firebase anonymous? Keep local-only demo without auth:
-    state.user = { name:"Luma Owner", email:"owner@luma.tickets" };
-    state.viewAs = "Owner";
-    // Load local demo data only
-    window.__demoMode = true;
-    await bootDashboard();
-  });
+  
 
   // Firebase auth session restore
   onAuthStateChanged(auth, async (user)=>{
@@ -3351,7 +3128,7 @@ function authInit(){
       state.user = { name: user.displayName || "Owner", email: user.email || "" };
       state.viewAs = "Owner";
       // If auth screen is visible, auto-enter dashboard
-      if(!window.__demoMode) await bootDashboard();
+      await bootDashboard();
     }
   });
 
@@ -3469,7 +3246,7 @@ function addActivity(ev, text, detail, type){
 // Hash routing (Gmail-style URLs):
 //   #hub
 //   #event:<eventId>?tab=orders
-//   #demo , #notifications , #analytics
+//   #notifications , #analytics
 function __parseHash(){
   const raw = (location.hash||"").replace(/^#/, "").trim();
   if(!raw) return { route: null };
@@ -3478,7 +3255,7 @@ function __parseHash(){
   if(path.startsWith("event:")){
     return { route:"event", eventId: path.slice(6), tab: params.get("tab")||null };
   }
-  if(path==="hub"||path==="workspace"||path==="notifications"||path==="analytics"||path==="demo"){
+  if(path==="hub"||path==="workspace"||path==="notifications"||path==="analytics"||path==="hub"){
     return { route:path, tab: params.get("tab")||null };
   }
   return { route: null };
@@ -3524,29 +3301,25 @@ function setRoute(route, opts={}){
   document.getElementById("page-workspace")?.classList.toggle("hidden", route!=="workspace");
   document.getElementById("page-notifications")?.classList.toggle("hidden", route!=="notifications");
   document.getElementById("page-analytics")?.classList.toggle("hidden", route!=="analytics");
-  document.getElementById("page-demo")?.classList.toggle("hidden", route!=="demo");
-  document.getElementById("page-event")?.classList.toggle("hidden", route!=="event");
+    document.getElementById("page-event")?.classList.toggle("hidden", route!=="event");
 
   $("#sideSubtitle").textContent =
     route==="hub" ? "Events Hub" :
     route==="workspace" ? "Workspace" :
     route==="notifications" ? "Attention" :
     route==="analytics" ? "Analytics" :
-    route==="demo" ? "Demo Sandbox" :
-    route==="event" ? "Event Workspace" : "Dashboard";
+        route==="event" ? "Event Workspace" : "Dashboard";
 
   const crumb =
     route==="hub" ? `You are in <b>Events Hub</b>` :
     route==="workspace" ? `Select an event to open its <b>Workspace</b>` :
     route==="notifications" ? `You are in <b>What needs attention</b>` :
     route==="analytics" ? `You are in <b>Analytics</b>` :
-    route==="demo" ? `You are in <b>Demo Sandbox</b> (separate from real data)` :
-    route==="event" ? `You are in <b>Event Workspace</b>` : `Dashboard`;
+        route==="event" ? `You are in <b>Event Workspace</b>` : `Dashboard`;
   $("#crumb").innerHTML = crumb;
 
   if(route==="analytics") renderAllAnalytics();
-  if(route==="demo") renderDemoPage();
-  if(route==="notifications") renderAttentionPage();
+    if(route==="notifications") renderAttentionPage();
   if(route==="workspace") renderWorkspacePicker();
   if(route==="hub") renderHub();
 }
@@ -5945,7 +5718,7 @@ async function onOverviewStatusChange(e){
     saveData();
 
     // Persist (optional)
-    if(window.__firebaseReady && !window.__demoMode && db){
+    if(window.__firebaseReady && db){
       const eventRef = doc(db, "events", ev.id);
       await updateDoc(eventRef, { status: newStatus });
     }
@@ -6027,19 +5800,6 @@ function wireDashboardUI(){
   });
 
   on("#btnLogout","click", appSignOut);
-
-  on("#btnResetDemo","click", ()=>{
-    if(isReadOnly()){
-      toast("Read-only mode","Switch to Owner to reset demo data.");
-      return;
-    }
-    confirmModal({
-      title:"Reset demo data",
-      desc:"Restore the default sample events and replace current data?",
-      danger:true,
-      actionLabel:"Reset",
-      onConfirm: resetDemoData
-    });
   });
 
   on("#viewAs","change", ()=>{
@@ -6344,49 +6104,10 @@ function simulateTick(){
 }
 
 
-/* ---------- Demo Sandbox (separate dataset) ---------- */
 
-let __realDataCache = null;
 
-function enterDemoMode(){
-  __realDataCache = JSON.parse(JSON.stringify(data || defaultDemoData()));
-  state.demoMode = true;
-  state.simulateOn = false;
-  data = defaultDemoData();
-  saveData();
-  toast("Demo loaded","You are now working inside the demo sandbox.");
-  setRoute("hub");
-  renderAll();
-}
 
-async function exitDemoMode(){
-  state.demoMode = false;
-  state.simulateOn = false;
-  if(__realDataCache){
-    data = __realDataCache;
-    __realDataCache = null;
-    saveData();
-    toast("Back to real data","Demo sandbox closed.");
-    setRoute("hub");
-    renderAll();
-    return;
-  }
-  try{
-    data = await loadData();
-    await hydrateAllOrders();
-  }catch(e){
-    console.error(e);
-    toast("Reload failed","Could not reload real data. Using local fallback.");
-    data = defaultDemoData();
-  }
-  setRoute("hub");
-  renderAll();
-}
 
-function renderDemoPage(){
-  $("#btnEnterDemo")?.classList.toggle("disabled", state.demoMode);
-  $("#btnExitDemo")?.classList.toggle("disabled", !state.demoMode);
-}
 
 /* ---------- Boot ---------- */
 
@@ -6414,7 +6135,7 @@ async function bootDashboard(){
   }catch(err){
     console.error(err);
     toast("Load failed", "Could not load your data. Using local fallback.");
-    data = defaultDemoData();
+    data = defaultData();
   }
 
   // Route: hub
