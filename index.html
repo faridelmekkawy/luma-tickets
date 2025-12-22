@@ -2343,6 +2343,23 @@ option{ background-color: rgba(11,16,32,.98); }
 
 <!-- Toasts -->
 <div class="toasts" id="toasts"></div>
+<script>
+  // Optional: set this from Firestore / settings / env
+  window.LUMA_LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/events-339ce.firebasestorage.app/o/WhatsApp%20Image%202025-12-20%20at%204.40.03%20PM.jpeg?alt=media&token=63a5d3fc-7b01-4396-8c84-08533ad950d3"; 
+  // Example:
+  // window.LUMA_LOGO_URL = "https://yourdomain.com/luma-logo.png";
+
+  (function initLumaLogo(){
+    const img = document.getElementById("lumaLogoImgDash");
+    const svg = document.getElementById("lumaLogoSvgDash");
+
+    if (window.LUMA_LOGO_URL && img && svg) {
+      img.src = window.LUMA_LOGO_URL;
+      img.style.display = "block";
+      svg.style.display = "none";
+    }
+  })();
+</script>
 
 <script type="module">
 
