@@ -2550,7 +2550,7 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
 }
 
 // Sync one event to /events/{eventId} so customer.html can see it
-async async function syncEventToPublic(ev){
+ async function syncEventToPublic(ev){
     if(!window.__firebaseReady) return;
 
   const uid = auth.currentUser?.uid;
