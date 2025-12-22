@@ -9,22 +9,19 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<!-- QR generator (tiny + reliable). Used only on Ticket page. -->
+<!-- QR generator -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 
 <style>
   :root{
-    --bg0:#0b1020;
-    --bg1:#0b0f1a;
+    --bg0:#0b1020; --bg1:#0b0f1a;
     --panel:rgba(255,255,255,.06);
     --panel2:rgba(255,255,255,.08);
-    --ink:#f8fafc;
-    --muted:rgba(248,250,252,.70);
+    --ink:#f8fafc; --muted:rgba(248,250,252,.70);
     --border:rgba(255,255,255,.10);
     --shadow:0 18px 50px rgba(0,0,0,.35);
-    --radius:18px;
-    --radius2:22px;
-    --accent:#7c3aed;  /* matches owner-dashboard vibe */
+    --radius:18px; --radius2:22px;
+    --accent:#7c3aed;
     --good:#22c55e;
     --warn:#f59e0b;
     --danger:#ef4444;
@@ -43,13 +40,9 @@
       linear-gradient(180deg, var(--bg1), var(--bg0));
   }
   a{color:inherit}
-  .wrap{max-width:1100px;margin:0 auto;padding:18px 16px 28px}
-
-  /* Sidebar shell (replaces top bar) */
   .appShell{display:flex;min-height:100vh}
   .sidebar{
-    position:sticky;top:0;
-    height:100vh;
+    position:sticky;top:0;height:100vh;
     width:280px;min-width:280px;
     padding:14px 12px;
     border-right:1px solid var(--border);
@@ -67,10 +60,19 @@
     display:grid;place-items:center;
     cursor:pointer;
   }
-  .brandSide{display:flex;gap:10px;align-items:center;min-width:0;flex:1}
+  .logoMark{
+    width:42px;height:42px;border-radius:16px;
+    display:grid;place-items:center;
+    background: radial-gradient(circle at 30% 20%, rgba(124,58,237,.35), transparent 55%),
+                rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.10);
+    overflow:hidden;
+    box-shadow:0 18px 40px rgba(0,0,0,.25);
+  }
+  .brandSide{display:flex;gap:10px;align-items:center;min-width:0;flex:1;cursor:pointer}
   .brandTxt{min-width:0}
   .brandTxt b{display:block;font-size:14px;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .brandTxt small{display:block;color:var(--muted);font-weight:700}
+  .brandTxt small{display:block;color:var(--muted);font-weight:800}
   .sideNav{display:grid;gap:8px;margin-top:2px}
   .sideItem{
     width:100%;
@@ -99,7 +101,6 @@
   @media (max-width:860px){
     .sidebar{position:fixed;left:0;top:0;transform:translateX(-102%);transition:transform .18s ease;width:280px;min-width:280px;box-shadow:0 30px 80px rgba(0,0,0,.45)}
     .sidebar.open{transform:translateX(0)}
-    .main{padding-top:0}
     .mobileTop{
       position:sticky;top:0;z-index:50;
       padding:12px 12px;
@@ -110,71 +111,8 @@
     }
   }
 
-  /* Event tickets table: mobile-safe */
-  @media (max-width:560px){
-    .table{border-spacing:0 10px}
-    .table thead{display:none}
-    .table tbody tr{display:block;margin-bottom:10px}
-    .table td{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .table td::before{
-      content:attr(data-label);
-      font-size:11px;color:var(--muted);font-weight:900;letter-spacing:.2px;
-    }
-    .table tr td:first-child, .table tr td:last-child{border-radius:16px}
-  }
+  .wrap{max-width:1100px;margin:0 auto;padding:18px 16px 28px}
 
-  /* Ticket carousel */
-  .ticketCarousel{display:grid;gap:12px}
-  .tcHead{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .tcNav{margin-left:auto;display:flex;gap:8px;align-items:center}
-  .tcNav .btn{padding:10px 12px}
-  .tcTrack{
-    display:flex;overflow:auto;scroll-snap-type:x mandatory;
-    gap:12px;padding-bottom:4px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .tcSlide{
-    min-width:min(520px, 92vw);
-    scroll-snap-align:center;
-  }
-
-  .topbar{
-    position:sticky;top:0;z-index:30;
-    backdrop-filter: blur(10px);
-    background: linear-gradient(180deg, rgba(11,15,26,.92), rgba(11,15,26,.60));
-    border-bottom:1px solid var(--border);
-  }
-  .topbar .in{max-width:1100px;margin:0 auto;padding:14px 16px;display:flex;gap:12px;align-items:center}
-  .brand{
-    display:flex;gap:10px;align-items:center;min-width:220px;
-  }
-  .logoMark{
-    width:40px;height:40px;border-radius:14px;
-    display:grid;place-items:center;
-    background: radial-gradient(circle at 30% 20%, rgba(124,58,237,.35), transparent 55%),
-                rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.10);
-    box-shadow:0 18px 40px rgba(0,0,0,.25);
-  }
-  .brand b{display:block;font-size:14px;letter-spacing:.2px}
-  .brand small{display:block;color:var(--muted);font-weight:600}
-  .nav{
-    margin-left:auto;
-    display:flex;gap:8px;align-items:center;flex-wrap:wrap;
-  }
-  .pill{
-    display:inline-flex;gap:8px;align-items:center;
-    padding:10px 12px;border-radius:999px;
-    border:1px solid var(--border);
-    background:rgba(255,255,255,.06);
-    color:var(--ink);
-    font-weight:800;
-    font-size:12px;
-    cursor:pointer;
-    user-select:none;
-  }
-  .pill.active{border-color:rgba(124,58,237,.55);box-shadow:0 0 0 3px rgba(124,58,237,.14)}
-  .pill.ghost{background:transparent}
   .btn{
     display:inline-flex;gap:10px;align-items:center;justify-content:center;
     padding:12px 14px;border-radius:14px;
@@ -189,10 +127,13 @@
   .btn.danger{background:linear-gradient(135deg, rgba(239,68,68,.95), rgba(239,68,68,.55)); border-color:rgba(239,68,68,.45)}
   .btn:disabled{opacity:.55;cursor:not-allowed}
   .btn.sm{padding:10px 12px;border-radius:12px;font-size:12px}
-  .grid{
-    display:grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap:12px;
+  .btn.ghost{background:transparent}
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:9px 10px;border-radius:999px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+    font-weight:900;font-size:12px;
   }
   .card{
     background:rgba(255,255,255,.06);
@@ -205,14 +146,13 @@
   .sectionTitle h1{margin:0;font-size:18px;letter-spacing:.2px}
   .sectionTitle p{margin:0;color:var(--muted);font-weight:700;font-size:12px}
 
-  /* Marketplace header like tickets apps */
-  .hero{
-    display:flex;flex-direction:column;gap:12px;
-    padding:16px;
-  }
-  .searchRow{
-    display:flex;gap:10px;flex-wrap:wrap;align-items:center;
-  }
+  /* Pages */
+  .page{display:none}
+  .page.active{display:block}
+
+  /* Home marketplace */
+  .hero{display:flex;flex-direction:column;gap:12px;padding:16px}
+  .searchRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .input{
     display:flex;gap:10px;align-items:center;
     padding:12px 14px;border-radius:16px;
@@ -226,7 +166,6 @@
     font-family:var(--font); font-weight:800;
   }
   .input select{appearance:none}
-  .muted{color:var(--muted)}
   .chipRow{display:flex;gap:8px;flex-wrap:wrap}
   .chip{
     padding:10px 12px;border-radius:999px;
@@ -238,16 +177,10 @@
     cursor:pointer;
   }
   .chip.active{border-color:rgba(124,58,237,.55);box-shadow:0 0 0 3px rgba(124,58,237,.14)}
-  .eventGrid{
-    display:grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap:12px;
-    padding:0 16px 16px;
-  }
+  .eventGrid{display:grid;grid-template-columns: repeat(12, 1fr);gap:12px;padding:0 16px 16px}
   .eventCard{
     grid-column: span 4;
-    border-radius:22px;
-    overflow:hidden;
+    border-radius:22px;overflow:hidden;
     border:1px solid var(--border);
     background:rgba(255,255,255,.06);
     box-shadow:var(--shadow);
@@ -258,11 +191,7 @@
   @media (max-width:1000px){ .eventCard{grid-column:span 6} }
   @media (max-width:640px){ .eventCard{grid-column:span 12} }
 
-  .banner{
-    position:relative;
-    height:150px;
-    background: rgba(255,255,255,.04);
-  }
+  .banner{position:relative;height:150px;background: rgba(255,255,255,.04)}
   .banner img{width:100%;height:100%;object-fit:cover;display:block}
   .eLogo{
     position:absolute;left:14px;bottom:-18px;
@@ -279,33 +208,30 @@
   .eMeta{margin-top:8px;color:var(--muted);font-weight:700;font-size:12px;display:grid;gap:6px}
   .eMeta .row{display:flex;gap:8px;align-items:center}
   .kbar{display:flex;gap:8px;align-items:center;margin-top:12px}
-  .badge{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:9px 10px;border-radius:999px;
-    border:1px solid var(--border);
-    background:rgba(255,255,255,.06);
-    font-weight:900;font-size:12px;
-  }
-  .badge.ok{border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.10)}
-  .badge.info{border-color: rgba(124,58,237,.35); background: rgba(124,58,237,.10)}
-  .badge.warn{border-color: rgba(245,158,11,.35); background: rgba(245,158,11,.10)}
-  .badge.danger{border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.10)}
 
-  /* Pages */
-  .page{display:none}
-  .page.active{display:block}
-
-  /* Event page */
+  /* Event details */
   .eventPageHead{
-    position:relative;
-    overflow:hidden;
-    border-radius:26px;
+    position:relative;overflow:hidden;border-radius:26px;
     border:1px solid var(--border);
     background:rgba(255,255,255,.06);
     box-shadow:var(--shadow);
   }
-  .eventPageBanner{height:240px;background:rgba(255,255,255,.04)}
+  .eventPageBanner{height:260px;background:rgba(255,255,255,.04);position:relative}
   .eventPageBanner img{width:100%;height:100%;object-fit:cover;display:block}
+  .eventOverlay{
+    position:absolute;left:0;right:0;bottom:0;
+    padding:14px 16px;
+    background:linear-gradient(180deg, transparent, rgba(0,0,0,.55));
+    display:flex;gap:10px;align-items:center;flex-wrap:wrap
+  }
+  .evOwnerLogo{
+    width:44px;height:44px;border-radius:18px;
+    border:1px solid rgba(255,255,255,.14);
+    background:rgba(11,15,26,.85);
+    overflow:hidden;
+    display:grid;place-items:center;
+  }
+  .evOwnerLogo img{width:100%;height:100%;object-fit:cover}
   .eventPageInfo{
     padding:16px;
     display:grid;
@@ -316,7 +242,9 @@
   @media (max-width:900px){ .eventPageInfo{grid-template-columns:1fr} }
   .eventName{margin:0;font-size:22px;letter-spacing:.3px}
   .subLine{margin:6px 0 0;color:var(--muted);font-weight:750}
+  .hr{height:1px;background:rgba(255,255,255,.10);margin:10px 0}
   .ticketsCard{padding:14px}
+
   .waveBlock{
     border:1px solid var(--border);
     border-radius:18px;
@@ -326,30 +254,23 @@
   }
   .waveTitle{display:flex;justify-content:space-between;gap:10px;align-items:center}
   .waveTitle b{font-size:14px}
-  .table{
-    width:100%;
-    border-collapse:separate;
-    border-spacing:0 10px;
-    margin-top:8px;
-  }
-  .table th{
-    text-align:left;
-    font-size:11px;
-    color:var(--muted);
-    font-weight:900;
-    letter-spacing:.2px;
-    padding:0 6px;
-  }
-  .table td{
-    padding:12px 10px;
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.10);
-  }
+  .table{width:100%;border-collapse:separate;border-spacing:0 10px;margin-top:8px}
+  .table th{text-align:left;font-size:11px;color:var(--muted);font-weight:900;letter-spacing:.2px;padding:0 6px}
+  .table td{padding:12px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10)}
   .table tr td:first-child{border-top-left-radius:16px;border-bottom-left-radius:16px}
   .table tr td:last-child{border-top-right-radius:16px;border-bottom-right-radius:16px}
-  .qty{
-    display:flex;gap:8px;align-items:center;justify-content:flex-end;
+  @media (max-width:560px){
+    .table{border-spacing:0 10px}
+    .table thead{display:none}
+    .table tbody tr{display:block;margin-bottom:10px}
+    .table td{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .table td::before{
+      content:attr(data-label);
+      font-size:11px;color:var(--muted);font-weight:900;letter-spacing:.2px;
+    }
+    .table tr td:first-child, .table tr td:last-child{border-radius:16px}
   }
+  .qty{display:flex;gap:8px;align-items:center;justify-content:flex-end}
   .qty input{
     width:70px;
     padding:10px 10px;border-radius:14px;
@@ -368,9 +289,11 @@
     cursor:pointer;font-weight:1000;
     user-select:none;
   }
+  .tierMeta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .tierSwatch{width:12px;height:12px;border-radius:4px;border:1px solid rgba(255,255,255,.18)}
+  .rules{margin:8px 0 0;padding-left:18px;color:var(--muted);font-weight:800;font-size:12px}
   .totRow{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:12px}
   .totRow .sum{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .hr{height:1px;background:rgba(255,255,255,.10);margin:10px 0}
 
   /* Tickets list */
   .ticketList{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
@@ -389,70 +312,31 @@
   .ticketCard .eTitle b{font-size:13px}
   .right{margin-left:auto}
 
-  /* Ticket page (QR) */
-  .ticketPageGrid{
-    display:grid;
-    grid-template-columns:1.05fr .95fr;
-    gap:12px;
-    align-items:start;
-  }
+  /* Ticket page */
+  .ticketPageGrid{display:grid;grid-template-columns:1.05fr .95fr;gap:12px;align-items:start}
   @media (max-width:900px){ .ticketPageGrid{grid-template-columns:1fr} }
   .qrPanel{padding:14px}
-  .qrFrame{
-    border:1px solid rgba(255,255,255,.12);
-    background:rgba(0,0,0,.22);
-    border-radius:24px;
-    padding:14px;
-  }
-  .qrTop{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .qrFrame{border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);border-radius:24px;padding:14px}
   .qrBox{
-    width:210px;height:210px;border-radius:18px;
-    background:#fff;
-    display:grid;place-items:center;
-    overflow:hidden;
-    margin:12px auto 8px;
+    width:220px;height:220px;border-radius:18px;background:#fff;
+    display:grid;place-items:center;overflow:hidden;margin:12px auto 8px;
   }
   .qrBox canvas, .qrBox img{width:100%;height:100%}
-  .countdown{
-    text-align:center;
-    color:var(--muted);
-    font-weight:900;
-    margin-top:6px;
-  }
-  .codeText{
-    text-align:center;
-    font-family:var(--mono);
-    font-weight:900;
-    letter-spacing:.8px;
-    font-size:14px;
-    margin-top:6px;
-  }
-  .hint{
-    border:1px solid rgba(255,255,255,.12);
-    background:rgba(255,255,255,.06);
-    padding:12px;border-radius:18px;
-    color:var(--muted);
-    font-weight:800;
-  }
+  .countdown{text-align:center;color:var(--muted);font-weight:900;margin-top:6px}
+  .codeText{text-align:center;font-family:var(--mono);font-weight:900;letter-spacing:.8px;font-size:14px;margin-top:6px}
+  .hint{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);padding:12px;border-radius:18px;color:var(--muted);font-weight:800}
 
-  /* Auth page */
-  .authGrid{display:grid;grid-template-columns: 1fr;gap:12px}
+  /* Auth */
+  .authGrid{display:grid;grid-template-columns:1fr;gap:12px}
   .authCard{padding:14px}
   .tabs{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-  .tabBtn{
-    padding:10px 12px;border-radius:999px;
-    border:1px solid var(--border);
-    background:rgba(255,255,255,.06);
-    cursor:pointer;
-    font-weight:900;font-size:12px;
-  }
+  .tabBtn{padding:10px 12px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.06);cursor:pointer;font-weight:900;font-size:12px}
   .tabBtn.active{border-color:rgba(124,58,237,.55);box-shadow:0 0 0 3px rgba(124,58,237,.14)}
   form{display:grid;gap:10px;margin-top:12px}
   label{font-size:12px;color:var(--muted);font-weight:800}
   input[type="email"], input[type="password"], input[type="text"]{
     width:100%;
-    padding:12px 14px;
-    border-radius:16px;
+    padding:12px 14px;border-radius:16px;
     border:1px solid rgba(255,255,255,.14);
     background:rgba(0,0,0,.18);
     color:var(--ink);
@@ -474,406 +358,419 @@
     box-shadow:var(--shadow);
   }
   .toast p{margin:6px 0 0;color:var(--muted);font-weight:750;font-size:12px}
-  .toast .x{
-    border:0;background:transparent;color:var(--muted);
-    cursor:pointer;font-size:16px;line-height:1;margin-top:2px
-  }
+  .toast .x{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;margin-top:2px}
 
-  footer{
-    margin-top:18px;
-    padding:18px 0 6px;
-    text-align:center;
-    color:var(--muted);
-    font-weight:800;
-    font-size:12px;
-  }
+  footer{margin-top:18px;padding:18px 0 6px;text-align:center;color:var(--muted);font-weight:800;font-size:12px}
 </style>
 </head>
 
 <body>
-  <div class="appShell">
-    <aside class="sidebar" id="sidebar">
-      <div class="sideTop">
-        <button class="iconBtn" id="btnSideToggle" aria-label="Toggle menu">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M4 6h16M4 12h16M4 18h16" stroke="rgba(255,255,255,.85)" stroke-width="1.8" stroke-linecap="round"/>
+<div class="appShell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sideTop">
+      <button class="iconBtn" id="btnSideToggle" aria-label="Toggle menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h16" stroke="rgba(255,255,255,.85)" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <div class="brandSide" id="brandHome" title="Home">
+        <div class="logoMark">
+          <img id="lumaLogoImg" alt="Luma" style="width:100%;height:100%;object-fit:cover;display:none">
+          <svg id="lumaLogoSvg" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 2l8 5v10l-8 5-8-5V7l8-5z" stroke="rgba(255,255,255,.85)" stroke-width="1.6"/>
+            <path d="M7.5 9.5l4.5 3 4.5-3" stroke="rgba(124,58,237,.95)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M7.5 14.5l4.5 3 4.5-3" stroke="rgba(34,197,94,.90)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-        </button>
-
-        <div class="brandSide" id="brandHome" style="cursor:pointer" title="Home">
-          <div class="logoMark" style="width:42px;height:42px;border-radius:16px;overflow:hidden">
-            <!-- Placeholder: paste your Luma logo URL into LUMA_LOGO_URL in the script -->
-            <img id="lumaLogoImg" alt="Luma" style="width:100%;height:100%;object-fit:cover;display:none">
-            <svg id="lumaLogoSvg" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M12 2l8 5v10l-8 5-8-5V7l8-5z" stroke="rgba(255,255,255,.85)" stroke-width="1.6"/>
-              <path d="M7.5 9.5l4.5 3 4.5-3" stroke="rgba(124,58,237,.95)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M7.5 14.5l4.5 3 4.5-3" stroke="rgba(34,197,94,.90)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="brandTxt">
-            <b>Luma Tickets</b>
-            <small id="topSub">Customer</small>
-          </div>
+        </div>
+        <div class="brandTxt">
+          <b>Luma Tickets</b>
+          <small id="topSub">Customer</small>
         </div>
       </div>
+    </div>
 
-      <nav class="sideNav">
-        <button class="sideItem" id="navHome" data-nav="#/">
-          <span class="ico">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M4 10.5l8-7 8 7V20a1.5 1.5 0 0 1-1.5 1.5H5.5A1.5 1.5 0 0 1 4 20v-9.5z" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linejoin="round"/>
-              <path d="M9.5 21V14h5v7" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linejoin="round"/>
-            </svg>
-          </span>
-          <span class="label">Home</span>
-        </button>
-
-        <button class="sideItem" id="navTickets" data-nav="#/tickets">
-          <span class="ico">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M4 9a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V9z" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linejoin="round"/>
-              <path d="M9 9.5v9" stroke="rgba(124,58,237,.95)" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2.5 3.5"/>
-            </svg>
-          </span>
-          <span class="label">My Tickets</span>
-          <span class="badge info" id="ticketsCount" style="padding:6px 8px;border-radius:999px;margin-left:auto">0</span>
-        </button>
-
-        <button class="sideItem" id="navProfile" data-nav="#/profile">
-          <span class="ico">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M20 21a8 8 0 1 0-16 0" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linecap="round"/>
-              <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4z" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linejoin="round"/>
-            </svg>
-          </span>
-          <span class="label">Profile</span>
-        </button>
-      </nav>
-
-      <div class="sideBottom">
-        <div class="sideUser">
-          <div class="dot"></div>
-          <div class="sideUserTxt">
-            <div class="name" id="sideUserName">Guest</div>
-            <div class="email" id="sideUserEmail">—</div>
-          </div>
-        </div>
-        <button class="btn sm ghost" id="btnAuth">Sign in</button>
-      </div>
-    </aside>
-
-    <div class="main">
-      <div class="mobileTop" id="mobileTop">
-        <button class="iconBtn" id="btnMobileMenu" aria-label="Open menu">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M4 6h16M4 12h16M4 18h16" stroke="rgba(255,255,255,.85)" stroke-width="1.8" stroke-linecap="round"/>
+    <nav class="sideNav">
+      <button class="sideItem" id="navHome" data-nav="#/">
+        <span class="ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 10.5l8-7 8 7V20a1.5 1.5 0 0 1-1.5 1.5H5.5A1.5 1.5 0 0 1 4 20v-9.5z" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M9.5 21V14h5v7" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linejoin="round"/>
           </svg>
-        </button>
-        <div class="brandSide" id="brandHomeMobile" style="cursor:pointer">
-          <div class="logoMark" style="width:40px;height:40px;border-radius:14px;overflow:hidden">
-            <img id="lumaLogoImgM" alt="Luma" style="width:100%;height:100%;object-fit:cover;display:none">
-            <svg id="lumaLogoSvgM" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M12 2l8 5v10l-8 5-8-5V7l8-5z" stroke="rgba(255,255,255,.85)" stroke-width="1.6"/>
-              <path d="M7.5 9.5l4.5 3 4.5-3" stroke="rgba(124,58,237,.95)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M7.5 14.5l4.5 3 4.5-3" stroke="rgba(34,197,94,.90)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="brandTxt">
-            <b>Luma Tickets</b>
-            <small id="mobileSub">Customer</small>
-          </div>
+        </span>
+        <span class="label">Home</span>
+      </button>
+
+      <button class="sideItem" id="navTickets" data-nav="#/tickets">
+        <span class="ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 9a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V9z" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M9 9.5v9" stroke="rgba(124,58,237,.95)" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2.5 3.5"/>
+          </svg>
+        </span>
+        <span class="label">My Tickets</span>
+        <span class="badge" id="ticketsCount" style="padding:6px 8px;border-radius:999px;margin-left:auto">0</span>
+      </button>
+
+      <button class="sideItem" id="navProfile" data-nav="#/profile">
+        <span class="ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 21a8 8 0 1 0-16 0" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4z" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="label">Profile</span>
+      </button>
+    </nav>
+
+    <div class="sideBottom">
+      <div class="sideUser">
+        <div class="dot"></div>
+        <div class="sideUserTxt">
+          <div class="name" id="sideUserName">Guest</div>
+          <div class="email" id="sideUserEmail">—</div>
         </div>
       </div>
+      <button class="btn sm ghost" id="btnAuth">Sign in</button>
+    </div>
+  </aside>
 
-      <div id="toasts"></div>
-      <div class="wrap">
+  <div class="main">
+    <div class="mobileTop" id="mobileTop">
+      <button class="iconBtn" id="btnMobileMenu" aria-label="Open menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h16" stroke="rgba(255,255,255,.85)" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="brandSide" id="brandHomeMobile">
+        <div class="logoMark" style="width:40px;height:40px;border-radius:14px">
+          <img id="lumaLogoImgM" alt="Luma" style="width:100%;height:100%;object-fit:cover;display:none">
+          <svg id="lumaLogoSvgM" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 2l8 5v10l-8 5-8-5V7l8-5z" stroke="rgba(255,255,255,.85)" stroke-width="1.6"/>
+            <path d="M7.5 9.5l4.5 3 4.5-3" stroke="rgba(124,58,237,.95)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M7.5 14.5l4.5 3 4.5-3" stroke="rgba(34,197,94,.90)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="brandTxt">
+          <b>Luma Tickets</b>
+          <small id="mobileSub">Customer</small>
+        </div>
+      </div>
+    </div>
 
-    <!-- HOME -->
-    <section id="page-home" class="page active">
-      <div class="card">
-        <div class="hero">
+    <div id="toasts"></div>
+    <div class="wrap">
+
+      <!-- HOME -->
+      <section id="page-home" class="page active">
+        <div class="card">
+          <div class="hero">
+            <div class="sectionTitle">
+              <div>
+                <h1>Discover events</h1>
+                <p>Search & book. No PDFs. Your ticket is live in-app.</p>
+              </div>
+            </div>
+
+            <div class="searchRow">
+              <div class="input">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" stroke="rgba(255,255,255,.8)" stroke-width="1.6"/>
+                  <path d="M16.5 16.5L21 21" stroke="rgba(255,255,255,.8)" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+                <input id="q" placeholder="Search events, venues, cities…" autocomplete="off"/>
+              </div>
+              <div class="input" style="max-width:260px">
+                <select id="city">
+                  <option value="">All cities</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="chipRow">
+              <div class="chip active" id="f-all">All</div>
+              <div class="chip" id="f-today">Today</div>
+              <div class="chip" id="f-week">This week</div>
+            </div>
+          </div>
+
+          <div class="eventGrid" id="eventsGrid"></div>
+
+          <div class="center" id="emptyEvents" style="padding:16px;display:none;color:var(--muted);font-weight:800">
+            No events found.
+          </div>
+        </div>
+      </section>
+
+      <!-- EVENT DETAILS -->
+      <section id="page-event" class="page">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+          <button class="btn sm" id="btnBack">← Back</button>
+          <div class="badge" id="eventBreadcrumb">Event</div>
+        </div>
+
+        <div class="eventPageHead">
+          <div class="eventPageBanner" id="eventBanner"></div>
+          <div class="eventOverlay" id="eventOverlay" style="display:none">
+            <div class="evOwnerLogo" id="ownerLogoWrap" style="display:none"></div>
+            <div class="badge" id="eventStatusChip" style="display:none"></div>
+          </div>
+          <div class="eventPageInfo">
+            <div>
+              <h2 class="eventName" id="eventName">—</h2>
+              <div class="subLine" id="eventSub">—</div>
+
+              <div class="hr"></div>
+
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                <div class="badge" id="eventDate">—</div>
+                <a class="badge" id="eventVenueLink" href="#" target="_blank" rel="noopener" style="text-decoration:none;display:none">
+                  <strong>Open in Maps</strong>
+                </a>
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="hint" id="eventDescWrap" style="display:none">
+                <b>Description</b>
+                <div style="margin-top:6px" id="eventDesc">—</div>
+              </div>
+            </div>
+
+            <div class="card ticketsCard">
+              <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+                <b>Tickets</b>
+                <span class="badge" id="eventTotal">—</span>
+              </div>
+
+              <div id="wavesArea"></div>
+
+              <div class="totRow">
+                <div class="sum">
+                  <span class="badge" id="selCount">0 selected</span>
+                  <span class="badge" id="selTotal">Total: —</span>
+                </div>
+                <button class="btn good" id="btnCheckout">Buy tickets</button>
+              </div>
+
+              <div class="small" id="checkoutNote" style="margin-top:8px"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MY TICKETS -->
+      <section id="page-tickets" class="page">
+        <div class="card" style="padding:16px">
           <div class="sectionTitle">
             <div>
-              <h1>Discover events</h1>
-              <p>Search & book. No PDFs. Your ticket is live in-app.</p>
+              <h1>My Tickets</h1>
+              <p>Open a ticket to show the live QR to the usher.</p>
             </div>
-            
+            <div class="badge" id="myTicketsNum">0</div>
           </div>
 
-          <div class="searchRow">
-            <div class="input">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" stroke="rgba(255,255,255,.8)" stroke-width="1.6"/>
-                <path d="M16.5 16.5L21 21" stroke="rgba(255,255,255,.8)" stroke-width="1.6" stroke-linecap="round"/>
-              </svg>
-              <input id="q" placeholder="Search events, venues, cities…" autocomplete="off"/>
-            </div>
-            <div class="input" style="max-width:260px">
-              <select id="city">
-                <option value="">All cities</option>
-              </select>
+          <div id="ticketsGate" class="hint" style="display:none">
+            You need to sign in to view your tickets.
+            <div style="margin-top:10px">
+              <button class="btn primary sm" id="btnGoAuthTickets">Sign in</button>
             </div>
           </div>
 
-          <div class="chipRow">
-            <div class="chip active" id="f-all">All</div>
-            <div class="chip" id="f-today">Today</div>
-            <div class="chip" id="f-week">This week</div>
+          <div class="ticketList" id="ticketsGrid" style="margin-top:12px"></div>
+
+          <div class="center" id="emptyTickets" style="padding:16px;display:none;color:var(--muted);font-weight:800">
+            No tickets yet.
+          </div>
+        </div>
+      </section>
+
+      <!-- TICKET -->
+      <section id="page-ticket" class="page">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+          <button class="btn sm" id="btnBackTickets">← Back</button>
+          <div class="badge" id="ticketBreadcrumb">Ticket</div>
+          <div class="right" style="display:flex;gap:8px;align-items:center">
+            <button class="btn sm" id="btnPrevTicket" title="Previous">←</button>
+            <span class="badge" id="ticketPos">1 / 1</span>
+            <button class="btn sm" id="btnNextTicket" title="Next">→</button>
           </div>
         </div>
 
-        <div class="eventGrid" id="eventsGrid"></div>
+        <div class="card" style="padding:14px">
+          <div class="ticketPageGrid">
+            <div class="qrPanel">
+              <div class="qrFrame">
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                  <b id="tEventName">—</b>
+                  <span class="badge" id="tTier">—</span>
+                  <span class="badge" id="tWave">—</span>
+                  <span class="badge" id="tQty">—</span>
+                </div>
 
-        <div class="center muted" id="emptyEvents" style="padding:16px;display:none">
-          No events found.
-        </div>
-      </div>
-    </section>
+                <div class="qrBox" id="qrBox">
+                  <div style="color:#111;font-weight:900">QR</div>
+                </div>
 
-    <!-- EVENT DETAILS (full page) -->
-    <section id="page-event" class="page">
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
-        <button class="btn sm" id="btnBack">← Back</button>
-        <div class="badge info" id="eventBreadcrumb">Event</div>
-      </div>
+                <div class="countdown" id="qrCountdown">Refreshing…</div>
+                <div class="codeText" id="qrCodeText">—</div>
 
-      <div class="eventPageHead">
-        <div class="eventPageBanner" id="eventBanner"></div>
-        <div class="eventPageInfo">
-          <div>
-            <h2 class="eventName" id="eventName">—</h2>
-            <div class="subLine" id="eventSub">—</div>
-            <div class="hr"></div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-              <div class="badge" id="eventDate">—</div>
-              <a class="badge info" id="eventVenueLink" href="#" target="_blank" rel="noopener" style="text-decoration:none;display:none"><strong>Open in Maps</strong></a>
-            </div>
-          </div>
-
-          <div class="card ticketsCard">
-            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
-              <b>Tickets</b>
-              <span class="badge" id="eventTotal">Total: —</span>
-            </div>
-            <div id="wavesArea"></div>
-
-            <div class="totRow">
-              <div class="sum">
-                <span class="badge" id="selCount">0 selected</span>
-                <span class="badge info" id="selTotal">Total: —</span>
+                <div class="hint" style="margin-top:12px">
+                  <b>Must be live</b><br/>
+                  Screenshots won’t work. This code refreshes automatically.
+                </div>
               </div>
-              <button class="btn good" id="btnCheckout">Buy tickets</button>
             </div>
-            <div class="small" id="checkoutNote" style="margin-top:8px"></div>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- MY TICKETS -->
-    <section id="page-tickets" class="page">
-      <div class="card" style="padding:16px">
-        <div class="sectionTitle">
-          <div>
-            <h1>My Tickets</h1>
-            <p>Open a ticket to show the live QR to the usher.</p>
-          </div>
-          <div class="badge info" id="myTicketsNum">0</div>
-        </div>
-
-        <div id="ticketsGate" class="hint" style="display:none">
-          You need to sign in to view your tickets.
-          <div style="margin-top:10px">
-            <button class="btn primary sm" id="btnGoAuthTickets">Sign in</button>
-          </div>
-        </div>
-
-        <div class="ticketList" id="ticketsGrid" style="margin-top:12px"></div>
-
-        <div class="center muted" id="emptyTickets" style="padding:16px;display:none">
-          No tickets yet.
-        </div>
-      </div>
-    </section>
-
-    <!-- TICKET PAGE -->
-    <section id="page-ticket" class="page">
-      <div class="tcHead" style="margin-bottom:12px">
-        <button class="btn sm" id="btnBackTickets">← Back</button>
-        <div class="badge info" id="ticketBreadcrumb">Ticket</div>
-        <div class="tcNav">
-          <button class="btn sm" id="btnPrevTicket" title="Previous ticket">←</button>
-          <span class="badge" id="ticketPos">1 / 1</span>
-          <button class="btn sm" id="btnNextTicket" title="Next ticket">→</button>
-        </div>
-      </div>
-
-      <div class="ticketCarousel">
-        <div class="tcTrack" id="ticketTrack" aria-label="Tickets carousel"></div>
-      </div>
-    </section>
-
-    <!-- PROFILE -->
-    <section id="page-profile" class="page">
-      <div class="card" style="padding:16px">
-        <div class="sectionTitle">
-          <div>
-            <h1>Profile</h1>
-            <p>Manage your account & support.</p>
-          </div>
-        </div>
-
-        <div id="profileGate" class="hint" style="display:none">
-          You need to sign in to view your profile.
-          <div style="margin-top:10px">
-            <button class="btn primary sm" id="btnGoAuthProfile">Sign in</button>
-          </div>
-        </div>
-
-        <div id="profileBody" style="display:none">
-          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-            <div class="logoMark" style="width:54px;height:54px;border-radius:20px">
-              <span style="font-weight:1000" id="profileInitials">LU</span>
-            </div>
             <div>
-              <div style="font-weight:1000;font-size:16px" id="profileName">—</div>
-              <div class="small" id="profileEmail">—</div>
+              <div class="hint" id="tMeta">
+                —<br/>—
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="hint" id="receiptWrap" style="display:none">
+                <b>Receipt</b>
+                <div style="margin-top:10px">
+                  <a class="btn sm" id="btnReceipt" href="#" target="_blank" rel="noopener">Open receipt</a>
+                </div>
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="hint" id="ticketDesignNote">
+                <b>Ticket message</b>
+                <div style="margin-top:6px" id="ticketMessage">Show this QR at the gate to check in.</div>
+              </div>
             </div>
-            <div class="right">
-              <button class="btn danger sm" id="btnSignout" style="display:none">Logout</button>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- PROFILE -->
+      <section id="page-profile" class="page">
+        <div class="card" style="padding:16px">
+          <div class="sectionTitle">
+            <div>
+              <h1>Profile</h1>
+              <p>Manage your account.</p>
             </div>
+          </div>
+
+          <div id="profileGate" class="hint" style="display:none">
+            You need to sign in to view your profile.
+            <div style="margin-top:10px">
+              <button class="btn primary sm" id="btnGoAuthProfile">Sign in</button>
+            </div>
+          </div>
+
+          <div id="profileBody" style="display:none">
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+              <div class="logoMark" style="width:54px;height:54px;border-radius:20px">
+                <span style="font-weight:1000" id="profileInitials">LU</span>
+              </div>
+              <div>
+                <div style="font-weight:1000;font-size:16px" id="profileName">—</div>
+                <div class="small" id="profileEmail">—</div>
+              </div>
+              <div class="right">
+                <button class="btn danger sm" id="btnSignout" style="display:none">Logout</button>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+            <div class="small" id="profileHint">—</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AUTH -->
+      <section id="page-auth" class="page">
+        <div class="card authCard">
+          <div class="sectionTitle">
+            <div>
+              <h1 id="authTitle">Sign in</h1>
+              <p id="authSub">Continue to buy and access your tickets.</p>
+            </div>
+          </div>
+
+          <div class="tabs">
+            <div class="tabBtn active" data-auth="signin">Sign in</div>
+            <div class="tabBtn" data-auth="signup">Sign up</div>
+            <div class="tabBtn" data-auth="forgot">Forgot</div>
+          </div>
+
+          <div id="auth-signin" class="authGrid">
+            <form id="form-signin">
+              <div>
+                <label>Email</label>
+                <input type="email" id="signin-email" autocomplete="email" required>
+              </div>
+              <div>
+                <label>Password</label>
+                <input type="password" id="signin-pass" autocomplete="current-password" required>
+              </div>
+              <button class="btn primary" type="submit">Sign in</button>
+              <div class="center small">
+                No account? <a class="link" href="#/auth?tab=signup">Create one</a>
+              </div>
+            </form>
+          </div>
+
+          <div id="auth-signup" class="authGrid" style="display:none">
+            <form id="form-signup">
+              <div>
+                <label>Full name</label>
+                <input type="text" id="signup-name" autocomplete="name" required>
+              </div>
+              <div>
+                <label>Email</label>
+                <input type="email" id="signup-email" autocomplete="email" required>
+              </div>
+              <div>
+                <label>Password</label>
+                <input type="password" id="signup-pass" autocomplete="new-password" required>
+              </div>
+              <button class="btn primary" type="submit">Create account</button>
+              <div class="center small">
+                Already have an account? <a class="link" href="#/auth?tab=signin">Sign in</a>
+              </div>
+            </form>
+          </div>
+
+          <div id="auth-forgot" class="authGrid" style="display:none">
+            <form id="form-forgot">
+              <div>
+                <label>Email</label>
+                <input type="email" id="forgot-email" autocomplete="email" required>
+              </div>
+              <button class="btn primary" type="submit">Send reset link</button>
+              <div class="center small">
+                Back to <a class="link" href="#/auth?tab=signin">Sign in</a>
+              </div>
+            </form>
           </div>
 
           <div class="hr"></div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-            <a class="btn sm" id="btnSupport" href="#" target="_blank" rel="noopener">Support</a>
+          <div class="small" style="color:var(--muted)">
+            By continuing, you agree to show a <b>live ticket</b> at entry. Screenshots will be rejected.
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- AUTH (full page) -->
-    <section id="page-auth" class="page">
-      <div class="card authCard">
-        <div class="sectionTitle">
-          <div>
-            <h1 id="authTitle">Sign in</h1>
-            <p id="authSub">Continue to buy and access your tickets.</p>
-          </div>
-        </div>
-
-        <div class="tabs">
-          <div class="tabBtn active" data-auth="signin">Sign in</div>
-          <div class="tabBtn" data-auth="signup">Sign up</div>
-          <div class="tabBtn" data-auth="forgot">Forgot</div>
-        </div>
-
-        <div id="auth-signin" class="authGrid">
-          <form id="form-signin">
-            <div>
-              <label>Email</label>
-              <input type="email" id="signin-email" autocomplete="email" required>
-            </div>
-            <div>
-              <label>Password</label>
-              <input type="password" id="signin-pass" autocomplete="current-password" required>
-            </div>
-            <button class="btn primary" type="submit">Sign in</button>
-            <div class="center small">
-              No account? <a class="link" href="#/auth?tab=signup">Create one</a>
-            </div>
-          </form>
-        </div>
-
-        <div id="auth-signup" class="authGrid" style="display:none">
-          <form id="form-signup">
-            <div>
-              <label>Full name</label>
-              <input type="text" id="signup-name" autocomplete="name" required>
-            </div>
-            <div>
-              <label>Email</label>
-              <input type="email" id="signup-email" autocomplete="email" required>
-            </div>
-            <div>
-              <label>Password</label>
-              <input type="password" id="signup-pass" autocomplete="new-password" required>
-            </div>
-            <button class="btn primary" type="submit">Create account</button>
-            <div class="center small">
-              Already have an account? <a class="link" href="#/auth?tab=signin">Sign in</a>
-            </div>
-          </form>
-        </div>
-
-        <div id="auth-forgot" class="authGrid" style="display:none">
-          <form id="form-forgot">
-            <div>
-              <label>Email</label>
-              <input type="email" id="forgot-email" autocomplete="email" required>
-            </div>
-            <button class="btn primary" type="submit">Send reset link</button>
-            <div class="center small">
-              Back to <a class="link" href="#/auth?tab=signin">Sign in</a>
-            </div>
-          </form>
-        </div>
-
-        <div class="hr"></div>
-        <div class="small muted">
-          By continuing, you agree to show a <b>live ticket</b> at entry. Screenshots will be rejected.
-        </div>
-      </div>
-    </section>
-
-    <footer>Powered by Luma • <span id="year"></span></footer>
-  </div>
+      <footer>Powered by Luma • <span id="year"></span></footer>
     </div>
   </div>
-<!-- QR generator (fallback loader) -->
-<script>
-(function(){
-  const urls = [
-    "https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js",
-    "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js",
-    "https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"
-  ];
-
-  function load(i){
-    if (window.QRCode) return; // already available
-    if (i >= urls.length) return;
-    const s = document.createElement("script");
-    s.src = urls[i];
-    s.async = true;
-    s.onload = ()=>{/* loaded */};
-    s.onerror = ()=>load(i+1);
-    document.head.appendChild(s);
-  }
-
-  load(0);
-})();
-</script>
+</div>
 
 <script type="module">
 /* ============================================================
-   Luma Tickets — customer.html (Production-style)
-   Changes applied from your checklist:
-   ✅ (1) Browse events without login (login only needed on Buy / My Tickets / Profile)
-   ✅ (2) Event opens a full page (no modal)
-   ✅ (3) Maps link as button or venue hyperlink
-   ✅ (4) Removed On Sale badge/label from UI
-   ✅ (5) Removed “Available right now” note
-   ✅ (6) Waves are NOT dropdowns: wave blocks + tier rows with price + quantity stepper
-   ✅ (7) Don’t show “how many left”
-   ✅ (8) Removed weird extra price pills + sold-out counts
-   ✅ (9) Profile name displays from customers/{uid}.name (fallback to displayName)
-   ✅ (10) No account status badge/tab
-   ✅ (11) Handles lots of tickets: list + open each ticket by ticketId
-   ✅ (12) Removed stray “-” by hiding empty badges
-   ✅ (13) Real QR is rendered (using qrcode lib)
-   ✅ (14) Receipt opens receiptUrl only (not location)
-   ✅ (15)(16) Marketplace + ticket flow styled like ticket apps refs (cards, full pages)
+   customer.html (REBUILT)
+   - Uses your event schema (bannerUrl, design{...}, tiers[{rules,color}], waves[{pricing,qty,sold,tiersActive}], ownerLogoUrl, locationText, etc.)
+   - Fixes the "orderId is not defined" purchase bug by creating an order first and using its id.
+   - Avoids the previous Firestore Listen 400 by removing the "status in [...]" query (we only query published==true).
+   - Purchases run in a Firestore transaction to safely update waves[].sold counts.
    ============================================================ */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
@@ -885,33 +782,30 @@ import {
 import {
   getFirestore,
   doc, getDoc, setDoc, addDoc, collection,
-  query, where, onSnapshot, serverTimestamp, limit
+  query, where, onSnapshot, serverTimestamp, limit,
+  runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 /* =========================
    1) PASTE YOUR FIREBASE CONFIG
+   NOTE: storageBucket should usually be "<project-id>.appspot.com"
+   Example: "events-339ce.appspot.com"
    ========================= */
 const firebaseConfig = {
-  apiKey:"AIzaSyA80bAAGPuyscnTVS-zwrxE9Jp3tPiS1gM",
-    authDomain:"events-339ce.firebaseapp.com",
-    databaseURL:"https://events-339ce-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId:"events-339ce",
-    storageBucket:"events-339ce.firebasestorage.app",
-    messagingSenderId:"175601544315",
-    appId:"1:175601544315:web:00c94b4affa972b3a286de"
+  apiKey: "PASTE_API_KEY",
+  authDomain: "PASTE_AUTH_DOMAIN",
+  projectId: "PASTE_PROJECT_ID",
+  storageBucket: "PASTE_STORAGE_BUCKET",
+  messagingSenderId: "PASTE_SENDER_ID",
+  appId: "PASTE_APP_ID",
 };
 
-const SUPPORT_URL = "https://your-support-link.example";
-const LUMA_LOGO_URL = ""; // TODO: paste your logo URL here (or keep blank for default icon)
 const DEFAULT_CURRENCY = "EGP";
-
-/* Visual rotating token seed (for usher scan).
-   For TRUE security: generate short-lived signed tokens server-side (Cloud Functions/back-end)
-   and verify at scan time. This front-end still rotates every 30s and is NOT screenshot-friendly. */
-const TOKEN_SALT = "LUMA_ROTATING_TICKET_V1";
+const LUMA_LOGO_URL = ""; // optional
+const TOKEN_SALT = "LUMA_ROTATING_TICKET_V2";
 const REFRESH_SEC = 30;
 
-/* ====== DOM helpers */
+/* ===== DOM */
 const $ = (q)=>document.querySelector(q);
 const $$ = (q)=>Array.from(document.querySelectorAll(q));
 
@@ -933,6 +827,14 @@ function toast(title, msg=""){
   wrap.appendChild(el);
   setTimeout(()=>{ if(el.isConnected) el.remove(); }, 5200);
 }
+function money(n, currency=DEFAULT_CURRENCY){
+  const v = Number(n||0);
+  try{ return new Intl.NumberFormat(undefined, { style:"currency", currency }).format(v); }
+  catch{ return `${v.toFixed(2)} ${currency}`; }
+}
+function safeId(prefix="id"){
+  return prefix + "_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+}
 function initials(nameOrEmail){
   const s = (nameOrEmail||"").trim();
   if(!s) return "LU";
@@ -943,11 +845,6 @@ function initials(nameOrEmail){
   }
   return (parts[0][0]||"U").toUpperCase() + (parts[parts.length-1][0]||"").toUpperCase();
 }
-function money(n, currency=DEFAULT_CURRENCY){
-  const v = Number(n||0);
-  try{ return new Intl.NumberFormat(undefined, { style:"currency", currency }).format(v); }
-  catch{ return `${v.toFixed(2)} ${currency}`; }
-}
 function parseISOish(s){
   if(!s) return null;
   const t = String(s).replace(" ", "T");
@@ -955,32 +852,15 @@ function parseISOish(s){
   return isNaN(d.getTime()) ? null : d;
 }
 function eventStartDate(ev){
-  if(ev?.startsAt?.toDate) return ev.startsAt.toDate();
-  if(ev?.startsAt){
-    const d = new Date(ev.startsAt);
-    if(!isNaN(d.getTime())) return d;
-  }
   const dateISO = ev?.dateISO || "";
   const time = ev?.time || "00:00";
   const d = parseISOish(`${dateISO}T${time}`);
   return d || null;
 }
-function fmtDate(dOrTs){
-  if(!dOrTs) return "—";
-  const d = dOrTs?.toDate ? dOrTs.toDate() : (dOrTs instanceof Date ? dOrTs : new Date(dOrTs));
-  if(isNaN(d.getTime())) return "—";
+function fmtDate(d){
+  if(!d || isNaN(d.getTime())) return "—";
   return d.toLocaleString(undefined, { weekday:"short", year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" });
 }
-
-function formatDateNice(dOrTs){
-  if(!dOrTs) return "—";
-  const d = dOrTs?.toDate ? dOrTs.toDate() : (dOrTs instanceof Date ? dOrTs : new Date(dOrTs));
-  if(isNaN(d.getTime())) return "—";
-  const day = d.getDate();
-  const suffix = (day%10===1 && day%100!==11) ? "st" : (day%10===2 && day%100!==12) ? "nd" : (day%10===3 && day%100!==13) ? "rd" : "th";
-  return d.toLocaleString(undefined, {month:"short"}) + " " + day + suffix + (d.getFullYear()!==new Date().getFullYear() ? (", "+d.getFullYear()) : "");
-}
-
 function dayKey(d){
   const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
   return x.getTime();
@@ -995,18 +875,15 @@ function inThisWeek(d){
   end.setDate(start.getDate() + 7);
   return d >= start && d < end;
 }
-function safeId(prefix="id"){
-  return prefix + "_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
-}
 function configLooksFilled(cfg){
-  return cfg && Object.values(cfg).filter(Boolean).length >= 4;
+  return cfg && Object.values(cfg).filter(v => String(v||"").startsWith("PASTE_")===false && String(v||"").trim()!=="").length >= 4;
 }
 
 /* ===== Firebase init */
 let app=null, auth=null, db=null;
 try{
   if(!configLooksFilled(firebaseConfig)){
-    toast("Firebase config missing", "Paste your firebaseConfig in the script.");
+    toast("Firebase config missing", "Paste your firebaseConfig inside the script (top of file).");
   }else{
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
@@ -1024,16 +901,17 @@ const STATE = {
   events: [],
   tickets: [],
   filter: { q:"", mode:"all", city:"" },
-  selected: {},         // { key: qty } where key = `${waveId}|${tierId}`
+  selected: {},            // key => qty, key = `${waveId}|${tierId}`
   activeEventId: null,
   activeTicketId: null,
   returnTo: "#/",
   unsubEvents: null,
   unsubTickets: null,
   qrTimer: null,
+  ticketOrder: [],         // ordered ticket ids for carousel nav
 };
 
-/* ===== Nav */
+/* ===== Pages */
 const NAV = {
   home: $("#page-home"),
   event: $("#page-event"),
@@ -1042,111 +920,109 @@ const NAV = {
   profile: $("#page-profile"),
   auth: $("#page-auth"),
 };
-
-function setActiveNav(hash){
-  $("#navHome")?.classList.toggle("active", hash.startsWith("#/") && (hash==="#/" || hash.startsWith("#/event")));
-  $("#navTickets")?.classList.toggle("active", hash.startsWith("#/tickets") || hash.startsWith("#/ticket"));
-  $("#navProfile")?.classList.toggle("active", hash.startsWith("#/profile"));
-}
 function showPage(name){
   Object.values(NAV).forEach(s=> s.classList.remove("active"));
   NAV[name].classList.add("active");
 }
+function setActiveNav(hash){
+  $("#navHome")?.classList.toggle("active", hash==="#/" || hash.startsWith("#/event"));
+  $("#navTickets")?.classList.toggle("active", hash.startsWith("#/tickets") || hash.startsWith("#/ticket"));
+  $("#navProfile")?.classList.toggle("active", hash.startsWith("#/profile"));
+}
 
-/* ===== Router */
+/* ===== Sidebar / mobile */
+function wireShell(){
+  $("#btnSideToggle").onclick = ()=> $("#sidebar")?.classList.toggle("collapsed");
+  $("#btnMobileMenu").onclick = ()=> $("#sidebar")?.classList.toggle("open");
+  const closeMobile = ()=> $("#sidebar")?.classList.remove("open");
+  $("#brandHome").onclick = ()=>{ closeMobile(); go("#/"); };
+  $("#brandHomeMobile").onclick = ()=>{ closeMobile(); go("#/"); };
+  $$("#navHome,#navTickets,#navProfile").forEach(n=>{
+    n.onclick = ()=>{ closeMobile(); go(n.dataset.nav); };
+  });
+}
+wireShell();
+
+/* ===== Router (no recursion / no stack overflow) */
 function parseHash(){
   const raw = location.hash || "#/";
   const [path, queryStr] = raw.split("?");
-  const parts = path.replace("#","").split("/").filter(Boolean); // e.g. ["event","id"]
+  const parts = path.replace("#","").split("/").filter(Boolean);
   const q = new URLSearchParams(queryStr||"");
   return { raw, parts, q };
 }
-
 function go(h){
   const cur = location.hash || "#/";
   if(cur === h) return;
   location.hash = h;
 }
-
-window.addEventListener("hashchange", route);
+window.addEventListener("hashchange", ()=> { route().catch(console.error); });
 
 async function route(){
   const { raw, parts, q } = parseHash();
   setActiveNav(raw);
 
-  // quick nav clicks
-  $$("#navHome,#navTickets,#navProfile").forEach(n=>{
-    n.onclick = ()=> go(n.dataset.nav);
-  });
   const root = parts[0] || "";
-
-  if(root === ""){ // "#/"
+  if(root === ""){
     showPage("home");
     $("#topSub").textContent = "Customer";
     $("#mobileSub").textContent = "Customer";
     renderEvents();
     return;
   }
-
   if(root === "event"){
-    const id = parts[1] || "";
+    const id = decodeURIComponent(parts[1]||"");
     STATE.activeEventId = id;
-    await renderEventPage(id);
     showPage("event");
     $("#topSub").textContent = "Event";
     $("#mobileSub").textContent = "Event";
+    await renderEventPage(id);
     return;
   }
-
   if(root === "tickets"){
+    showPage("tickets");
     $("#topSub").textContent = "My Tickets";
     $("#mobileSub").textContent = "My Tickets";
-    showPage("tickets");
     renderTicketsPage();
     return;
   }
-
   if(root === "ticket"){
-    const tid = parts[1] || "";
+    const tid = decodeURIComponent(parts[1]||"");
     STATE.activeTicketId = tid;
-    await renderTicketPage(tid);
     showPage("ticket");
     $("#topSub").textContent = "Ticket";
     $("#mobileSub").textContent = "Ticket";
+    await renderTicketPage(tid);
     return;
   }
-
   if(root === "profile"){
+    showPage("profile");
     $("#topSub").textContent = "Profile";
     $("#mobileSub").textContent = "Profile";
-    showPage("profile");
     renderProfilePage();
     return;
   }
-
   if(root === "auth"){
+    showPage("auth");
     $("#topSub").textContent = "Sign in";
     $("#mobileSub").textContent = "Sign in";
-    showPage("auth");
     const tab = (q.get("tab")||"signin").toLowerCase();
     setAuthTab(["signin","signup","forgot"].includes(tab)?tab:"signin");
     return;
   }
-
-  // fallback
   go("#/");
 }
 
-/* ===== Auth CTA button */
+/* ===== Auth button */
 function syncAuthButton(){
   const b = $("#btnAuth");
   if(STATE.user){
     b.textContent = "Sign out";
     b.classList.remove("ghost");
-    b.classList.add("btn");
     b.onclick = ()=> doSignout();
   }else{
     b.textContent = "Sign in";
+    b.classList.add("ghost");
     b.onclick = ()=>{
       STATE.returnTo = location.hash || "#/";
       go("#/auth?tab=signin");
@@ -1158,7 +1034,7 @@ async function doSignout(){
   catch(err){ toast("Sign out failed", err?.message||String(err)); }
 }
 
-/* ===== Customer profile ensure */
+/* ===== Customer profile */
 async function ensureCustomerProfile(user, nameHint=""){
   if(!db) return null;
   const ref = doc(db, "customers", user.uid);
@@ -1177,7 +1053,6 @@ function setAuthTab(tab){
   $("#auth-forgot").style.display = tab==="forgot" ? "grid" : "none";
   $("#authTitle").textContent = tab==="signup" ? "Create account" : tab==="forgot" ? "Reset password" : "Sign in";
 }
-
 $$(".tabBtn").forEach(b=> b.addEventListener("click", ()=> go(`#/auth?tab=${b.dataset.auth}`)));
 
 $("#form-signup")?.addEventListener("submit", async (e)=>{
@@ -1227,31 +1102,28 @@ $("#form-forgot")?.addEventListener("submit", async (e)=>{
   }
 });
 
-/* ===== Data subscriptions */
+/* ===== Subscriptions */
 function subscribeEvents(){
   if(!db) return;
   STATE.unsubEvents?.();
-  const qy = query(
-    collection(db, "events"),
-    where("published", "==", true),
-    where("status", "in", ["Live", "On Sale"]), // filter on back-end, but we won't DISPLAY status
-    limit(300)
-  );
+
+  // Only query published==true (avoid "status in" Listen 400 / index issues).
+  const qy = query(collection(db, "events"), where("published","==", true), limit(500));
+
   STATE.unsubEvents = onSnapshot(qy, (snap)=>{
     const arr = [];
     snap.forEach(d=>{
-      const ev = d.data();
+      const ev = d.data() || {};
       ev.id = ev.id || d.id;
       arr.push(ev);
     });
     arr.sort((a,b)=> (eventStartDate(a)?.getTime()??0) - (eventStartDate(b)?.getTime()??0));
     STATE.events = arr;
     hydrateCityOptions();
-renderEvents();
+    renderEvents();
 
-    // If currently on event page, refresh it live
     const { parts } = parseHash();
-    if(parts[0]==="event" && parts[1]) renderEventPage(parts[1], true);
+    if(parts[0]==="event" && parts[1]) renderEventPage(decodeURIComponent(parts[1]), true);
   }, (err)=>{
     console.error(err);
     toast("Events load failed", err?.message || String(err));
@@ -1261,11 +1133,12 @@ renderEvents();
 function subscribeTickets(uid){
   if(!db || !uid) return;
   STATE.unsubTickets?.();
-  const qy = query(collection(db, "customers", uid, "tickets"), limit(400));
+
+  const qy = query(collection(db, "customers", uid, "tickets"), limit(600));
   STATE.unsubTickets = onSnapshot(qy, (snap)=>{
     const arr = [];
     snap.forEach(d=>{
-      const t = d.data();
+      const t = d.data() || {};
       t.id = t.id || d.id;
       arr.push(t);
     });
@@ -1275,18 +1148,20 @@ function subscribeTickets(uid){
       return tb - ta;
     });
     STATE.tickets = arr;
+    STATE.ticketOrder = arr.map(x=>x.id);
     $("#ticketsCount").textContent = String(arr.length);
     $("#myTicketsNum").textContent = String(arr.length);
 
     const { parts } = parseHash();
     if(parts[0]==="tickets") renderTicketsPage();
-    if(parts[0]==="ticket" && parts[1]) renderTicketPage(parts[1], true);
+    if(parts[0]==="ticket" && parts[1]) renderTicketPage(decodeURIComponent(parts[1]), true);
   }, (err)=>{
     console.error(err);
     toast("Tickets load failed", err?.message || String(err));
   });
 }
 
+/* ===== Marketplace filters */
 function hydrateCityOptions(){
   const sel = $("#city");
   const cur = sel.value || "";
@@ -1294,8 +1169,6 @@ function hydrateCityOptions(){
   sel.innerHTML = `<option value="">All cities</option>` + cities.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
   sel.value = cities.includes(cur) ? cur : "";
 }
-
-/* ===== Marketplace render */
 $("#q").addEventListener("input", ()=>{
   STATE.filter.q = $("#q").value.trim().toLowerCase();
   renderEvents();
@@ -1323,6 +1196,9 @@ function renderEvents(){
 
   const now = new Date();
   const filtered = STATE.events.filter(ev=>{
+    // If you want only On Sale/Live, uncomment:
+    // if(!["On Sale","Live"].includes(ev.status||"")) return false;
+
     const name = (ev.name||"").toLowerCase();
     const venue = (ev.venue||"").toLowerCase();
     const cty = (ev.city||"").toLowerCase();
@@ -1353,15 +1229,13 @@ function renderEvents(){
         </div>
       </div>
       <div class="eBody">
-        <div class="eTitle">
-          <b>${escapeHtml(ev.name || "Untitled event")}</b>
-        </div>
+        <div class="eTitle"><b>${escapeHtml(ev.name || "Untitled event")}</b></div>
         <div class="eMeta">
           <div class="row">📅 <span>${escapeHtml(fmtDate(start))}</span></div>
           <div class="row">📍 <span>${escapeHtml(place)}</span></div>
         </div>
         <div class="kbar">
-          <span class="badge info">View details</span>
+          <span class="badge">View details</span>
         </div>
       </div>
     `;
@@ -1377,6 +1251,15 @@ function getEventById(id){
   return STATE.events.find(e=> (e.id||"")===id) || null;
 }
 
+function applyEventDesign(ev){
+  const d = ev?.design || {};
+  if(d.primary) document.documentElement.style.setProperty("--accent", d.primary);
+  if(d.accent) document.documentElement.style.setProperty("--good", d.accent);
+  if(d.textColor) document.documentElement.style.setProperty("--ink", d.textColor);
+  if(d.fontFamily) document.documentElement.style.setProperty("--font", d.fontFamily);
+  // optional bgUrl could be applied if you want (left as-is to keep clean).
+}
+
 async function renderEventPage(eventId, silent=false){
   const ev = getEventById(eventId);
   if(!ev){
@@ -1386,10 +1269,7 @@ async function renderEventPage(eventId, silent=false){
     return;
   }
 
-  // Apply event design if present
-  if(ev.design?.primary) document.documentElement.style.setProperty("--accent", ev.design.primary);
-  if(ev.design?.accent) document.documentElement.style.setProperty("--good", ev.design.accent);
-  if(ev.design?.fontFamily) document.documentElement.style.setProperty("--font", ev.design.fontFamily);
+  applyEventDesign(ev);
 
   const start = eventStartDate(ev);
   $("#eventBreadcrumb").textContent = ev.name || "Event";
@@ -1397,48 +1277,65 @@ async function renderEventPage(eventId, silent=false){
   $("#eventSub").textContent = [ev.venue||"", ev.city||""].filter(Boolean).join(" • ") || "—";
   $("#eventDate").innerHTML = `<strong>${escapeHtml(fmtDate(start))}</strong>`;
 
-  // banner
+  // Banner
   $("#eventBanner").innerHTML = ev.bannerUrl ? `<img src="${escapeHtml(ev.bannerUrl)}" alt="">` : "";
+  $("#eventOverlay").style.display = "flex";
 
-  // map / venue
+  // Owner logo (eventOwner logo)
+  const ownerWrap = $("#ownerLogoWrap");
+  if(ev.ownerLogoUrl){
+    ownerWrap.style.display = "grid";
+    ownerWrap.innerHTML = `<img src="${escapeHtml(ev.ownerLogoUrl)}" alt="">`;
+  }else{
+    ownerWrap.style.display = "none";
+    ownerWrap.innerHTML = "";
+  }
+
+  // Map link
   const venueLink = $("#eventVenueLink");
-  if(ev.locationUrl || ev.locationText){
+  const mapsUrl = ev.locationUrl || ev.locationText || "";
+  if(mapsUrl){
     venueLink.style.display = "inline-flex";
-    venueLink.href = (ev.locationUrl || ev.locationText);
+    venueLink.href = mapsUrl;
   }else{
     venueLink.style.display = "none";
   }
 
-  // Total label
-  $("#eventTotal").textContent = "Tickets";
+  // Description
+  const desc = ev.description || ev.desc || "";
+  if(desc){
+    $("#eventDescWrap").style.display = "block";
+    $("#eventDesc").textContent = desc;
+  }else{
+    $("#eventDescWrap").style.display = "none";
+  }
 
-  // Build wave blocks as lists (NO dropdown)
+  // Waves + tiers
   const tiers = Array.isArray(ev.tiers) ? ev.tiers : [];
   const waves = Array.isArray(ev.waves) ? ev.waves : [];
   const currency = ev.currency || DEFAULT_CURRENCY;
 
-  const wavesArea = $("#wavesArea");
-  wavesArea.innerHTML = "";
+  $("#eventTotal").textContent = "Tickets";
+  $("#wavesArea").innerHTML = "";
   STATE.selected = {};
 
   for(const w of waves){
-    const block = document.createElement("div");
-    block.className = "waveBlock";
-
     const activeIds = Array.isArray(w.tiersActive) && w.tiersActive.length ? w.tiersActive : tiers.map(t=>t.id);
     const waveTiers = tiers.filter(t=> activeIds.includes(t.id));
 
+    const block = document.createElement("div");
+    block.className = "waveBlock";
     block.innerHTML = `
       <div class="waveTitle">
         <b>${escapeHtml(w.name || w.id || "Wave")}</b>
-        <span class="small muted">${escapeHtml(waveTiers.length ? `${waveTiers.length} tiers` : "No tiers")}</span>
+        <span class="small" style="color:var(--muted)">${escapeHtml(waveTiers.length ? `${waveTiers.length} tiers` : "No tiers")}</span>
       </div>
 
       <table class="table">
         <thead>
           <tr>
-            <th style="width:50%">Ticket</th>
-            <th style="width:25%">Price</th>
+            <th style="width:55%">Ticket</th>
+            <th style="width:20%">Price</th>
             <th style="width:25%;text-align:right">Qty</th>
           </tr>
         </thead>
@@ -1446,9 +1343,21 @@ async function renderEventPage(eventId, silent=false){
           ${waveTiers.map(t=>{
             const price = (w.pricing && (t.id in w.pricing)) ? Number(w.pricing[t.id]) : 0;
             const key = `${w.id||""}|${t.id}`;
+            const swatch = t.color || "#5e5e5e";
+            const tierDesc = (t.desc||"").trim();
+            const rules = Array.isArray(t.rules) ? t.rules.filter(Boolean) : [];
             return `
               <tr data-key="${escapeHtml(key)}" data-wave="${escapeHtml(w.id||"")}" data-tier="${escapeHtml(t.id)}">
-                <td data-label="Ticket"><b>${escapeHtml(t.name || t.id)}</b></td>
+                <td data-label="Ticket">
+                  <div class="tierMeta">
+                    <span class="tierSwatch" style="background:${escapeHtml(swatch)}"></span>
+                    <div>
+                      <b>${escapeHtml(t.name || t.id)}</b>
+                      ${tierDesc ? `<div class="small" style="margin-top:2px">${escapeHtml(tierDesc)}</div>` : ``}
+                      ${rules.length ? `<ul class="rules">${rules.map(r=>`<li>${escapeHtml(r)}</li>`).join("")}</ul>` : ``}
+                    </div>
+                  </div>
+                </td>
                 <td data-label="Price"><b>${escapeHtml(money(price, currency))}</b></td>
                 <td data-label="Qty">
                   <div class="qty">
@@ -1471,28 +1380,26 @@ async function renderEventPage(eventId, silent=false){
       const inc = row.querySelector('[data-act="inc"]');
       const dec = row.querySelector('[data-act="dec"]');
 
-      function setVal(v){
+      const setVal = (v)=>{
         const n = Math.max(0, Math.floor(Number(v||0)));
         inp.value = String(n);
         if(n>0) STATE.selected[key] = n;
         else delete STATE.selected[key];
         updateCheckoutSummary(ev);
-      }
+      };
+
       inc.addEventListener("click", ()=> setVal(Number(inp.value||0)+1));
       dec.addEventListener("click", ()=> setVal(Number(inp.value||0)-1));
       inp.addEventListener("input", ()=> setVal(inp.value));
     });
 
-    wavesArea.appendChild(block);
+    $("#wavesArea").appendChild(block);
   }
 
   updateCheckoutSummary(ev);
 
-  // Buy
   $("#btnCheckout").onclick = async ()=>{
-    if(Object.keys(STATE.selected).length===0){
-      return toast("Select tickets", "Choose quantities before buying.");
-    }
+    if(Object.keys(STATE.selected).length===0) return toast("Select tickets", "Choose quantities before buying.");
     if(!STATE.user){
       STATE.returnTo = `#/event/${encodeURIComponent(ev.id)}`;
       return go("#/auth?tab=signin");
@@ -1512,7 +1419,6 @@ function updateCheckoutSummary(ev){
   for(const [key, qty] of Object.entries(STATE.selected)){
     const [waveId, tierId] = key.split("|");
     const w = waves.find(x=> (x.id||"")===waveId);
-    const t = tiers.find(x=> x.id===tierId);
     const price = (w?.pricing && (tierId in w.pricing)) ? Number(w.pricing[tierId]) : 0;
     count += qty;
     total += price * qty;
@@ -1520,80 +1426,141 @@ function updateCheckoutSummary(ev){
 
   $("#selCount").textContent = `${count} selected`;
   $("#selTotal").textContent = `Total: ${money(total, currency)}`;
-  $("#eventTotal").textContent = `Tickets`;
   $("#checkoutNote").textContent = !STATE.user
     ? "You can browse without an account. Sign in only when you're ready to buy."
     : "";
 }
 
-/* ===== Purchase */
+/* ===== Purchase (transaction: update waves[].sold + create order + create tickets) */
 async function purchaseSelected(ev){
   if(!db || !STATE.user) return;
 
-  const tiers = Array.isArray(ev.tiers) ? ev.tiers : [];
-  const waves = Array.isArray(ev.waves) ? ev.waves : [];
+  const uid = STATE.user.uid;
   const currency = ev.currency || DEFAULT_CURRENCY;
 
+  const selectedLines = Object.entries(STATE.selected).map(([key, qty])=>{
+    const [waveId, tierId] = key.split("|");
+    return { waveId, tierId, qty: Number(qty||0) };
+  }).filter(x=>x.qty>0);
+
+  if(selectedLines.length===0) return;
+
+  $("#btnCheckout").disabled = true;
+
   try{
-    $("#btnCheckout").disabled = true;
+    const eventRef = doc(db, "events", ev.id);
 
-    const start = eventStartDate(ev);
-    const startsISO = (start && !isNaN(start.getTime())) ? start.toISOString() : (ev.dateISO ? `${ev.dateISO}T${ev.time||"00:00"}` : "");
+    // Run in transaction for stock safety.
+    const result = await runTransaction(db, async (tx)=>{
+      const snap = await tx.get(eventRef);
+      if(!snap.exists()) throw new Error("Event no longer exists.");
+      const liveEv = snap.data() || {};
+      const waves = Array.isArray(liveEv.waves) ? JSON.parse(JSON.stringify(liveEv.waves)) : [];
+      const tiers = Array.isArray(liveEv.tiers) ? JSON.parse(JSON.stringify(liveEv.tiers)) : [];
 
-    // Create ONE ticket doc per selected tier (so user can open each ticket easily).
-    for(const [key, qty] of Object.entries(STATE.selected)){
-      const [waveId, tierId] = key.split("|");
-      const w = waves.find(x=> (x.id||"")===waveId);
-      const t = tiers.find(x=> x.id===tierId);
-      if(!w || !t || qty<=0) continue;
+      // Check availability by reading qty & sold maps
+      const priceLines = [];
+      for(const line of selectedLines){
+        const w = waves.find(x => (x.id||"") === line.waveId);
+        const t = tiers.find(x => (x.id||"") === line.tierId);
+        if(!w || !t) throw new Error("Ticket type not found.");
+        const qtyMap = w.qty || {};
+        const soldMap = w.sold || {};
+        const maxQty = Number(qtyMap[line.tierId] ?? 0);
+        const sold = Number(soldMap[line.tierId] ?? 0);
+        const remaining = maxQty - sold;
+        if(line.qty > remaining){
+          throw new Error(`${t.name || "Tier"} in ${w.name || w.id || "Wave"} is sold out (or not enough left).`);
+        }
+        const unitPrice = Number((w.pricing && (line.tierId in w.pricing)) ? w.pricing[line.tierId] : 0);
+        priceLines.push({ ...line, tierName: t.name||t.id, waveName: w.name||w.id, unitPrice });
+      }
 
-      const unitPrice = (w.pricing && (tierId in w.pricing)) ? Number(w.pricing[tierId]) : 0;
-      const total = unitPrice * qty;
+      // Apply sold increments
+      for(const pl of priceLines){
+        const w = waves.find(x => (x.id||"") === pl.waveId);
+        w.sold = w.sold || {};
+        w.sold[pl.tierId] = Number(w.sold[pl.tierId] ?? 0) + pl.qty;
+      }
 
-      const ticketId = safeId("tkt");
-      const ticketDoc = {
+      // Create order (event scoped)
+      const orderRef = doc(collection(db, "events", ev.id, "orders"));
+      const orderId = orderRef.id;
+
+      const totalAmount = priceLines.reduce((s, x)=> s + (x.unitPrice * x.qty), 0);
+
+      tx.set(orderRef, {
         orderId,
-        purchaseAtISO: new Date().toISOString(),
+        uid,
         eventId: ev.id,
-        eventName: ev.name || "Event",
-        venue: ev.venue || "",
-        city: ev.city || "",
-        locationUrl: ev.locationUrl || ev.locationText || "",
-        startsAtISO: startsISO,
-        bannerUrl: ev.bannerUrl || "",
-        logoUrl: ev.logoUrl || "",
-        tierId: t.id,
-        tierName: t.name || t.id,
-        ticketType: `${qty}x ${(w.name||w.id||"")} ${(t.name||t.id)}`.trim(),
-        waveId: w.id || "",
-        waveName: w.name || "",
-        qty,
-        unitPrice,
-        currency,
-        total,
-        amountPaid: total,
+        eventName: liveEv.name || ev.name || "Event",
         status: "paid",
+        currency,
+        amountPaid: totalAmount,
+        lines: priceLines.map(x=>({
+          waveId: x.waveId,
+          waveName: x.waveName,
+          tierId: x.tierId,
+          tierName: x.tierName,
+          qty: x.qty,
+          unitPrice: x.unitPrice,
+          total: x.unitPrice * x.qty
+        })),
         createdAt: serverTimestamp(),
-        receiptUrl: "" // You can set this when you implement receipts
-      };
+      }, { merge:true });
 
-      await setDoc(doc(db, "customers", STATE.user.uid, "tickets", ticketId), ticketDoc, { merge:true });
+      // Create tickets (one doc per line)
+      const starts = eventStartDate(liveEv) || eventStartDate(ev);
+      const startsAtISO = starts ? starts.toISOString() : (liveEv.dateISO ? `${liveEv.dateISO}T${liveEv.time||"00:00"}` : "");
 
-      // Optional mirror
-      await addDoc(collection(db, "events", ev.id, "orders"), {
-        orderId,
-        uid: STATE.user.uid,
-        ticketId,
-        tierId: t.id,
-        waveId: w.id || "",
-        qty,
-        unitPrice,
-        currency,
-        total,
-        status: "paid",
-        createdAt: serverTimestamp()
-      });
-    }
+      const ticketIds = [];
+      for(const pl of priceLines){
+        const ticketId = safeId("tkt");
+        ticketIds.push(ticketId);
+
+        const ticketRef = doc(db, "customers", uid, "tickets", ticketId);
+        tx.set(ticketRef, {
+          ticketId,
+          orderId,
+          uid,
+          status: "paid",
+          createdAt: serverTimestamp(),
+          purchaseAtISO: new Date().toISOString(),
+
+          // event snapshot
+          eventId: ev.id,
+          eventName: liveEv.name || ev.name || "Event",
+          venue: liveEv.venue || ev.venue || "",
+          city: liveEv.city || ev.city || "",
+          locationUrl: liveEv.locationUrl || liveEv.locationText || ev.locationUrl || ev.locationText || "",
+          startsAtISO,
+          bannerUrl: liveEv.bannerUrl || ev.bannerUrl || "",
+          logoUrl: liveEv.logoUrl || ev.logoUrl || "",
+          ownerLogoUrl: liveEv.ownerLogoUrl || ev.ownerLogoUrl || "",
+          receiptMode: liveEv.receiptMode || ev.receiptMode || "internal",
+          receiptUrl: liveEv.receiptUrl || ev.receiptUrl || "",
+
+          // design snapshot for ticket message
+          design: liveEv.design || ev.design || {},
+
+          // line info
+          waveId: pl.waveId,
+          waveName: pl.waveName,
+          tierId: pl.tierId,
+          tierName: pl.tierName,
+          qty: pl.qty,
+          unitPrice: pl.unitPrice,
+          currency,
+          total: pl.unitPrice * pl.qty,
+          amountPaid: pl.unitPrice * pl.qty,
+        }, { merge:true });
+      }
+
+      // Update event waves (sold)
+      tx.update(eventRef, { waves });
+
+      return { orderId, ticketIds };
+    });
 
     toast("Purchase complete", "Your tickets are now in My Tickets.");
     go("#/tickets");
@@ -1605,11 +1572,12 @@ async function purchaseSelected(ev){
   }
 }
 
-/* ===== Tickets page */
+/* ===== Tickets list */
 $("#btnGoAuthTickets").addEventListener("click", ()=>{
   STATE.returnTo = "#/tickets";
   go("#/auth?tab=signin");
 });
+$("#btnBackTickets").addEventListener("click", ()=> history.back());
 
 function renderTicketsPage(){
   const gate = $("#ticketsGate");
@@ -1625,33 +1593,32 @@ function renderTicketsPage(){
 
   gate.style.display = "none";
   grid.innerHTML = "";
-
   empty.style.display = STATE.tickets.length ? "none" : "block";
 
   for(const t of STATE.tickets){
-    const start = t.startsAt?.toDate ? t.startsAt.toDate() : (t.startsAtISO ? parseISOish(t.startsAtISO) : eventStartDate(t));
+    const start = t.startsAtISO ? new Date(t.startsAtISO) : (t.dateISO ? parseISOish(`${t.dateISO}T${t.time||"00:00"}`) : null);
     const place = [t.venue||"", t.city||""].filter(Boolean).join(" • ") || "—";
+
     const el = document.createElement("div");
     el.className = "ticketCard";
     el.innerHTML = `
       <div class="banner">
         ${t.bannerUrl ? `<img src="${escapeHtml(t.bannerUrl)}" alt="">` : ``}
         <div class="eLogo">
-          ${t.logoUrl ? `<img src="${escapeHtml(t.logoUrl)}" alt="">` : `<span style="font-weight:1000">T</span>`}
+          ${t.logoUrl ? `<img src="${escapeHtml(t.logoUrl)}" alt="">` : `<span style="font-weight:1000">L</span>`}
         </div>
       </div>
       <div class="eBody">
         <div class="eTitle">
           <b>${escapeHtml(t.eventName || "Event")}</b>
-          <span class="badge ok">Paid</span>
+          <span class="badge" style="border-color:rgba(124,58,237,.35);background:rgba(124,58,237,.10)">${escapeHtml(t.tierName || "Ticket")}</span>
         </div>
         <div class="eMeta">
           <div class="row">📅 <span>${escapeHtml(fmtDate(start))}</span></div>
           <div class="row">📍 <span>${escapeHtml(place)}</span></div>
-          <div class="row">🎟️ <span>${escapeHtml(t.tierName||"—")}${t.waveName?` • ${escapeHtml(t.waveName)}`:""} • Qty ${escapeHtml(String(t.qty||1))}</span></div>
         </div>
         <div class="kbar">
-          <span class="badge info">Open ticket</span>
+          <span class="badge">Open ticket</span>
         </div>
       </div>
     `;
@@ -1660,327 +1627,175 @@ function renderTicketsPage(){
   }
 }
 
-/* ===== Ticket page */
-$("#btnBackTickets").addEventListener("click", ()=> history.back());
-
-
-
-/* ===== Live QR (rotating, no countdown UI) */
-let _qrInterval = null;
-async function sha256Hex(str){
-  const buf = new TextEncoder().encode(str);
-  const hash = await crypto.subtle.digest("SHA-256", buf);
-  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,"0")).join("");
-}
+/* ===== Ticket page (live QR rotation) */
 function stopQr(){
-  if(_qrInterval){ clearInterval(_qrInterval); _qrInterval = null; }
-  // clear any canvases we used
-  $$("#ticketQr canvas").forEach(c=>{
-    const ctx = c.getContext("2d");
-    if(ctx) ctx.clearRect(0,0,c.width,c.height);
-  });
+  if(STATE.qrTimer){ clearInterval(STATE.qrTimer); STATE.qrTimer = null; }
 }
-async function startQr(ticket, canvasId){
-  try{
-    const canvas = document.getElementById(canvasId);
-    if(!canvas) return;
-    const renderOnce = async ()=>{
-      const epoch = Math.floor(Date.now()/1000/REFRESH_SEC)*REFRESH_SEC; // snap to window
-      const base = `${ticket.id}|${STATE.user?.uid||"anon"}|${ticket.orderId||""}|${epoch}|${TOKEN_SALT}`;
-      const token = await sha256Hex(base);
-      const payload = JSON.stringify({ t: ticket.id, o: ticket.orderId||"", u: (STATE.user?.uid||""), e: epoch, sig: token });
-      if(window.QRCode && typeof window.QRCode.toCanvas === "function"){
-        await window.QRCode.toCanvas(canvas, payload, { width: 240, margin: 1, errorCorrectionLevel: "M" });
-      }else{
-        // fallback: show text if QR lib failed
-        const ctx = canvas.getContext("2d");
-        canvas.width = 240; canvas.height = 240;
-        ctx.clearRect(0,0,240,240);
-        ctx.fillStyle = "#111827";
-        ctx.fillRect(0,0,240,240);
-        ctx.fillStyle = "#f8fafc";
-        ctx.font = "12px Montserrat, system-ui";
-        ctx.fillText("QR library not loaded", 24, 120);
-      }
-    };
-    await renderOnce();
-    if(_qrInterval) clearInterval(_qrInterval);
-    _qrInterval = setInterval(renderOnce, REFRESH_SEC*1000);
-  }catch(err){
-    console.error("startQr error", err);
-  }
+async function sha256Hex(str){
+  const enc = new TextEncoder().encode(str);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
 }
-function getTicketById(id){
-  return STATE.tickets.find(t=> (t.id||"")===id) || null;
+function bucket30s(){
+  return Math.floor(Date.now() / (REFRESH_SEC*1000));
 }
 
 async function renderTicketPage(ticketId, silent=false){
   stopQr();
 
   if(!STATE.user){
-    if(!silent) toast("Sign in required", "Please sign in to view your ticket.");
+    if(!silent) toast("Sign in required", "Please sign in to view tickets.");
     STATE.returnTo = `#/ticket/${encodeURIComponent(ticketId)}`;
     go("#/auth?tab=signin");
     return;
   }
 
-  const t0 = getTicketById(ticketId);
-  if(!t0){
-    if(!silent) toast("Loading ticket", "If this persists, refresh.");
+  const t = STATE.tickets.find(x=>x.id===ticketId);
+  if(!t){
+    if(!silent) toast("Ticket not found", "It may have been removed.");
+    $("#tEventName").textContent = "Ticket not found";
     return;
   }
 
-  const orderId = t0.orderId || "";
-  const group = orderId ? STATE.tickets.filter(x=> (x.orderId||"")===orderId) : [t0];
-  const idx0 = Math.max(0, group.findIndex(x=> (x.id||"")===ticketId));
+  // ticket nav
+  const idx = Math.max(0, STATE.ticketOrder.indexOf(ticketId));
+  $("#ticketPos").textContent = `${idx+1} / ${Math.max(1, STATE.ticketOrder.length)}`;
+  $("#btnPrevTicket").disabled = idx<=0;
+  $("#btnNextTicket").disabled = idx>=STATE.ticketOrder.length-1;
+  $("#btnPrevTicket").onclick = ()=>{ if(idx>0) go(`#/ticket/${encodeURIComponent(STATE.ticketOrder[idx-1])}`); };
+  $("#btnNextTicket").onclick = ()=>{ if(idx<STATE.ticketOrder.length-1) go(`#/ticket/${encodeURIComponent(STATE.ticketOrder[idx+1])}`); };
 
-  STATE.activeTicketId = ticketId;
-  STATE._ticketGroup = group;
-  STATE._ticketIdx = idx0;
-
-  renderTicketCarousel();
-}
-
-function renderTicketCarousel(){
-  const group = STATE._ticketGroup || [];
-  if(!group.length) return;
-
-  const idx = Math.max(0, Math.min(group.length-1, Number(STATE._ticketIdx||0)));
-  STATE._ticketIdx = idx;
-
-  const t = group[idx];
+  // apply design
+  applyEventDesign({ design: t.design || {} });
 
   $("#ticketBreadcrumb").textContent = t.eventName || "Ticket";
-  $("#ticketPos").textContent = `${idx+1} / ${group.length}`;
+  $("#tEventName").textContent = t.eventName || "Event";
+  $("#tTier").textContent = t.tierName || "Tier";
+  $("#tWave").textContent = t.waveName || "Wave";
+  $("#tQty").textContent = `${Number(t.qty||1)}x`;
 
-  const track = $("#ticketTrack");
-  track.innerHTML = "";
+  const metaLines = [];
+  const starts = t.startsAtISO ? new Date(t.startsAtISO) : null;
+  metaLines.push(`📅 ${fmtDate(starts)}`);
+  const place = [t.venue||"", t.city||""].filter(Boolean).join(" • ");
+  if(place) metaLines.push(`📍 ${place}`);
+  $("#tMeta").innerHTML = metaLines.map(x=>escapeHtml(x)).join("<br/>");
 
-  for(const tk of group){
-    const start = tk.startsAt?.toDate ? tk.startsAt.toDate() : (tk.startsAtISO ? parseISOish(tk.startsAtISO) : null);
-    const purchase = tk.createdAt?.toDate ? tk.createdAt.toDate() : (tk.purchaseAtISO ? parseISOish(tk.purchaseAtISO) : null);
-    const place = [tk.venue||"", tk.city||""].filter(Boolean).join(", ") || "—";
-    const ticketType = tk.ticketType || `${tk.qty||1}x ${tk.tierName||"—"}`;
+  // receipt
+  const receiptUrl = t.receiptUrl || "";
+  if(receiptUrl){
+    $("#receiptWrap").style.display = "block";
+    $("#btnReceipt").href = receiptUrl;
+  }else{
+    $("#receiptWrap").style.display = "none";
+  }
 
-    const slide = document.createElement("div");
-    slide.className = "tcSlide card";
-    slide.dataset.ticketId = tk.id;
+  // ticket message (design.emailText)
+  const emailText = (t.design && t.design.emailText) ? String(t.design.emailText) : "";
+  $("#ticketMessage").textContent = emailText || "Show this QR at the gate to check in.";
 
-    slide.innerHTML = `
-      <div class="eventPageBanner" style="height:220px">${tk.bannerUrl ? `<img src="${escapeHtml(tk.bannerUrl)}" alt="">` : ``}</div>
-      <div style="padding:16px">
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <span class="badge ok"><strong>Live Ticket</strong></span>
-          <span class="badge" style="font-family:var(--mono)"><strong>Ticket</strong> ${escapeHtml((tk.id||"").slice(-8).toUpperCase() || "—")}</span>
-        </div>
+  // QR rotate
+  const qrBox = $("#qrBox");
+  const renderOnce = async ()=>{
+    const bucket = bucket30s();
+    const sig = await sha256Hex(`${TOKEN_SALT}|${STATE.user.uid}|${t.ticketId||t.id}|${t.orderId||""}|${bucket}`);
+    const token = `${t.ticketId||t.id}.${bucket}.${sig.slice(0,24)}`;
+    $("#qrCodeText").textContent = token;
+    $("#qrCountdown").textContent = `Refreshes every ${REFRESH_SEC}s`;
 
-        <h2 class="eventName" style="margin-top:10px">${escapeHtml(tk.eventName || "Event")}</h2>
-
-        <div class="hr"></div>
-
-        <div class="card" style="padding:14px;background:rgba(255,255,255,.04);box-shadow:none">
-          <div style="display:grid;gap:10px">
-            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-              <div class="small muted">Order ID</div>
-              <div style="font-weight:1000">${escapeHtml(String(tk.orderId || "—"))}</div>
-            </div>
-            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-              <div class="small muted">Event Name</div>
-              <div style="font-weight:1000;text-align:right;max-width:70%">${escapeHtml(tk.eventName || "—")}</div>
-            </div>
-            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-              <div class="small muted">Venue</div>
-              <div style="font-weight:1000;text-align:right;max-width:70%">${escapeHtml(place)}</div>
-            </div>
-            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-              <div class="small muted">Ticket Type</div>
-              <div style="font-weight:1000;text-align:right;max-width:70%">${escapeHtml(ticketType)}</div>
-            </div>
-            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-              <div class="small muted">Event Date</div>
-              <div style="font-weight:1000;text-align:right">${escapeHtml(fmtDate(start))}</div>
-            </div>
-            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-              <div class="small muted">Purchase Date</div>
-              <div style="font-weight:1000;text-align:right">${escapeHtml(fmtDate(purchase))}</div>
-            </div>
-            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-              <div class="small muted">Amount Paid</div>
-              <div style="font-weight:1000;text-align:right">${escapeHtml(money(tk.amountPaid ?? tk.total ?? 0, tk.currency || DEFAULT_CURRENCY))}</div>
-            </div>
-          </div>
-
-          <div class="hr"></div>
-
-          <div class="hint" style="margin:0">
-            <b>Ticket must be live.</b> Screenshots won’t work.
-          </div>
-
-          <div class="hr"></div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-            <button class="btn sm" data-act="receipt">View receipt</button>
-            <a class="badge info" data-act="maps" href="#" target="_blank" rel="noopener" style="text-decoration:none;display:${tk.locationUrl ? "inline-flex":"none"}"><strong>Open in Maps</strong></a>
-          </div>
-        </div>
-
-        <div class="hr"></div>
-
-        <div class="qrFrame">
-              <canvas class="qrBox" id="qr_${escapeHtml(tk.id)}" aria-label="Live QR"></canvas>
-        </div>
-      </div>
-    `;
-
-    slide.querySelector('[data-act="receipt"]')?.addEventListener("click", (e)=>{
-      e.preventDefault(); e.stopPropagation();
-      if(tk.receiptUrl){
-        window.open(tk.receiptUrl, "_blank", "noopener");
+    qrBox.innerHTML = "";
+    try{
+      if(window.QRCode && QRCode.toCanvas){
+        const canvas = document.createElement("canvas");
+        qrBox.appendChild(canvas);
+        await QRCode.toCanvas(canvas, token, { margin:1, width:220 });
       }else{
-        toast("Receipt not available");
+        qrBox.innerHTML = `<div style="color:#111;font-weight:900">QR</div>`;
       }
-    });
-
-    const maps = slide.querySelector('[data-act="maps"]');
-    if(maps){
-      const link = tk.locationUrl || "";
-      if(link){ maps.href = link; } else { maps.style.display="none"; }
+    }catch(err){
+      console.error(err);
+      qrBox.innerHTML = `<div style="color:#111;font-weight:900">QR</div>`;
     }
+  };
 
-    track.appendChild(slide);
-  }
-
-  const activeEl = track.querySelector(`.tcSlide[data-ticket-id="${CSS.escape(t.id)}"]`) || track.children[idx];
-  if(activeEl){
-    activeEl.scrollIntoView({behavior:"instant", inline:"center", block:"nearest"});
-  }
-
-  startQr(t, `qr_${t.id}`);
-
-  $("#btnPrevTicket").disabled = group.length<=1;
-  $("#btnNextTicket").disabled = group.length<=1;
+  await renderOnce();
+  STATE.qrTimer = setInterval(renderOnce, REFRESH_SEC*1000);
 }
 
-$("#btnPrevTicket")?.addEventListener("click", ()=>{
-  const g = STATE._ticketGroup || [];
-  if(g.length<=1) return;
-  const i = (Number(STATE._ticketIdx||0) - 1 + g.length) % g.length;
-  go(`#/ticket/${encodeURIComponent(g[i].id)}`);
+/* ===== Profile */
+$("#btnGoAuthProfile").addEventListener("click", ()=>{
+  STATE.returnTo = "#/profile";
+  go("#/auth?tab=signin");
 });
-$("#btnNextTicket")?.addEventListener("click", ()=>{
-  const g = STATE._ticketGroup || [];
-  if(g.length<=1) return;
-  const i = (Number(STATE._ticketIdx||0) + 1) % g.length;
-  go(`#/ticket/${encodeURIComponent(g[i].id)}`);
-});
-
 
 function renderProfilePage(){
   const gate = $("#profileGate");
   const body = $("#profileBody");
-  const btnOut = $("#btnSignout");
-
-  // Sidebar identity (Profile section should show name)
-  $("#sideUserName").textContent = STATE.user ? (STATE.profile?.name || STATE.user.displayName || "User") : "Guest";
-  $("#sideUserEmail").textContent = STATE.user ? (STATE.user.email || "—") : "—";
 
   if(!STATE.user){
     gate.style.display = "block";
     body.style.display = "none";
-    btnOut.style.display = "none";
     return;
   }
 
   gate.style.display = "none";
   body.style.display = "block";
-  btnOut.style.display = "inline-flex";
 
-  const name = STATE.profile?.name || STATE.user.displayName || "—";
+  const name = (STATE.profile && STATE.profile.name) ? STATE.profile.name : (STATE.user.displayName || "Customer");
   $("#profileName").textContent = name;
   $("#profileEmail").textContent = STATE.user.email || "—";
-  $("#profileInitials").textContent = initials(name || STATE.user.email || "U");
+  $("#profileInitials").textContent = initials(name || STATE.user.email);
+  $("#profileHint").textContent = "Your tickets are saved to this account.";
+
+  $("#btnSignout").style.display = "inline-flex";
+  $("#btnSignout").onclick = ()=> doSignout();
 }
 
-$("#btnSignout").addEventListener("click", ()=> doSignout());
-
-
-/* ===== Sidebar UI */
-function wireSidebar(){
-  const sb = $("#sidebar");
-  const btnToggle = $("#btnSideToggle");
-  btnToggle?.addEventListener("click", ()=>{
-    if(window.innerWidth > 860){
-      sb?.classList.toggle("collapsed");
-      try{ localStorage.setItem("luma_customer_sidebar_collapsed", sb?.classList.contains("collapsed") ? "1" : "0"); }catch{}
-    }else{
-      sb?.classList.toggle("open");
-    }
-  });
-
-  $("#btnMobileMenu")?.addEventListener("click", ()=> sb?.classList.toggle("open"));
-  $("#brandHome")?.addEventListener("click", ()=> go("#/"));
-  $("#brandHomeMobile")?.addEventListener("click", ()=> go("#/"));
-
-  $$("#navHome,#navTickets,#navProfile").forEach(n=>{
-    n.addEventListener("click", ()=>{
-      const h = n.dataset.nav || "#/";
-      go(h);
-      if(window.innerWidth <= 860) sb?.classList.remove("open");
-    });
-  });
-
-  // restore collapse
-  try{
-    if(localStorage.getItem("luma_customer_sidebar_collapsed")==="1") sb?.classList.add("collapsed");
-  }catch{}
-}
-
-/* ===== Boot */
-wireSidebar();
-// Luma logo placeholder
-(function(){
-  const url = (LUMA_LOGO_URL||"").trim();
-  const imgA=$("#lumaLogoImg"), svgA=$("#lumaLogoSvg"), imgM=$("#lumaLogoImgM"), svgM=$("#lumaLogoSvgM");
-  if(url){
-    if(imgA){imgA.src=url; imgA.style.display="block";} if(svgA) svgA.style.display="none";
-    if(imgM){imgM.src=url; imgM.style.display="block";} if(svgM) svgM.style.display="none";
+/* ===== Init */
+function applyLumaLogo(){
+  if(LUMA_LOGO_URL){
+    $("#lumaLogoImg").src = LUMA_LOGO_URL;
+    $("#lumaLogoImg").style.display = "block";
+    $("#lumaLogoSvg").style.display = "none";
+    $("#lumaLogoImgM").src = LUMA_LOGO_URL;
+    $("#lumaLogoImgM").style.display = "block";
+    $("#lumaLogoSvgM").style.display = "none";
   }
-})();
-
-$("#year").textContent = new Date().getFullYear();
-
-if(auth){
-  onAuthStateChanged(auth, async (user)=>{
-    STATE.user = user || null;
-    syncAuthButton();
-
-    if(user){
-      try{
-        STATE.profile = await ensureCustomerProfile(user, user.displayName || "");
-        if((!STATE.profile?.name) && user.displayName){
-          try{ await setDoc(doc(db,"customers",user.uid), {name:user.displayName},{merge:true}); STATE.profile.name=user.displayName; }catch{}
-        }
-      }catch(err){ console.error(err); }
-      subscribeTickets(user.uid);
-    }else{
-      STATE.profile = null;
-      STATE.tickets = [];
-      $("#ticketsCount").textContent = "0";
-      $("#myTicketsNum").textContent = "0";
-      STATE.unsubTickets?.(); STATE.unsubTickets = null;
-    }
-
-    // Re-render current page if needed
-    const { parts } = parseHash();
-    if(parts[0]==="tickets") renderTicketsPage();
-    if(parts[0]==="profile") renderProfilePage();
-    if(parts[0]==="ticket" && parts[1]) renderTicketPage(parts[1], true);
-  });
 }
+applyLumaLogo();
 
-subscribeEvents();
-route();
+$("#year").textContent = String(new Date().getFullYear());
 
+onAuthStateChanged(auth, async (user)=>{
+  STATE.user = user || null;
+  syncAuthButton();
+
+  if(user){
+    $("#sideUserName").textContent = user.displayName || "Customer";
+    $("#sideUserEmail").textContent = user.email || "—";
+    try{
+      STATE.profile = await ensureCustomerProfile(user);
+      $("#sideUserName").textContent = (STATE.profile?.name || user.displayName || "Customer");
+    }catch(err){ console.warn(err); }
+    subscribeTickets(user.uid);
+  }else{
+    $("#sideUserName").textContent = "Guest";
+    $("#sideUserEmail").textContent = "—";
+    STATE.profile = null;
+    STATE.tickets = [];
+    STATE.ticketOrder = [];
+    $("#ticketsCount").textContent = "0";
+    $("#myTicketsNum").textContent = "0";
+    STATE.unsubTickets?.(); STATE.unsubTickets = null;
+    stopQr();
+  }
+
+  // Always keep events subscribed (marketplace works without login)
+  subscribeEvents();
+
+  // Route after auth is ready
+  route().catch(console.error);
+});
 </script>
 </body>
 </html>
