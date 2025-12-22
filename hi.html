@@ -5821,8 +5821,7 @@ on("#btnToggleSide","click", ()=>{
   });
 
   on("#btnLogout","click", appSignOut);
-  });
-
+  
   on("#viewAs","change", ()=>{
     state.viewAs = document.getElementById("viewAs")?.value || "Owner";
     saveAuth();
