@@ -131,6 +131,14 @@
       padding:8px 6px 10px;
     }
     .sidebar.collapsed .sideActions{justify-content:center}
+
+    .sidebar.collapsed .pill{
+      width:44px;
+      padding:10px;
+      justify-content:center;
+    }
+    .sidebar.collapsed .pill svg{margin:0}
+
     .pill{
       display:inline-flex;
       align-items:center;
@@ -1042,7 +1050,11 @@ option{ background-color: rgba(11,16,32,.98); }
   <div class="authCard">
     <div class="authLeft">
       <div class="brandRow" style="border:0;margin:0;padding:0 0 10px 0">
-        <div class="logoMark"><svg width="22" height="22"><use href="#i-luma"/></svg></div>
+        <div class="logoMark">
+        <!-- Luma Logo URL placeholder: set window.LUMA_LOGO_URL in code (or leave empty to use SVG) -->
+        <img id="lumaLogoImgAuth" alt="Luma" style="display:none;width:22px;height:22px;object-fit:contain;border-radius:6px"/>
+        <svg id="lumaLogoSvgAuth" width="22" height="22"><use href="#i-luma"/></svg>
+      </div>
         <div class="brandText">
           <b>Luma Tickets</b>
           <span>Owner Control Tower</span>
@@ -1204,8 +1216,12 @@ option{ background-color: rgba(11,16,32,.98); }
 <section id="dash" class="app hidden">
   <!-- Sidebar -->
   <aside id="sidebar" class="sidebar">
-    <div class="brandRow">
-      <div class="logoMark"><svg width="22" height="22"><use href="#i-luma"/></svg></div>
+    <div class="brandRow" id="brandHome">
+      <div class="logoMark">
+        <!-- Luma Logo URL placeholder: set window.LUMA_LOGO_URL in code (or leave empty to use SVG) -->
+        <img id="lumaLogoImgDash" alt="Luma" style="display:none;width:22px;height:22px;object-fit:contain;border-radius:6px"/>
+        <svg id="lumaLogoSvgDash" width="22" height="22"><use href="#i-luma"/></svg>
+      </div>
       <div class="brandText">
         <b>Luma Tickets</b>
         <span id="sideSubtitle">Events Hub</span>
@@ -1252,15 +1268,7 @@ option{ background-color: rgba(11,16,32,.98); }
           <span>Overview across events</span>
         </div>
       </div>
-
-      <div class="navItem" data-route="demo">
-        <div class="ic"><svg width="18" height="18"><use href="#i-play"/></svg></div>
-        <div class="txt">
-          <b>Demo</b>
-          <span>Sandbox</span>
-        </div>
-      </div>
-    </nav>
+</nav>
 
     <div class="sidebarFooter">
       <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
@@ -1282,12 +1290,7 @@ option{ background-color: rgba(11,16,32,.98); }
       </div>
 
       <div class="topActions">
-        <button class="btn sm ghost" id="btnDemo" title="Open Demo Sandbox">
-          <svg width="18" height="18"><use href="#i-bell"/></svg>
-          Simulate
-        </button>
-
-        <div class="menu">
+<div class="menu">
           <div class="avatar" id="avatarBtn" aria-haspopup="true" aria-expanded="false">
             <div class="ava" id="avaInitials">LU</div>
             <div class="meta">
@@ -1702,8 +1705,7 @@ option{ background-color: rgba(11,16,32,.98); }
           <button class="subTab" data-tab="analytics"><svg width="16" height="16"><use href="#i-chart"/></svg> Analytics</button>
           <button class="subTab" data-tab="incidents"><svg width="16" height="16"><use href="#i-shield"/></svg> Incidents</button>
           <button class="subTab" data-tab="links"><svg width="16" height="16"><use href="#i-link"/></svg> Links</button>
-          <button class="subTab" data-tab="automation"><svg width="16" height="16"><use href="#i-webhook"/></svg> Automation</button>
-        </div>
+</div>
 
         <!-- TAB: Overview -->
         <div id="tab-overview">
@@ -2271,45 +2273,73 @@ option{ background-color: rgba(11,16,32,.98); }
           </div>
         </div>
 
-        <!-- TAB: Automation / Webhook -->
-        <div id="tab-automation" class="hidden">
+        
+          <div style="height:14px"></div>
+
           <div class="card">
             <div class="cardHead">
               <div>
-                <h3>Automation (Webhook)</h3>
-                <p>Add a webhook URL for email receipts and test it with one click.</p>
+                <h3>Event Settings</h3>
+                <p>These fields are published to the customer marketplace and ticket/receipt views.</p>
               </div>
-              <span class="badge info"><strong>Optional</strong></span>
+              <span class="badge info"><strong>Public</strong></span>
             </div>
             <div class="cardBody">
               <div class="grid cols2">
                 <div class="field" style="grid-column:1/-1">
-                  <label>Webhook URL (Email/Receipts)</label>
-                  <div class="input">
-                    <input id="webhookUrl" placeholder="Paste your webhook URL here">
-                  </div>
-                  <div class="muted small" style="margin-top:6px">Non-technical tip: this is where receipts can be sent automatically to your email system.</div>
+                  <label>Event description</label>
+                  <div class="input"><textarea id="setEventDesc" rows="4" placeholder="Short description shown on event details"></textarea></div>
+                  <div class="muted2 small">Keep it concise (1–3 paragraphs). Long text will be truncated in activity logs.</div>
                 </div>
-                <div class="right">
-                  <button class="btn good" id="btnTestWebhook">
-                    <svg width="18" height="18"><use href="#i-webhook"/></svg>
-                    Send Test Receipt
-                  </button>
+
+                <div class="field">
+                  <label>Location URL</label>
+                  <div class="input"><input id="setLocationUrl" placeholder="https://maps.google.com/..."></div>
+                  <div class="muted2 small">Used for “View location” buttons (no receipts should open this).</div>
+                </div>
+
+                <div class="field">
+                  <label>Event owner / organizer logo</label>
+                  <div class="row" style="gap:10px;align-items:center">
+                    <div class="logoBox" style="width:56px;height:56px;border-radius:14px;overflow:hidden;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04)">
+                      <img id="ownerLogoPreview" style="width:100%;height:100%;object-fit:cover;display:none"/>
+                      <span id="ownerLogoFallback" class="muted2" style="font-size:11px">No logo</span>
+                    </div>
+                    <div class="col" style="gap:6px">
+                      <input id="ownerLogoFile" type="file" accept="image/*">
+                      <div class="row" style="gap:8px">
+                        <button class="btn sm" id="btnOwnerLogoUpload"><svg width="16" height="16"><use href="#i-upload"/></svg> Upload</button>
+                        <button class="btn sm ghost" id="btnOwnerLogoClear"><svg width="16" height="16"><use href="#i-trash"/></svg> Remove</button>
+                      </div>
+                      <div class="muted2 small">Stored in Firebase Storage and published in the event payload.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label>Receipt mode</label>
+                  <div class="input">
+                    <select id="setReceiptMode">
+                      <option value="internal">Internal receipt (recommended)</option>
+                      <option value="external">External receipt link</option>
+                    </select>
+                  </div>
+                  <div class="muted2 small">If external is selected, “View Receipt” opens the receipt URL. Otherwise it opens Luma’s receipt view.</div>
+                </div>
+
+                <div class="field" style="grid-column:1/-1">
+                  <label>Receipt URL (optional)</label>
+                  <div class="input"><input id="setReceiptUrl" placeholder="https://..."></div>
                 </div>
               </div>
 
               <div class="hr"></div>
-              <div class="hint">
-                <b>What happens when you test?</b> A sample receipt is created and logged, so you can confirm it arrives correctly.
+              <div class="row" style="justify-content:flex-end;gap:10px">
+                <button class="btn" id="btnSaveSettings"><svg width="18" height="18"><use href="#i-save"/></svg> Save settings</button>
               </div>
             </div>
           </div>
 
-          <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by <b style="color:var(--ink)">Luma</b></span></div>
-            <span class="muted2">Automation</span>
-          </div>
-        </div>
 
       </div>
     </section>
@@ -2459,6 +2489,87 @@ function publicEventRef(eventId){
   return doc(db, "events", eventId);
 }
 
+// Orders live source (public events/{eventId}/orders)
+function publicEventOrdersCol(eventId){
+  return collection(db, "events", eventId, "orders");
+}
+
+function normalizeOrderDoc(id, o){
+  const ts = o?.createdAt;
+  let dt = null;
+  try{
+    if(ts?.toDate) dt = ts.toDate();
+    else if(typeof ts === "string") dt = new Date(ts);
+    else if(typeof ts?.seconds === "number") dt = new Date(ts.seconds*1000);
+  }catch(_){}
+  const iso = (dt && !isNaN(dt.getTime())) ? dt.toISOString() : (o?.timestamp || new Date().toISOString());
+
+  const rawStatus = (o?.status ?? "paid").toString().trim().toLowerCase();
+  const status = rawStatus==="paid" ? "Paid" :
+                 rawStatus==="refunded" ? "Refunded" :
+                 rawStatus==="pending" ? "Pending" :
+                 rawStatus==="cancelled" ? "Cancelled" :
+                 rawStatus ? rawStatus[0].toUpperCase()+rawStatus.slice(1) : "Paid";
+
+  const amount = Number(o?.total ?? o?.amount ?? 0) || 0;
+  const unitPrice = Number(o?.unitPrice ?? (o?.qty ? amount/o.qty : amount) ?? 0) || 0;
+
+  return {
+    id,
+    orderId: o?.orderId || id,
+    timestamp: iso,
+    status,
+    amount,
+    currency: o?.currency || "EGP",
+    qty: Number(o?.qty ?? 1) || 1,
+    waveId: o?.waveId || "",
+    tierId: o?.tierId || "",
+    ticketId: o?.ticketId || "",
+    customerUid: o?.uid || "",
+  };
+}
+
+// Keep a live cache of orders per event for analytics + orders tab
+async function hydrateAllOrders(){
+  state.ordersByEvent = state.ordersByEvent || {};
+  state.ordersUnsubs = state.ordersUnsubs || {};
+
+  if(state.demoMode || window.__demoMode || !db) return;
+  const evs = data?.events || [];
+  await Promise.all(evs.map(async (ev)=>{
+    if(!ev?.id) return;
+    await ensureOrdersListener(ev.id);
+  }));
+}
+
+async function ensureOrdersListener(eventId){
+  if(state.ordersUnsubs?.[eventId]) return;
+  try{
+    const col = publicEventOrdersCol(eventId);
+    // Live listener (no index assumptions)
+    const unsub = onSnapshot(col, (snap)=>{
+      const list = snap.docs.map(d=> normalizeOrderDoc(d.id, d.data()));
+      // newest first
+      list.sort((a,b)=> (b.timestamp||"").localeCompare(a.timestamp||""));
+      state.ordersByEvent[eventId] = list;
+
+      // Mirror into data.events for existing UI helpers
+      const ev = (data?.events||[]).find(x=>x.id===eventId);
+      if(ev) ev.orders = list;
+
+      // Light refresh if user is on analytics or inside this event
+      if(state.route==="analytics" || (state.route==="event" && state.activeEventId===eventId)){
+        try{ renderAll(); }catch(e){ console.warn(e); }
+      }
+    }, (err)=>{
+      console.warn("[Orders listener] failed:", err);
+    });
+    state.ordersUnsubs[eventId] = unsub;
+  }catch(err){
+    console.warn("[Orders] could not attach listener", eventId, err);
+  }
+}
+
 async function uploadDataUrlIfNeeded(dataUrl, storagePath){
   if(!dataUrl) return "";
   // already a URL
@@ -2546,6 +2657,12 @@ async function syncEventToPublic(ev){
     // visuals (marketplace)
     bannerUrl,
     logoUrl,
+    ownerLogoUrl: ev.ownerLogoUrl || "",
+
+    // details
+    desc: ev.desc || ev.description || "",
+    receiptMode: ev.receiptMode || "internal",
+    receiptUrl: ev.receiptUrl || "", 
 
     // design (ticket + email previews)
     design: {
@@ -2562,7 +2679,13 @@ async function syncEventToPublic(ev){
     },
 
     // ticket structure
-    tiers: Array.isArray(ev.tiers) ? ev.tiers : [],
+    tiers: Array.isArray(ev.tiers) ? ev.tiers.map(t=>({
+      id: t.id,
+      name: t.name || "",
+      desc: t.desc || "",
+      capacity: Number(t.baseCap||t.capacity||0),
+      rules: Array.isArray(t.rules) ? t.rules : (typeof t.rulesText==="string" ? t.rulesText.split(/\n+/).map(s=>s.trim()).filter(Boolean) : [])
+    })) : [],
     waves: Array.isArray(ev.waves) ? ev.waves : [],
 
     // ownership / audit
@@ -2940,16 +3063,7 @@ function seedInitialLogs(ev){
 
 
 async function loadData(){
-  // Demo mode: always use local demo storage
-  if(state.demoMode){
-    const raw = localStorage.getItem(STORAGE.demoKey);
-    if(raw) return safeParseJSON(raw, defaultDemoData());
-    return defaultDemoData();
-  }
-
-  // Demo mode: local only
-  if(window.__demoMode) return defaultDemoData();
-
+  // Production-only: load from Firestore (owners/{uid}) with local cache fallback
   const uid = auth.currentUser?.uid;
   const cached = localStorage.getItem(STORAGE.dataKey);
   if(uid){
@@ -3772,7 +3886,7 @@ function renderEventWorkspace(){
 
 function switchTab(tab){
   state.activeTab = tab;
-  const tabs = ["overview","ticketing","orders","customers","staff","design","analytics","incidents","links","automation"];
+  const tabs = ["overview","ticketing","orders","customers","staff","design","analytics","incidents","links"];
   for(const t of tabs){
     const el = $("#tab-"+t);
     if(el) el.classList.toggle("hidden", t!==tab);
@@ -3939,7 +4053,12 @@ function tierModal(eventId, tierId=null){
         </div>
         <div class="field" style="grid-column:1/-1">
           <label>Description</label>
-          <div class="input"><input id="mTierDesc" value="${escapeHtml(editing?.desc||"")}" placeholder="Short description"></div>
+          <div class="input"><textarea id="mTierDesc" rows="2" placeholder="Short description">${escapeHtml(editing?.desc||"")}</textarea></div>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Ticket rules (one per line)</label>
+          <div class="input"><textarea id="mTierRules" rows="4" placeholder="e.g.&#10;• ID required&#10;• No re-entry&#10;• Doors close at 1:00 AM">${escapeHtml((Array.isArray(editing?.rules)? editing.rules.join("\n") : (editing?.rulesText||"")))}</textarea></div>
+          <div class="muted2 small">These appear as bullet points in ticket view + receipt.</div>
         </div>
       </div>
     `,
@@ -3949,16 +4068,19 @@ function tierModal(eventId, tierId=null){
         const name = $("#mTierName").value.trim();
         const cap = Number($("#mTierCap").value||0);
         const desc = $("#mTierDesc").value.trim();
+        const rulesText = $("#mTierRules")?.value || "";
+        const rules = rulesText.split(/\n+/).map(s=>s.trim().replace(/^[-•\s]+/,"")).filter(Boolean);
         if(!name){ toast("Missing name","Please enter a tier name."); return; }
 
         if(editing){
           editing.name = name;
           editing.baseCap = cap;
           editing.desc = desc;
+          editing.rules = rules;
           addActivity(ev, "Ticketing updated", `Tier edited — ${name}`, "info");
         }else{
           const id = uid("T-");
-          ev.tiers.push({id, name, desc, baseCap:cap});
+          ev.tiers.push({id, name, desc, baseCap:cap, rules});
           // make it available for pricing in waves later (no automatic activation)
           addActivity(ev, "Ticketing updated", `Tier added — ${name}`, "info");
         }
@@ -4127,8 +4249,12 @@ function waveModal(eventId, waveId=null){
         const sold = (editing?.sold ? {...editing.sold} : {});
 
         for(const tid of tierIds){
+          const tBase = ev.tiers.find(x=>x.id===tid)?.baseCap ?? 0;
+
           const p = Number($(`#wPrice_${tid}`)?.value || 0);
-          const q = Number($(`#wQty_${tid}`)?.value || 0);
+          const qRaw = Number($(`#wQty_${tid}`)?.value || 0);
+          const q = (tBase>0 && qRaw>tBase) ? tBase : qRaw;
+          if(tBase>0 && qRaw>tBase) toast("Quantity adjusted", `Wave quantity for this tier was capped at base capacity (${tBase}).`);
           pricing[tid] = p;
           qty[tid] = q;
           if(!(tid in sold)) sold[tid] = 0;
@@ -4182,7 +4308,7 @@ function waveModal(eventId, waveId=null){
     tr.innerHTML = `
       <td><b>${escapeHtml(t.name)}</b><div class="muted2 small">${escapeHtml(t.desc)}</div></td>
       <td><div class="input" style="padding:8px 10px"><input id="wPrice_${t.id}" type="number" min="0" value="${priceVal}" ${active?"":"disabled"}></div></td>
-      <td><div class="input" style="padding:8px 10px"><input id="wQty_${t.id}" type="number" min="0" value="${qtyVal}" ${active?"":"disabled"}></div></td>
+      <td><div class="input" style="padding:8px 10px"><input id="wQty_${t.id}" type="number" min="0" max="${t.capacity||0}" value="${qtyVal}" ${active?"":"disabled"}></div></td>
       <td class="mono">${soldVal.toLocaleString('en-US')}</td>
     `;
     tbody.appendChild(tr);
@@ -4865,9 +4991,31 @@ function renderIncidents(ev){
 /* ---------- Links ---------- */
 
 function renderLinks(ev){
+  if(!ev) return;
   const base = location.origin && location.origin.startsWith("http") ? location.origin : "https://luma.tickets";
   $("#linkUsher").value = `${base}/usher?event=${encodeURIComponent(ev.id)}`;
   $("#linkDesk").value = `${base}/manual-desk?event=${encodeURIComponent(ev.id)}`;
+
+  // Settings (published to marketplace)
+  $("#setEventDesc").value = ev.desc || ev.description || "";
+  $("#setLocationUrl").value = ev.locationUrl || "";
+  $("#setReceiptMode").value = ev.receiptMode || "internal";
+  $("#setReceiptUrl").value = ev.receiptUrl || "";
+
+  const url = ev.ownerLogoUrl || "";
+  const img = $("#ownerLogoPreview");
+  const fb = $("#ownerLogoFallback");
+  if(img){
+    if(url){
+      img.src = url;
+      img.style.display = "block";
+      if(fb) fb.style.display = "none";
+    }else{
+      img.removeAttribute("src");
+      img.style.display = "none";
+      if(fb) fb.style.display = "block";
+    }
+  }
 }
 
 /* ---------- Automation ---------- */
@@ -5510,6 +5658,7 @@ function exportAllFinance(){
 }
 
 function createEventModal(){
+  const p = "new";
   openModal({
     title:"Create Event",
     desc:"Create a new event workspace. Status starts as Draft.",
@@ -5517,32 +5666,33 @@ function createEventModal(){
       <div class="grid cols2">
         <div class="field" style="grid-column:1/-1">
           <label>Event name</label>
-          <div class="input"><input id="mEvName" placeholder="AFCON Nights — Quarter Finals"></div>
+          <div class="input"><input id="mEvName_${p}" placeholder="AFCON Nights — Quarter Finals"></div>
         </div>
 
         <div class="field">
           <label>Date</label>
-          <div class="input"><input id="mEvDate" type="date"></div>
+          <div class="input"><input id="mEvDate_${p}" type="date"></div>
         </div>
 
         <div class="field">
           <label>Start time</label>
-          <div class="input"><input id="mEvTime" type="time" value="19:00"></div>
+          <div class="input"><input id="mEvTime_${p}" type="time" value="19:00"></div>
         </div>
 
         <div class="field" style="grid-column:1/-1">
           <label>Venue</label>
-          <div class="input"><input id="mEvVenue" placeholder="Cairo International Stadium"></div>
+          <div class="input"><input id="mEvVenue_${p}" placeholder="Cairo International Stadium"></div>
         </div>
 
         <div class="field" style="grid-column:1/-1">
           <label>Location (address / landmark)</label>
-          <div class="input"><input id="mEvLocation" placeholder="Street, area, city..."></div>
+          <div class="input"><input id="mEvLocation_${p}" placeholder="Street, area, city..."></div>
           <div class="hint">This will be shown to customers. Clicking it opens Maps.</div>
         </div>
+
         <div class="field" style="grid-column:1/-1">
           <label>Location URL (Google Maps / website)</label>
-          <div class="input"><input id="mEvLocationUrl" placeholder="https://..."></div>
+          <div class="input"><input id="mEvLocationUrl_${p}" placeholder="https://..."></div>
           <div class="hint">If provided, customer app will open this exact link instead of auto-generated Maps search.</div>
         </div>
       </div>
@@ -5552,28 +5702,32 @@ function createEventModal(){
     footButtons: [
       {label:"Cancel", kind:"ghost", onClick: closeModal},
       {label:"Create event", kind:"primary", onClick: ()=>{
-        const name = $("#mEvName").value.trim();
-        const date = $("#mEvDate").value;
-        const time = $("#mEvTime").value || "";
-        const venue = $("#mEvVenue").value.trim();
-        const locationText = $("#mEvLocation").value.trim();
-        const locationUrl = ($("#mEvLocationUrl")?.value || "").trim();
+        const name = ($("#mEvName_"+p)?.value || "").trim();
+        const date = ($("#mEvDate_"+p)?.value || "").trim();
+        const time = ($("#mEvTime_"+p)?.value || "").trim();
+        const venue = ($("#mEvVenue_"+p)?.value || "").trim();
+        const locationText = ($("#mEvLocation_"+p)?.value || "").trim();
+        const locationUrl = ($("#mEvLocationUrl_"+p)?.value || "").trim();
 
-        if(!name || !date || !venue){
-          toast("Missing details","Event name, date, and venue are required.");
-          return;
-        }
+        if(!name) return toast("Missing info","Event name is required.","warn");
+        if(!date) return toast("Missing info","Event date is required.","warn");
+        if(!venue) return toast("Missing info","Venue is required.","warn");
 
-        const base = slugId(name, venue, date);
-        let id = base;
-        let n = 2;
-        while(data.events.some(e=>e.id===id)) id = `${base}-${n++}`;
-
+        const evId = slug(`${name}-${venue}-${date}`).slice(0,60) || uid8();
         const ev = {
-          id, name, date, time, venue,
-          locationText, locationUrl,
-          status:"Draft",
-          bannerDataUrl:"", logoDataUrl:"",
+          id: evId,
+          ownerUid: auth.currentUser?.uid || "",
+          name,
+          date,
+          time,
+          venue,
+          locationText,
+          locationUrl,
+          status: "Draft",
+          capacity: 0,
+          currency: "EGP",
+          createdAt: nowISO(),
+          updatedAt: nowISO(),
           tiers: [],
           waves: [],
           gates: [{id:"G-A", name:"Gate A", notes:"Main entrance"}],
@@ -5607,6 +5761,7 @@ function editEventModal(eventId){
   const ev = data.events.find(e=>e.id===eventId);
   if(!ev) return;
 
+  const p = "edit";
   openModal({
     title:"Edit Event",
     desc:"Update basic event details.",
@@ -5614,32 +5769,33 @@ function editEventModal(eventId){
       <div class="grid cols2">
         <div class="field" style="grid-column:1/-1">
           <label>Event name</label>
-          <div class="input"><input id="mEvName" value="${escapeHtml(ev.name)}"></div>
+          <div class="input"><input id="mEvName_${p}" value="${escapeHtml(ev.name)}"></div>
         </div>
 
         <div class="field">
           <label>Date</label>
-          <div class="input"><input id="mEvDate" type="date" value="${escapeHtml(ev.date)}"></div>
+          <div class="input"><input id="mEvDate_${p}" type="date" value="${escapeHtml(ev.date)}"></div>
         </div>
 
         <div class="field">
           <label>Start time</label>
-          <div class="input"><input id="mEvTime" type="time" value="${escapeHtml(ev.time||"")}"></div>
+          <div class="input"><input id="mEvTime_${p}" type="time" value="${escapeHtml(ev.time||"")}"></div>
         </div>
 
         <div class="field" style="grid-column:1/-1">
           <label>Venue</label>
-          <div class="input"><input id="mEvVenue" value="${escapeHtml(ev.venue)}"></div>
+          <div class="input"><input id="mEvVenue_${p}" value="${escapeHtml(ev.venue)}"></div>
         </div>
 
         <div class="field" style="grid-column:1/-1">
           <label>Location (address / landmark)</label>
-          <div class="input"><input id="mEvLocation" value="${escapeHtml(ev.locationText||"")}"></div>
+          <div class="input"><input id="mEvLocation_${p}" value="${escapeHtml(ev.locationText||"")}"></div>
           <div class="hint">Shown to customers. Clicking it opens Maps.</div>
         </div>
+
         <div class="field" style="grid-column:1/-1">
           <label>Location URL (Google Maps / website)</label>
-          <div class="input"><input id="mEvLocationUrl" value="${escapeHtml(ev.locationUrl||"")}" placeholder="https://..."></div>
+          <div class="input"><input id="mEvLocationUrl_${p}" value="${escapeHtml(ev.locationUrl||"")}" placeholder="https://..."></div>
           <div class="hint">If provided, customer app will open this exact link.</div>
         </div>
       </div>
@@ -5651,17 +5807,16 @@ function editEventModal(eventId){
       {label:"Save changes", kind:"primary", onClick: ()=>{
         const before = { name: ev.name, date: ev.date, time: ev.time||"", venue: ev.venue, locationText: ev.locationText||"" };
 
-        const name = $("#mEvName").value.trim();
-        const date = $("#mEvDate").value;
-        const time = $("#mEvTime").value || "";
-        const venue = $("#mEvVenue").value.trim();
-        const locationText = $("#mEvLocation").value.trim();
-        const locationUrl = ($("#mEvLocationUrl")?.value || "").trim();
+        const name = ($("#mEvName_"+p)?.value || "").trim();
+        const date = ($("#mEvDate_"+p)?.value || "").trim();
+        const time = ($("#mEvTime_"+p)?.value || "").trim();
+        const venue = ($("#mEvVenue_"+p)?.value || "").trim();
+        const locationText = ($("#mEvLocation_"+p)?.value || "").trim();
+        const locationUrl = ($("#mEvLocationUrl_"+p)?.value || "").trim();
 
-        if(!name || !date || !venue){
-          toast("Missing details","Event name, date, and venue are required.");
-          return;
-        }
+        if(!name) return toast("Missing info","Event name is required.","warn");
+        if(!date) return toast("Missing info","Event date is required.","warn");
+        if(!venue) return toast("Missing info","Venue is required.","warn");
 
         ev.name = name;
         ev.date = date;
@@ -5731,6 +5886,9 @@ function duplicateEvent(eventId){
 /* ---------- Header/Sidebar wiring ---------- */
 
 function wireDashboardUI(){
+  // Click logo -> Home (Events Hub)
+  on("#brandHome","click", ()=> goRoute("hub"));
+
   // Sidebar toggle
   on("#btnToggleSide","click", ()=>{
     document.getElementById("sidebar")?.classList.toggle("collapsed");
@@ -5814,7 +5972,68 @@ function wireDashboardUI(){
     toast("View mode changed", state.viewAs==="Viewer" ? "Viewer mode is read-only." : "Owner mode enabled.");
   });
 
-  // global search
+  
+  // Settings (Links tab)
+  on("#btnSaveSettings","click", async ()=>{
+    const ev = currentEvent();
+    if(!ev || isReadOnly()) return;
+    const before = { desc: ev.desc||"", locationUrl: ev.locationUrl||"", receiptMode: ev.receiptMode||"internal", receiptUrl: ev.receiptUrl||"" };
+    ev.desc = $("#setEventDesc")?.value?.trim() || "";
+    ev.locationUrl = $("#setLocationUrl")?.value?.trim() || "";
+    ev.receiptMode = $("#setReceiptMode")?.value || "internal";
+    ev.receiptUrl = $("#setReceiptUrl")?.value?.trim() || "";
+
+    const changes = [];
+    if(before.desc!==ev.desc) changes.push("Description updated");
+    if(before.locationUrl!==ev.locationUrl) changes.push("Location URL updated");
+    if(before.receiptMode!==ev.receiptMode) changes.push("Receipt mode updated");
+    if(before.receiptUrl!==ev.receiptUrl) changes.push("Receipt URL updated");
+
+    if(changes.length){
+      addActivity(ev, "Event updated", changes.join(" • ").slice(0,120), "info");
+      saveData();
+      schedulePublicSync(ev, "edit-settings");
+      renderEventWorkspace();
+      toast("Saved", "Event settings updated.");
+    }else{
+      toast("No changes", "Nothing to save.");
+    }
+  });
+
+  on("#btnOwnerLogoUpload","click", async ()=>{
+    const ev = currentEvent();
+    if(!ev || isReadOnly()) return;
+    const file = $("#ownerLogoFile")?.files?.[0];
+    if(!file){ toast("Missing file","Choose an image first."); return; }
+    try{
+      const dataUrl = await fileToDataUrl(file);
+      // upload (or store URL if already a URL)
+      const url = await uploadDataUrlIfNeeded(dataUrl, `publicEvents/${ev.id}/ownerLogo`);
+      ev.ownerLogoUrl = url;
+      addActivity(ev, "Branding updated", "Owner logo uploaded", "info");
+      saveData();
+      schedulePublicSync(ev, "owner-logo");
+      renderLinks(ev);
+      toast("Uploaded", "Owner logo uploaded.");
+    }catch(err){
+      console.error(err);
+      toast("Error", "Failed to upload owner logo.");
+    }
+  });
+
+  on("#btnOwnerLogoClear","click", async ()=>{
+    const ev = currentEvent();
+    if(!ev || isReadOnly()) return;
+    ev.ownerLogoUrl = "";
+    addActivity(ev, "Branding updated", "Owner logo removed", "warn");
+    saveData();
+    schedulePublicSync(ev, "owner-logo-clear");
+    renderLinks(ev);
+    toast("Removed", "Owner logo removed.");
+  });
+
+
+// global search
   on("#globalSearch","input", ()=>{
     if(state.route==="hub") renderHub();
     if(state.route==="event"){
@@ -5983,30 +6202,6 @@ function wireDashboardUI(){
     toast("Feed cleared","Attention feed cleared.");
   });
 
-  // automation
-  on("#btnTestWebhook","click", ()=>{
-    const ev = currentEvent(); if(!ev) return;
-    if(isReadOnly()){ toast("Read-only mode","Switch to Owner to test webhook."); return; }
-    ev.webhookUrl = (document.getElementById("webhookUrl")?.value || "").trim();
-    saveData();
-    addActivity(ev, "Test receipt sent", "A sample receipt was generated for testing.", "info");
-    addIncident(ev, "—", "system", "Sample Customer", "Test receipt sent", "Webhook test receipt triggered.");
-    toast("Test receipt sent", "A sample test receipt was generated and logged.");
-    renderEventWorkspace();
-  });
-
-  on("#webhookUrl","change", ()=>{
-    const ev = currentEvent(); if(!ev) return;
-    if(isReadOnly()) return;
-    ev.webhookUrl = (document.getElementById("webhookUrl")?.value || "").trim();
-    saveData();
-  });
-}
-
-async function onOverviewStatusChange(e){
-  const sel = e.target;
-  const ev = currentEvent();
-  if(!ev) return;
 
   // Viewer mode: block change and revert UI
   if(isReadOnly()){
@@ -6147,6 +6342,7 @@ async function exitDemoMode(){
   }
   try{
     data = await loadData();
+    await hydrateAllOrders();
   }catch(e){
     console.error(e);
     toast("Reload failed","Could not reload real data. Using local fallback.");
@@ -6183,6 +6379,7 @@ async function bootDashboard(){
   // Load data (Firestore if signed-in; local fallback)
   try{
     data = await loadData();
+    await hydrateAllOrders();
   }catch(err){
     console.error(err);
     toast("Load failed", "Could not load your data. Using local fallback.");
