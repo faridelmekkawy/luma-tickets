@@ -44,6 +44,100 @@
   }
   a{color:inherit}
   .wrap{max-width:1100px;margin:0 auto;padding:18px 16px 28px}
+
+  /* Sidebar shell (replaces top bar) */
+  .appShell{display:flex;min-height:100vh}
+  .sidebar{
+    position:sticky;top:0;
+    height:100vh;
+    width:280px;min-width:280px;
+    padding:14px 12px;
+    border-right:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(11,15,26,.92), rgba(11,15,26,.72));
+    backdrop-filter: blur(10px);
+    z-index:40;
+    display:flex;flex-direction:column;gap:12px;
+  }
+  .sidebar.collapsed{width:86px;min-width:86px}
+  .sideTop{display:flex;gap:10px;align-items:center}
+  .iconBtn{
+    width:44px;height:44px;border-radius:16px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+    display:grid;place-items:center;
+    cursor:pointer;
+  }
+  .brandSide{display:flex;gap:10px;align-items:center;min-width:0;flex:1}
+  .brandTxt{min-width:0}
+  .brandTxt b{display:block;font-size:14px;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brandTxt small{display:block;color:var(--muted);font-weight:700}
+  .sideNav{display:grid;gap:8px;margin-top:2px}
+  .sideItem{
+    width:100%;
+    display:flex;gap:10px;align-items:center;
+    padding:12px 12px;border-radius:18px;
+    border:1px solid rgba(255,255,255,.10);
+    background:rgba(255,255,255,.05);
+    color:var(--ink);
+    cursor:pointer;
+    font-weight:900;
+  }
+  .sideItem .ico{width:38px;height:38px;border-radius:14px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);display:grid;place-items:center}
+  .sideItem.active{border-color:rgba(124,58,237,.55);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+  .sideItem .label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sidebar.collapsed .brandTxt,
+  .sidebar.collapsed .label,
+  .sidebar.collapsed .sideUserTxt,
+  .sidebar.collapsed #ticketsCount{display:none}
+  .sideBottom{margin-top:auto;display:grid;gap:10px}
+  .sideUser{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:18px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05)}
+  .sideUser .dot{width:10px;height:10px;border-radius:99px;background:rgba(34,197,94,.95);box-shadow:0 0 0 4px rgba(34,197,94,.15)}
+  .sideUserTxt .name{font-weight:1000;font-size:13px}
+  .sideUserTxt .email{font-size:11px;color:var(--muted);font-weight:800}
+  .main{flex:1;min-width:0}
+  .mobileTop{display:none}
+  @media (max-width:860px){
+    .sidebar{position:fixed;left:0;top:0;transform:translateX(-102%);transition:transform .18s ease;width:280px;min-width:280px;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+    .sidebar.open{transform:translateX(0)}
+    .main{padding-top:0}
+    .mobileTop{
+      position:sticky;top:0;z-index:50;
+      padding:12px 12px;
+      border-bottom:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(11,15,26,.92), rgba(11,15,26,.60));
+      backdrop-filter: blur(10px);
+      display:flex;gap:10px;align-items:center;
+    }
+  }
+
+  /* Event tickets table: mobile-safe */
+  @media (max-width:560px){
+    .table{border-spacing:0 10px}
+    .table thead{display:none}
+    .table tbody tr{display:block;margin-bottom:10px}
+    .table td{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .table td::before{
+      content:attr(data-label);
+      font-size:11px;color:var(--muted);font-weight:900;letter-spacing:.2px;
+    }
+    .table tr td:first-child, .table tr td:last-child{border-radius:16px}
+  }
+
+  /* Ticket carousel */
+  .ticketCarousel{display:grid;gap:12px}
+  .tcHead{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .tcNav{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .tcNav .btn{padding:10px 12px}
+  .tcTrack{
+    display:flex;overflow:auto;scroll-snap-type:x mandatory;
+    gap:12px;padding-bottom:4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tcSlide{
+    min-width:min(520px, 92vw);
+    scroll-snap-align:center;
+  }
+
   .topbar{
     position:sticky;top:0;z-index:30;
     backdrop-filter: blur(10px);
@@ -397,34 +491,103 @@
 </head>
 
 <body>
-  <div class="topbar">
-    <div class="in">
-      <div class="brand" onclick="location.hash='#/'" style="cursor:pointer">
-        <div class="logoMark">
+  <div class="appShell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sideTop">
+        <button class="iconBtn" id="btnSideToggle" aria-label="Toggle menu">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M12 2l8 5v10l-8 5-8-5V7l8-5z" stroke="rgba(255,255,255,.85)" stroke-width="1.6"/>
-            <path d="M7.5 9.5l4.5 3 4.5-3" stroke="rgba(124,58,237,.95)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M7.5 14.5l4.5 3 4.5-3" stroke="rgba(34,197,94,.90)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 6h16M4 12h16M4 18h16" stroke="rgba(255,255,255,.85)" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
-        </div>
-        <div>
-          <b>Luma Tickets</b>
-          <small id="topSub">Customer</small>
+        </button>
+
+        <div class="brandSide" id="brandHome" style="cursor:pointer" title="Home">
+          <div class="logoMark" style="width:42px;height:42px;border-radius:16px;overflow:hidden">
+            <!-- Placeholder: paste your Luma logo URL into LUMA_LOGO_URL in the script -->
+            <img id="lumaLogoImg" alt="Luma" style="width:100%;height:100%;object-fit:cover;display:none">
+            <svg id="lumaLogoSvg" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 2l8 5v10l-8 5-8-5V7l8-5z" stroke="rgba(255,255,255,.85)" stroke-width="1.6"/>
+              <path d="M7.5 9.5l4.5 3 4.5-3" stroke="rgba(124,58,237,.95)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7.5 14.5l4.5 3 4.5-3" stroke="rgba(34,197,94,.90)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="brandTxt">
+            <b>Luma Tickets</b>
+            <small id="topSub">Customer</small>
+          </div>
         </div>
       </div>
 
-      <div class="nav">
-        <div class="pill" id="navHome" data-nav="#/">Home</div>
-        <div class="pill" id="navTickets" data-nav="#/tickets">My Tickets <span class="badge info" id="ticketsCount" style="padding:6px 8px;border-radius:999px">0</span></div>
-        <div class="pill" id="navProfile" data-nav="#/profile">Profile</div>
+      <nav class="sideNav">
+        <button class="sideItem" id="navHome" data-nav="#/">
+          <span class="ico">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 10.5l8-7 8 7V20a1.5 1.5 0 0 1-1.5 1.5H5.5A1.5 1.5 0 0 1 4 20v-9.5z" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M9.5 21V14h5v7" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="label">Home</span>
+        </button>
+
+        <button class="sideItem" id="navTickets" data-nav="#/tickets">
+          <span class="ico">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 9a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V9z" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M9 9.5v9" stroke="rgba(124,58,237,.95)" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2.5 3.5"/>
+            </svg>
+          </span>
+          <span class="label">My Tickets</span>
+          <span class="badge info" id="ticketsCount" style="padding:6px 8px;border-radius:999px;margin-left:auto">0</span>
+        </button>
+
+        <button class="sideItem" id="navProfile" data-nav="#/profile">
+          <span class="ico">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M20 21a8 8 0 1 0-16 0" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4z" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="label">Profile</span>
+        </button>
+      </nav>
+
+      <div class="sideBottom">
+        <div class="sideUser">
+          <div class="dot"></div>
+          <div class="sideUserTxt">
+            <div class="name" id="sideUserName">Guest</div>
+            <div class="email" id="sideUserEmail">—</div>
+          </div>
+        </div>
         <button class="btn sm ghost" id="btnAuth">Sign in</button>
       </div>
-    </div>
-  </div>
+    </aside>
 
-  <div id="toasts"></div>
+    <div class="main">
+      <div class="mobileTop" id="mobileTop">
+        <button class="iconBtn" id="btnMobileMenu" aria-label="Open menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h16" stroke="rgba(255,255,255,.85)" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <div class="brandSide" id="brandHomeMobile" style="cursor:pointer">
+          <div class="logoMark" style="width:40px;height:40px;border-radius:14px;overflow:hidden">
+            <img id="lumaLogoImgM" alt="Luma" style="width:100%;height:100%;object-fit:cover;display:none">
+            <svg id="lumaLogoSvgM" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 2l8 5v10l-8 5-8-5V7l8-5z" stroke="rgba(255,255,255,.85)" stroke-width="1.6"/>
+              <path d="M7.5 9.5l4.5 3 4.5-3" stroke="rgba(124,58,237,.95)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7.5 14.5l4.5 3 4.5-3" stroke="rgba(34,197,94,.90)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="brandTxt">
+            <b>Luma Tickets</b>
+            <small id="mobileSub">Customer</small>
+          </div>
+        </div>
+      </div>
 
-  <div class="wrap">
+      <div id="toasts"></div>
+      <div class="wrap">
+
     <!-- HOME -->
     <section id="page-home" class="page active">
       <div class="card">
@@ -434,7 +597,7 @@
               <h1>Discover events</h1>
               <p>Search & book. No PDFs. Your ticket is live in-app.</p>
             </div>
-            <div class="badge" id="eventsCount">0</div>
+            
           </div>
 
           <div class="searchRow">
@@ -535,52 +698,18 @@
 
     <!-- TICKET PAGE -->
     <section id="page-ticket" class="page">
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+      <div class="tcHead" style="margin-bottom:12px">
         <button class="btn sm" id="btnBackTickets">← Back</button>
         <div class="badge info" id="ticketBreadcrumb">Ticket</div>
+        <div class="tcNav">
+          <button class="btn sm" id="btnPrevTicket" title="Previous ticket">←</button>
+          <span class="badge" id="ticketPos">1 / 1</span>
+          <button class="btn sm" id="btnNextTicket" title="Next ticket">→</button>
+        </div>
       </div>
 
-      <div class="ticketPageGrid">
-        <div class="card">
-          <div class="eventPageBanner" id="ticketBanner" style="height:220px"></div>
-          <div style="padding:16px">
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-              <span class="badge ok"><strong>Live Ticket</strong></span>
-              <span class="badge" id="tQty" style="display:none"><strong>Qty</strong> —</span>
-              <span class="badge" id="tCity" style="display:none">—</span>
-            </div>
-
-            <h2 class="eventName" id="tEvent">—</h2>
-            <div class="subLine" id="tMeta">—</div>
-
-            <div class="hr"></div>
-
-            <div class="hint">
-              <b>Ticket must be live.</b> Screenshots won’t work.
-              <div class="small" style="margin-top:6px">This QR refreshes every <b>30 seconds</b>.</div>
-            </div>
-
-            <div class="hr"></div>
-
-            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-              <button class="btn sm" id="btnReceipt">View receipt</button>
-              <span class="small" id="receiptHint"></span>
-            </div>
-          </div>
-        </div>
-
-        <div class="card qrPanel">
-          <div class="qrFrame">
-            <div class="qrTop">
-              <span class="badge info" id="qrEventId">—</span>
-              <span class="badge" id="qrTicketId">—</span>
-            </div>
-
-            <div class="qrBox" id="qrBox" aria-label="Dynamic QR"></div>
-            <div class="countdown" id="cdText">Refreshing in —</div>
-            <div class="codeText" id="codeText">—</div>
-          </div>
-        </div>
+      <div class="ticketCarousel">
+        <div class="tcTrack" id="ticketTrack" aria-label="Tickets carousel"></div>
       </div>
     </section>
 
@@ -700,6 +829,8 @@
 
     <footer>Powered by Luma • <span id="year"></span></footer>
   </div>
+    </div>
+  </div>
 
 <script type="module">
 /* ============================================================
@@ -748,6 +879,7 @@ const firebaseConfig = {
 };
 
 const SUPPORT_URL = "https://your-support-link.example";
+const LUMA_LOGO_URL = ""; // TODO: paste your logo URL here (or keep blank for default icon)
 const DEFAULT_CURRENCY = "EGP";
 
 /* Visual rotating token seed (for usher scan).
@@ -879,9 +1011,9 @@ const NAV = {
 };
 
 function setActiveNav(hash){
-  $("#navHome").classList.toggle("active", hash.startsWith("#/") && (hash==="#/" || hash.startsWith("#/event")));
-  $("#navTickets").classList.toggle("active", hash.startsWith("#/tickets") || hash.startsWith("#/ticket"));
-  $("#navProfile").classList.toggle("active", hash.startsWith("#/profile"));
+  $("#navHome")?.classList.toggle("active", hash.startsWith("#/") && (hash==="#/" || hash.startsWith("#/event")));
+  $("#navTickets")?.classList.toggle("active", hash.startsWith("#/tickets") || hash.startsWith("#/ticket"));
+  $("#navProfile")?.classList.toggle("active", hash.startsWith("#/profile"));
 }
 function showPage(name){
   Object.values(NAV).forEach(s=> s.classList.remove("active"));
@@ -920,6 +1052,7 @@ async function route(){
   if(root === ""){ // "#/"
     showPage("home");
     $("#topSub").textContent = "Customer";
+    $("#mobileSub").textContent = "Customer";
     renderEvents();
     return;
   }
@@ -930,11 +1063,13 @@ async function route(){
     await renderEventPage(id);
     showPage("event");
     $("#topSub").textContent = "Event";
+    $("#mobileSub").textContent = "Event";
     return;
   }
 
   if(root === "tickets"){
     $("#topSub").textContent = "My Tickets";
+    $("#mobileSub").textContent = "My Tickets";
     showPage("tickets");
     renderTicketsPage();
     return;
@@ -946,11 +1081,13 @@ async function route(){
     await renderTicketPage(tid);
     showPage("ticket");
     $("#topSub").textContent = "Ticket";
+    $("#mobileSub").textContent = "Ticket";
     return;
   }
 
   if(root === "profile"){
     $("#topSub").textContent = "Profile";
+    $("#mobileSub").textContent = "Profile";
     showPage("profile");
     renderProfilePage();
     return;
@@ -958,6 +1095,7 @@ async function route(){
 
   if(root === "auth"){
     $("#topSub").textContent = "Sign in";
+    $("#mobileSub").textContent = "Sign in";
     showPage("auth");
     const tab = (q.get("tab")||"signin").toLowerCase();
     setAuthTab(["signin","signup","forgot"].includes(tab)?tab:"signin");
@@ -1078,8 +1216,7 @@ function subscribeEvents(){
     arr.sort((a,b)=> (eventStartDate(a)?.getTime()??0) - (eventStartDate(b)?.getTime()??0));
     STATE.events = arr;
     hydrateCityOptions();
-    $("#eventsCount").textContent = String(arr.length);
-    renderEvents();
+renderEvents();
 
     // If currently on event page, refresh it live
     const { parts } = parseHash();
@@ -1234,9 +1371,9 @@ async function renderEventPage(eventId, silent=false){
 
   // map / venue
   const venueLink = $("#eventVenueLink");
-  if(ev.locationText){
+  if(ev.locationUrl || ev.locationText){
     venueLink.style.display = "inline-flex";
-    venueLink.href = ev.locationText;
+    venueLink.href = (ev.locationUrl || ev.locationText);
   }else{
     venueLink.style.display = "none";
   }
@@ -1280,9 +1417,9 @@ async function renderEventPage(eventId, silent=false){
             const key = `${w.id||""}|${t.id}`;
             return `
               <tr data-key="${escapeHtml(key)}" data-wave="${escapeHtml(w.id||"")}" data-tier="${escapeHtml(t.id)}">
-                <td><b>${escapeHtml(t.name || t.id)}</b></td>
-                <td><b>${escapeHtml(money(price, currency))}</b></td>
-                <td>
+                <td data-label="Ticket"><b>${escapeHtml(t.name || t.id)}</b></td>
+                <td data-label="Price"><b>${escapeHtml(money(price, currency))}</b></td>
+                <td data-label="Qty">
                   <div class="qty">
                     <div class="qbtn" data-act="dec">−</div>
                     <input type="number" min="0" step="1" value="0" inputmode="numeric" />
@@ -1384,21 +1521,26 @@ async function purchaseSelected(ev){
 
       const ticketId = safeId("tkt");
       const ticketDoc = {
+        orderId,
+        purchaseAtISO: new Date().toISOString(),
         eventId: ev.id,
         eventName: ev.name || "Event",
         venue: ev.venue || "",
         city: ev.city || "",
+        locationUrl: ev.locationUrl || ev.locationText || "",
         startsAtISO: startsISO,
         bannerUrl: ev.bannerUrl || "",
         logoUrl: ev.logoUrl || "",
         tierId: t.id,
         tierName: t.name || t.id,
+        ticketType: `${qty}x ${(w.name||w.id||"")} ${(t.name||t.id)}`.trim(),
         waveId: w.id || "",
         waveName: w.name || "",
         qty,
         unitPrice,
         currency,
         total,
+        amountPaid: total,
         status: "paid",
         createdAt: serverTimestamp(),
         receiptUrl: "" // You can set this when you implement receipts
@@ -1408,6 +1550,7 @@ async function purchaseSelected(ev){
 
       // Optional mirror
       await addDoc(collection(db, "events", ev.id, "orders"), {
+        orderId,
         uid: STATE.user.uid,
         ticketId,
         tierId: t.id,
@@ -1503,125 +1646,165 @@ async function renderTicketPage(ticketId, silent=false){
     return;
   }
 
-  const t = getTicketById(ticketId);
-  if(!t){
-    // If user opens from deep link, ticket may not be in memory yet. Wait briefly.
+  const t0 = getTicketById(ticketId);
+  if(!t0){
     if(!silent) toast("Loading ticket", "If this persists, refresh.");
-    $("#tEvent").textContent = "Loading…";
     return;
   }
 
+  const orderId = t0.orderId || "";
+  const group = orderId ? STATE.tickets.filter(x=> (x.orderId||"")===orderId) : [t0];
+  const idx0 = Math.max(0, group.findIndex(x=> (x.id||"")===ticketId));
+
+  STATE.activeTicketId = ticketId;
+  STATE._ticketGroup = group;
+  STATE._ticketIdx = idx0;
+
+  renderTicketCarousel();
+}
+
+function renderTicketCarousel(){
+  const group = STATE._ticketGroup || [];
+  if(!group.length) return;
+
+  const idx = Math.max(0, Math.min(group.length-1, Number(STATE._ticketIdx||0)));
+  STATE._ticketIdx = idx;
+
+  const t = group[idx];
+
   $("#ticketBreadcrumb").textContent = t.eventName || "Ticket";
-  $("#ticketBanner").innerHTML = t.bannerUrl ? `<img src="${escapeHtml(t.bannerUrl)}" alt="">` : "";
-  $("#tEvent").textContent = t.eventName || "Event";
+  $("#ticketPos").textContent = `${idx+1} / ${group.length}`;
 
-  const start = t.startsAt?.toDate ? t.startsAt.toDate() : (t.startsAtISO ? parseISOish(t.startsAtISO) : null);
-  const place = [t.venue||"", t.city||""].filter(Boolean).join(" • ") || "—";
-  $("#tMeta").textContent = `${fmtDate(start)} • ${place} • ${t.tierName||"—"}${t.waveName?` • ${t.waveName}`:""}`;
+  const track = $("#ticketTrack");
+  track.innerHTML = "";
 
-  // Hide empty badges (fixes your “-” issue)
-  const qtyBadge = $("#tQty");
-  qtyBadge.style.display = t.qty ? "inline-flex" : "none";
-  qtyBadge.innerHTML = `<strong>Qty</strong> ${escapeHtml(String(t.qty||""))}`;
+  for(const tk of group){
+    const start = tk.startsAt?.toDate ? tk.startsAt.toDate() : (tk.startsAtISO ? parseISOish(tk.startsAtISO) : null);
+    const purchase = tk.createdAt?.toDate ? tk.createdAt.toDate() : (tk.purchaseAtISO ? parseISOish(tk.purchaseAtISO) : null);
+    const place = [tk.venue||"", tk.city||""].filter(Boolean).join(", ") || "—";
+    const ticketType = tk.ticketType || `${tk.qty||1}x ${tk.tierName||"—"}`;
 
-  const cityBadge = $("#tCity");
-  cityBadge.style.display = t.city ? "inline-flex" : "none";
-  cityBadge.textContent = t.city || "";
+    const slide = document.createElement("div");
+    slide.className = "tcSlide card";
+    slide.dataset.ticketId = tk.id;
 
-  $("#qrEventId").textContent = `Event: ${t.eventId || "—"}`;
-  $("#qrTicketId").textContent = `Ticket: ${t.id || "—"}`;
+    slide.innerHTML = `
+      <div class="eventPageBanner" style="height:220px">${tk.bannerUrl ? `<img src="${escapeHtml(tk.bannerUrl)}" alt="">` : ``}</div>
+      <div style="padding:16px">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <span class="badge ok"><strong>Live Ticket</strong></span>
+          <span class="badge" style="font-family:var(--mono)"><strong>Ticket</strong> ${escapeHtml((tk.id||"").slice(-8).toUpperCase() || "—")}</span>
+        </div>
 
-  // Receipt
-  const btnR = $("#btnReceipt");
-  const hint = $("#receiptHint");
-  if(t.receiptUrl){
-    btnR.disabled = false;
-    hint.textContent = "Opens in a new tab.";
-    btnR.onclick = ()=> window.open(t.receiptUrl, "_blank", "noopener");
-  }else{
-    btnR.disabled = true;
-    hint.textContent = "Receipt not available.";
-    btnR.onclick = null;
+        <h2 class="eventName" style="margin-top:10px">${escapeHtml(tk.eventName || "Event")}</h2>
+
+        <div class="hr"></div>
+
+        <div class="card" style="padding:14px;background:rgba(255,255,255,.04);box-shadow:none">
+          <div style="display:grid;gap:10px">
+            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <div class="small muted">Order ID</div>
+              <div style="font-weight:1000">${escapeHtml(String(tk.orderId || "—"))}</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <div class="small muted">Event Name</div>
+              <div style="font-weight:1000;text-align:right;max-width:70%">${escapeHtml(tk.eventName || "—")}</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <div class="small muted">Venue</div>
+              <div style="font-weight:1000;text-align:right;max-width:70%">${escapeHtml(place)}</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <div class="small muted">Ticket Type</div>
+              <div style="font-weight:1000;text-align:right;max-width:70%">${escapeHtml(ticketType)}</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <div class="small muted">Event Date</div>
+              <div style="font-weight:1000;text-align:right">${escapeHtml(fmtDate(start))}</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <div class="small muted">Purchase Date</div>
+              <div style="font-weight:1000;text-align:right">${escapeHtml(fmtDate(purchase))}</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <div class="small muted">Amount Paid</div>
+              <div style="font-weight:1000;text-align:right">${escapeHtml(money(tk.amountPaid ?? tk.total ?? 0, tk.currency || DEFAULT_CURRENCY))}</div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="hint" style="margin:0">
+            <b>Ticket must be live.</b> Screenshots won’t work.
+          </div>
+
+          <div class="hr"></div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <button class="btn sm" data-act="receipt">View receipt</button>
+            <a class="badge info" data-act="maps" href="#" target="_blank" rel="noopener" style="text-decoration:none;display:${tk.locationUrl ? "inline-flex":"none"}"><strong>Open in Maps</strong></a>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="qrFrame">
+          <div class="qrBox" id="qr_${escapeHtml(tk.id)}" aria-label="Live QR"></div>
+        </div>
+      </div>
+    `;
+
+    slide.querySelector('[data-act="receipt"]')?.addEventListener("click", (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      if(tk.receiptUrl){
+        window.open(tk.receiptUrl, "_blank", "noopener");
+      }else{
+        toast("Receipt not available");
+      }
+    });
+
+    const maps = slide.querySelector('[data-act="maps"]');
+    if(maps){
+      const link = tk.locationUrl || "";
+      if(link){ maps.href = link; } else { maps.style.display="none"; }
+    }
+
+    track.appendChild(slide);
   }
 
-  startQr(t);
+  const activeEl = track.querySelector(`.tcSlide[data-ticket-id="${CSS.escape(t.id)}"]`) || track.children[idx];
+  if(activeEl){
+    activeEl.scrollIntoView({behavior:"instant", inline:"center", block:"nearest"});
+  }
+
+  startQr(t, `qr_${t.id}`);
+
+  $("#btnPrevTicket").disabled = group.length<=1;
+  $("#btnNextTicket").disabled = group.length<=1;
 }
 
-/* ===== Rotating QR token */
-function secondsLeft(){
-  const now = Math.floor(Date.now()/1000);
-  return REFRESH_SEC - (now % REFRESH_SEC);
-}
-async function sha256hex(str){
-  const enc = new TextEncoder().encode(str);
-  const buf = await crypto.subtle.digest("SHA-256", enc);
-  const bytes = Array.from(new Uint8Array(buf));
-  return bytes.map(b=>b.toString(16).padStart(2,"0")).join("");
-}
-async function buildRotatingPayload(ticket){
-  const slot = Math.floor(Date.now()/1000/REFRESH_SEC);
-  const raw = `${TOKEN_SALT}|${STATE.user.uid}|${ticket.id}|${ticket.eventId}|${slot}`;
-  const h = await sha256hex(raw);
-
-  // Payload scanned by usher app (string, stable format)
-  // Example: LUMA|<eventId>|<ticketId>|<uid>|<slot>|<sig>
-  const payload = `LUMA|${ticket.eventId}|${ticket.id}|${STATE.user.uid}|${slot}|${h.slice(0,18)}`;
-  const displayCode = `${h.slice(0,8)}-${h.slice(8,16)}-${h.slice(16,24)}`.toUpperCase();
-  return { payload, displayCode };
-}
-
-async function drawQr(text){
-  const box = $("#qrBox");
-  box.innerHTML = "";
-  const canvas = document.createElement("canvas");
-  box.appendChild(canvas);
-
-  // QRCode library global "QRCode" exists because of CDN script
-  await QRCode.toCanvas(canvas, text, {
-    errorCorrectionLevel: "M",
-    margin: 1,
-    width: 210
-  });
-}
-
-async function refreshQr(ticket){
-  const left = secondsLeft();
-  $("#cdText").textContent = `Refreshing in ${left}s`;
-
-  const { payload, displayCode } = await buildRotatingPayload(ticket);
-  $("#codeText").textContent = displayCode;
-  await drawQr(payload);
-}
-
-function startQr(ticket){
-  stopQr();
-  refreshQr(ticket);
-
-  STATE.qrTimer = setInterval(async ()=>{
-    const left = secondsLeft();
-    $("#cdText").textContent = `Refreshing in ${left}s`;
-    if(left === REFRESH_SEC){
-      await refreshQr(ticket);
-    }
-  }, 250);
-}
-function stopQr(){
-  if(STATE.qrTimer) clearInterval(STATE.qrTimer);
-  STATE.qrTimer = null;
-}
-
-/* ===== Profile page */
-$("#btnGoAuthProfile").addEventListener("click", ()=>{
-  STATE.returnTo = "#/profile";
-  go("#/auth?tab=signin");
+$("#btnPrevTicket")?.addEventListener("click", ()=>{
+  const g = STATE._ticketGroup || [];
+  if(g.length<=1) return;
+  const i = (Number(STATE._ticketIdx||0) - 1 + g.length) % g.length;
+  go(`#/ticket/${encodeURIComponent(g[i].id)}`);
+});
+$("#btnNextTicket")?.addEventListener("click", ()=>{
+  const g = STATE._ticketGroup || [];
+  if(g.length<=1) return;
+  const i = (Number(STATE._ticketIdx||0) + 1) % g.length;
+  go(`#/ticket/${encodeURIComponent(g[i].id)}`);
 });
 
-$("#btnSupport").href = SUPPORT_URL;
 
 function renderProfilePage(){
   const gate = $("#profileGate");
   const body = $("#profileBody");
   const btnOut = $("#btnSignout");
+
+  // Sidebar identity (Profile section should show name)
+  $("#sideUserName").textContent = STATE.user ? (STATE.profile?.name || STATE.user.displayName || "User") : "Guest";
+  $("#sideUserEmail").textContent = STATE.user ? (STATE.user.email || "—") : "—";
 
   if(!STATE.user){
     gate.style.display = "block";
@@ -1642,7 +1825,50 @@ function renderProfilePage(){
 
 $("#btnSignout").addEventListener("click", ()=> doSignout());
 
+
+/* ===== Sidebar UI */
+function wireSidebar(){
+  const sb = $("#sidebar");
+  const btnToggle = $("#btnSideToggle");
+  btnToggle?.addEventListener("click", ()=>{
+    if(window.innerWidth > 860){
+      sb?.classList.toggle("collapsed");
+      try{ localStorage.setItem("luma_customer_sidebar_collapsed", sb?.classList.contains("collapsed") ? "1" : "0"); }catch{}
+    }else{
+      sb?.classList.toggle("open");
+    }
+  });
+
+  $("#btnMobileMenu")?.addEventListener("click", ()=> sb?.classList.toggle("open"));
+  $("#brandHome")?.addEventListener("click", ()=> go("#/"));
+  $("#brandHomeMobile")?.addEventListener("click", ()=> go("#/"));
+
+  $$("#navHome,#navTickets,#navProfile").forEach(n=>{
+    n.addEventListener("click", ()=>{
+      const h = n.dataset.nav || "#/";
+      go(h);
+      if(window.innerWidth <= 860) sb?.classList.remove("open");
+    });
+  });
+
+  // restore collapse
+  try{
+    if(localStorage.getItem("luma_customer_sidebar_collapsed")==="1") sb?.classList.add("collapsed");
+  }catch{}
+}
+
 /* ===== Boot */
+wireSidebar();
+// Luma logo placeholder
+(function(){
+  const url = (LUMA_LOGO_URL||"https://firebasestorage.googleapis.com/v0/b/events-339ce.firebasestorage.app/o/WhatsApp%20Image%202025-12-20%20at%204.40.03%20PM.jpeg?alt=media&token=63a5d3fc-7b01-4396-8c84-08533ad950d3").trim();
+  const imgA=$("#lumaLogoImg"), svgA=$("#lumaLogoSvg"), imgM=$("#lumaLogoImgM"), svgM=$("#lumaLogoSvgM");
+  if(url){
+    if(imgA){imgA.src=url; imgA.style.display="block";} if(svgA) svgA.style.display="none";
+    if(imgM){imgM.src=url; imgM.style.display="block";} if(svgM) svgM.style.display="none";
+  }
+})();
+
 $("#year").textContent = new Date().getFullYear();
 
 if(auth){
@@ -1653,6 +1879,9 @@ if(auth){
     if(user){
       try{
         STATE.profile = await ensureCustomerProfile(user, user.displayName || "");
+        if((!STATE.profile?.name) && user.displayName){
+          try{ await setDoc(doc(db,"customers",user.uid), {name:user.displayName},{merge:true}); STATE.profile.name=user.displayName; }catch{}
+        }
       }catch(err){ console.error(err); }
       subscribeTickets(user.uid);
     }else{
