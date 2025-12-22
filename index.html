@@ -2861,7 +2861,7 @@ async function defaultData(){
   };
 }
 
-function loadData(){
+async function loadData(){
   // Production-only: load from Firestore (owners/{uid}) with local cache fallback
   const uid = auth.currentUser?.uid;
   const cached = localStorage.getItem(STORAGE.dataKey);
@@ -2912,7 +2912,7 @@ function saveData(){
   }, 250);
 }
 
-let data = loadData();
+let data = await loadData();
 
 /* ---------- Auto sync to Public Events (Customer Marketplace) ---------- */
 /**
