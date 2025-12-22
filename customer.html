@@ -96,6 +96,15 @@
   .sideUserTxt .email{font-size:11px;color:var(--muted);font-weight:800}
   .main{flex:1;min-width:0}
   .mobileTop{display:none}
+  .sideShade{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.55);
+    backdrop-filter: blur(2px);
+    z-index:35;
+    display:none;
+  }
+  .sideShade.show{display:block}
+
   @media (max-width:860px){
     .sidebar{position:fixed;left:0;top:0;transform:translateX(-102%);transition:transform .18s ease;width:280px;min-width:280px;box-shadow:0 30px 80px rgba(0,0,0,.45)}
     .sidebar.open{transform:translateX(0)}
@@ -561,6 +570,8 @@
         <button class="btn sm ghost" id="btnAuth">Sign in</button>
       </div>
     </aside>
+    <div id="sideShade" class="sideShade" aria-hidden="true"></div>
+
 
     <div class="main">
       <div class="mobileTop" id="mobileTop">
@@ -869,7 +880,7 @@ import {
    1) PASTE YOUR FIREBASE CONFIG
    ========================= */
 const firebaseConfig = {
-  apiKey:"AIzaSyA80bAAGPuyscnTVS-zwrxE9Jp3tPiS1gM",
+    apiKey:"AIzaSyA80bAAGPuyscnTVS-zwrxE9Jp3tPiS1gM",
     authDomain:"events-339ce.firebaseapp.com",
     databaseURL:"https://events-339ce-default-rtdb.europe-west1.firebasedatabase.app",
     projectId:"events-339ce",
@@ -887,6 +898,55 @@ const DEFAULT_CURRENCY = "EGP";
    and verify at scan time. This front-end still rotates every 30s and is NOT screenshot-friendly. */
 const TOKEN_SALT = "LUMA_ROTATING_TICKET_V1";
 const REFRESH_SEC = 30;
+
+/* ===== QR rendering (client-side rotating token)
+   NOTE: For real anti-screenshot security, generate signed short-lived tokens server-side. */
+function stopQr(){
+  try{
+    if(STATE.qrTimer){ clearInterval(STATE.qrTimer); STATE.qrTimer=null; }
+  }catch{}
+  STATE._qrLastToken = null;
+}
+
+async function startQr(ticket, mountId){
+  const mount = document.getElementById(mountId);
+  if(!mount) return;
+
+  // Ensure mount is clean
+  mount.innerHTML = "";
+
+  const mkToken = ()=>{
+    const now = Math.floor(Date.now()/1000);
+    const slot = Math.floor(now / REFRESH_SEC);
+    const base = `${ticket.id||""}|${ticket.orderId||""}|${slot}|${TOKEN_SALT}`;
+    // simple hash-like encoding (not cryptographic). Enough for rotation UX.
+    let h=0;
+    for(let i=0;i<base.length;i++){ h = ((h<<5)-h) + base.charCodeAt(i); h|=0; }
+    const token = btoa(unescape(encodeURIComponent(`${base}|${h}`))).replace(/=+$/,"");
+    return token;
+  };
+
+  const draw = async ()=>{
+    const token = mkToken();
+    if(token === STATE._qrLastToken) return;
+    STATE._qrLastToken = token;
+
+    const url = `${location.origin}${location.pathname}#/verify?tid=${encodeURIComponent(ticket.id||"")}&tok=${encodeURIComponent(token)}`;
+    try{
+      const canvas = document.createElement("canvas");
+      await QRCode.toCanvas(canvas, url, { margin: 1, width: 200 });
+      mount.innerHTML = "";
+      mount.appendChild(canvas);
+    }catch(err){
+      console.error(err);
+      mount.innerHTML = `<div class="small" style="color:#111;padding:10px;text-align:center">QR unavailable</div>`;
+    }
+  };
+
+  stopQr();
+  await draw();
+  STATE.qrTimer = setInterval(draw, 1000); // checks token change every second; redraw only when needed
+}
 
 /* ====== DOM helpers */
 const $ = (q)=>document.querySelector(q);
@@ -1029,19 +1089,20 @@ function parseHash(){
   return { raw, parts, q };
 }
 
-function go(h){ location.hash = h; }
+function go(h){
+  if(location.hash === h){
+    // Force refresh when navigating to same hash
+    route();
+  }else{
+    location.hash = h;
+  }
+}
 
 window.addEventListener("hashchange", route);
 
 async function route(){
   const { raw, parts, q } = parseHash();
   setActiveNav(raw);
-
-  // quick nav clicks
-  $$("#navHome,#navTickets,#navProfile").forEach(n=>{
-    n.onclick = ()=> go(n.dataset.nav);
-  });
-
   if(parts.length===0){ // "#"
     go("#/");
     return;
@@ -1132,11 +1193,26 @@ async function ensureCustomerProfile(user, nameHint=""){
   if(!db) return null;
   const ref = doc(db, "customers", user.uid);
   const snap = await getDoc(ref);
-  if(snap.exists()) return snap.data();
-  const profile = { name: nameHint || user.displayName || "", email: user.email || "", createdAt: serverTimestamp() };
+  if(snap.exists()){
+    const data = snap.data() || {};
+    // If name was never stored, backfill from signup hint / auth displayName
+    const nm = (data.name||"").trim();
+    const hint = (nameHint || user.displayName || "").trim();
+    if(!nm && hint){
+      try{ await setDoc(ref, { name: hint }, { merge:true }); }catch{}
+      data.name = hint;
+    }
+    if(!data.email && user.email){
+      try{ await setDoc(ref, { email: user.email }, { merge:true }); }catch{}
+      data.email = user.email;
+    }
+    return data;
+  }
+  const profile = { name: (nameHint || user.displayName || "").trim(), email: user.email || "", createdAt: serverTimestamp() };
   await setDoc(ref, profile, { merge:true });
   return profile;
 }
+
 
 /* ===== Auth UI */
 function setAuthTab(tab){
@@ -1597,36 +1673,63 @@ function renderTicketsPage(){
 
   empty.style.display = STATE.tickets.length ? "none" : "block";
 
-  for(const t of STATE.tickets){
+  
+  // Group tickets by orderId so the same order appears once
+  const byOrder = new Map();
+  for(const t of (STATE.tickets||[])){
+    const oid = (t.orderId || t.orderID || t.order_id || t.id || "unknown");
+    if(!byOrder.has(oid)) byOrder.set(oid, []);
+    byOrder.get(oid).push(t);
+  }
+
+  const orders = Array.from(byOrder.entries()).map(([orderId, items])=>{
+    // sort items stable (optional)
+    items.sort((a,b)=> String(a.id||"").localeCompare(String(b.id||"")));
+    const t0 = items[0];
+    return { orderId, items, t0 };
+  });
+
+  // newest first if purchase date exists
+  orders.sort((a,b)=>{
+    const ad = a.t0.purchasedAt?.toDate ? a.t0.purchasedAt.toDate() : (a.t0.purchaseDateISO ? parseISOish(a.t0.purchaseDateISO) : null);
+    const bd = b.t0.purchasedAt?.toDate ? b.t0.purchasedAt.toDate() : (b.t0.purchaseDateISO ? parseISOish(b.t0.purchaseDateISO) : null);
+    return (bd?bd.getTime():0) - (ad?ad.getTime():0);
+  });
+
+  for(const o of orders){
+    const t = o.t0;
     const start = t.startsAt?.toDate ? t.startsAt.toDate() : (t.startsAtISO ? parseISOish(t.startsAtISO) : eventStartDate(t));
     const place = [t.venue||"", t.city||""].filter(Boolean).join(" • ") || "—";
-    const el = document.createElement("div");
-    el.className = "ticketCard";
-    el.innerHTML = `
-      <div class="banner">
-        ${t.bannerUrl ? `<img src="${escapeHtml(t.bannerUrl)}" alt="">` : ``}
-        <div class="eLogo">
-          ${t.logoUrl ? `<img src="${escapeHtml(t.logoUrl)}" alt="">` : `<span style="font-weight:1000">T</span>`}
+    const qty = o.items.reduce((s,x)=> s + Number(x.qty||1), 0);
+    const title = t.eventName || t.name || "Event";
+    const amount = (t.amountPaid!=null ? Number(t.amountPaid) : (t.amount!=null ? Number(t.amount) : null));
+    const amountTxt = (amount!=null && !Number.isNaN(amount)) ? fmtMoney(amount) : "—";
+
+    const card = document.createElement("div");
+    card.className = "ticketCard";
+    card.innerHTML = `
+      <div class="row">
+        <div class="left">
+          <div class="tTitle">${escapeHtml(title)}</div>
+          <div class="tMeta">${escapeHtml(formatDateNice(start))} • ${escapeHtml(place)}</div>
+          <div class="tMeta" style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">
+            <span class="chip">${escapeHtml(String(qty))} ticket${qty===1?"":"s"}</span>
+            <span class="chip">Order ${escapeHtml(o.orderId)}</span>
+            <span class="chip">Paid: ${escapeHtml(amountTxt)} ${escapeHtml(DEFAULT_CURRENCY)}</span>
+          </div>
         </div>
-      </div>
-      <div class="eBody">
-        <div class="eTitle">
-          <b>${escapeHtml(t.eventName || "Event")}</b>
-          <span class="badge ok">Paid</span>
-        </div>
-        <div class="eMeta">
-          <div class="row">📅 <span>${escapeHtml(fmtDate(start))}</span></div>
-          <div class="row">📍 <span>${escapeHtml(place)}</span></div>
-          <div class="row">🎟️ <span>${escapeHtml(t.tierName||"—")}${t.waveName?` • ${escapeHtml(t.waveName)}`:""} • Qty ${escapeHtml(String(t.qty||1))}</span></div>
-        </div>
-        <div class="kbar">
-          <span class="badge info">Open ticket</span>
+        <div class="right">
+          <button class="btn primary sm" data-open="${escapeHtml(o.items[0].id||"")}">Open Ticket</button>
         </div>
       </div>
     `;
-    el.addEventListener("click", ()=> go(`#/ticket/${encodeURIComponent(t.id)}`));
-    grid.appendChild(el);
+    card.querySelector('[data-open]')?.addEventListener("click", ()=>{
+      const id = card.querySelector('[data-open]').getAttribute("data-open");
+      go(`#/ticket/${encodeURIComponent(id)}`);
+    });
+    grid.appendChild(card);
   }
+
 }
 
 /* ===== Ticket page */
@@ -1829,29 +1932,43 @@ $("#btnSignout").addEventListener("click", ()=> doSignout());
 /* ===== Sidebar UI */
 function wireSidebar(){
   const sb = $("#sidebar");
+  const shade = $("#sideShade");
+  const closeSide = ()=>{ sb?.classList.remove("open"); shade?.classList.remove("show"); };
+  const openSide = ()=>{ sb?.classList.add("open"); shade?.classList.add("show"); };
   const btnToggle = $("#btnSideToggle");
   btnToggle?.addEventListener("click", ()=>{
     if(window.innerWidth > 860){
       sb?.classList.toggle("collapsed");
       try{ localStorage.setItem("luma_customer_sidebar_collapsed", sb?.classList.contains("collapsed") ? "1" : "0"); }catch{}
     }else{
-      sb?.classList.toggle("open");
+      if(sb?.classList.contains("open")){ closeSide(); }else{ openSide(); }
     }
   });
 
-  $("#btnMobileMenu")?.addEventListener("click", ()=> sb?.classList.toggle("open"));
-  $("#brandHome")?.addEventListener("click", ()=> go("#/"));
-  $("#brandHomeMobile")?.addEventListener("click", ()=> go("#/"));
+  $("#btnMobileMenu")?.addEventListener("click", ()=>{ if(sb?.classList.contains("open")) closeSide(); else openSide(); });
+  $("#brandHome")?.addEventListener("click", ()=>{ go("#/"); if(window.innerWidth<=860) closeSide(); });
+  $("#brandHomeMobile")?.addEventListener("click", ()=>{ go("#/"); if(window.innerWidth<=860) closeSide(); });
 
   $$("#navHome,#navTickets,#navProfile").forEach(n=>{
     n.addEventListener("click", ()=>{
       const h = n.dataset.nav || "#/";
       go(h);
-      if(window.innerWidth <= 860) sb?.classList.remove("open");
+      if(window.innerWidth <= 860) closeSide();
     });
   });
 
-  // restore collapse
+  
+  // Close sidebar when clicking outside (mobile)
+  shade?.addEventListener("click", closeSide);
+  document.addEventListener("click", (e)=>{
+    if(window.innerWidth > 860) return;
+    if(!sb?.classList.contains("open")) return;
+    const t = e.target;
+    const isInside = sb.contains(t);
+    const isToggle = (t && (t.closest && (t.closest("#btnSideToggle") || t.closest("#btnMobileMenu"))));
+    if(!isInside && !isToggle) closeSide();
+  });
+// restore collapse
   try{
     if(localStorage.getItem("luma_customer_sidebar_collapsed")==="1") sb?.classList.add("collapsed");
   }catch{}
@@ -1861,7 +1978,7 @@ function wireSidebar(){
 wireSidebar();
 // Luma logo placeholder
 (function(){
-  const url = (LUMA_LOGO_URL||"https://firebasestorage.googleapis.com/v0/b/events-339ce.firebasestorage.app/o/WhatsApp%20Image%202025-12-20%20at%204.40.03%20PM.jpeg?alt=media&token=63a5d3fc-7b01-4396-8c84-08533ad950d3").trim();
+  const url = (LUMA_LOGO_URL||"").trim();
   const imgA=$("#lumaLogoImg"), svgA=$("#lumaLogoSvg"), imgM=$("#lumaLogoImgM"), svgM=$("#lumaLogoSvgM");
   if(url){
     if(imgA){imgA.src=url; imgA.style.display="block";} if(svgA) svgA.style.display="none";
