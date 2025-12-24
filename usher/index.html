@@ -163,6 +163,24 @@
       outline:none;
       font-size:15px;
     }
+    select{
+      width:100%;
+      padding:14px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.25);
+      color:var(--text);
+      outline:none;
+      font-size:15px;
+      appearance:none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, rgba(255,255,255,.7) 50%),
+        linear-gradient(135deg, rgba(255,255,255,.7) 50%, transparent 50%);
+      background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%;
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
+    }
+    select:focus{ border-color: rgba(29,78,216,.55); box-shadow: 0 0 0 4px rgba(29,78,216,.18); }
     input:focus{ border-color: rgba(29,78,216,.55); box-shadow: 0 0 0 4px rgba(29,78,216,.18); }
 
     .btn{
@@ -213,6 +231,23 @@
 
     /* Scan area */
     .scanWrap{ display:flex; flex-direction:column; gap:12px; }
+    .scanControls{
+      display:flex;
+      gap:10px;
+      align-items:flex-end;
+      flex-wrap:wrap;
+    }
+    .scanControls .control{
+      flex:1 1 200px;
+    }
+    .scanStatus{
+      font-size:12px;
+      color:var(--muted);
+      padding:4px 2px 0;
+    }
+    .scanStatus.error{
+      color: #ffb4b4;
+    }
     .scanBox{
       border-radius: var(--radius);
       border:1px dashed rgba(255,255,255,.18);
@@ -467,12 +502,23 @@
       <div class="cardBody">
         <div class="scanWrap">
           <div class="scanBox">
-            <video id="qrVideo" muted playsinline></video>
+            <video id="qrVideo" muted playsinline autoplay></video>
             <div class="scanHint" id="scanHint">
               <div class="big">Scan Dynamic QR</div>
               <div class="small">Point the camera at the QR. After scan, you will enter the last 4 digits manually.</div>
             </div>
           </div>
+
+          <div class="scanControls">
+            <div class="control">
+              <label for="cameraSelect">Camera</label>
+              <select id="cameraSelect"></select>
+            </div>
+            <div class="control">
+              <button class="btn secondary" id="btnRestartScanner">Restart Scanner</button>
+            </div>
+          </div>
+          <div class="scanStatus" id="scanStatus">Ready to scan.</div>
 
           <!-- Digits + keypad -->
           <div class="card hidden" id="verifyCard" style="box-shadow:none;border-radius: var(--radius); background: rgba(255,255,255,.04)">
@@ -670,6 +716,13 @@
 
   function setHint(show){
     $("scanHint").classList.toggle("hidden", !show);
+  }
+
+  function setScanStatus(message, isError = false){
+    const statusEl = $("scanStatus");
+    if(!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.classList.toggle("error", isError);
   }
 
   function showResult({ok, reason, customerName, tierId, waveId, gateName, when, usedWhereWhen}){
@@ -960,11 +1013,19 @@
       return;
     }
 
+    if(!window.isSecureContext){
+      setScanStatus("Camera access requires HTTPS. Open the secure link for scanning.", true);
+      return;
+    }
+
     QrScanner.WORKER_PATH = "https://unpkg.com/qr-scanner@1.4.2/qr-scanner-worker.min.js";
     qrScanner = new QrScanner(
       videoEl,
-      async (decodedText) => {
+      async (result) => {
         if(state.verifying) return;
+
+        const decodedText = typeof result === "string" ? result : result?.data;
+        if(!decodedText) return;
 
         const t = nowMs();
         if(t - state.lastScanAt < 900) return;
@@ -989,12 +1050,22 @@
       }
     );
 
-    state.scanning = true;
-
     try{
+      const hasCamera = await QrScanner.hasCamera();
+      if(!hasCamera){
+        setScanStatus("No camera detected on this device.", true);
+        await stopScanner();
+        return;
+      }
+
       await qrScanner.start();
+      state.scanning = true;
+      setScanStatus("Scanning… hold the QR steady inside the frame.");
+      await populateCameraSelect();
     }catch(e){
-      alert("Camera permission needed to scan.");
+      const message = e?.message || "Camera permission needed to scan.";
+      setScanStatus(message, true);
+      await stopScanner();
     }
   }
 
@@ -1007,6 +1078,37 @@
     }catch(_e){}
     qrScanner = null;
     state.scanning = false;
+  }
+
+  async function populateCameraSelect(){
+    const selectEl = $("cameraSelect");
+    if(!selectEl || !qrScanner) return;
+
+    try{
+      const cameras = await QrScanner.listCameras(true);
+      if(!cameras.length){
+        selectEl.innerHTML = `<option value="">No camera available</option>`;
+        selectEl.disabled = true;
+        return;
+      }
+
+      selectEl.disabled = false;
+      selectEl.innerHTML = cameras
+        .map((camera, index) => {
+          const label = camera.label || `Camera ${index + 1}`;
+          return `<option value="${camera.id}">${label}</option>`;
+        })
+        .join("");
+
+      const preferred = cameras.find((camera) => /back|rear|environment/i.test(camera.label || "")) || cameras[0];
+      if(preferred?.id){
+        selectEl.value = preferred.id;
+        await qrScanner.setCamera(preferred.id);
+      }
+    }catch(_e){
+      selectEl.innerHTML = `<option value="">Camera list unavailable</option>`;
+      selectEl.disabled = true;
+    }
   }
 
   async function loadScanPreview(ticketId){
@@ -1189,6 +1291,24 @@
     closeResult();
     // allow new scan
     hardResetForNextScan();
+  });
+
+  $("btnRestartScanner").addEventListener("click", async ()=>{
+    setScanStatus("Restarting scanner…");
+    await stopScanner();
+    await startScanner();
+  });
+
+  $("cameraSelect").addEventListener("change", async (e)=>{
+    if(!qrScanner) return;
+    const cameraId = e.target.value;
+    if(!cameraId) return;
+    try{
+      await qrScanner.setCamera(cameraId);
+      setScanStatus("Camera switched. Keep the QR steady.");
+    }catch(_e){
+      setScanStatus("Unable to switch camera.", true);
+    }
   });
 
   // If overlay is open, prevent accidental back behavior
