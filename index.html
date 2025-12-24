@@ -2452,9 +2452,23 @@ async function __loadFirebase(){
   window.__firebaseReady = true;
 }
 
+async function __loadFirebaseWithTimeout(ms=4500){
+  let timer;
+  try{
+    return await Promise.race([
+      __loadFirebase(),
+      new Promise((_, reject)=>{
+        timer = setTimeout(()=>reject(new Error("Firebase load timeout")), ms);
+      })
+    ]);
+  }finally{
+    if(timer) clearTimeout(timer);
+  }
+}
+
 // Ensure auth/db/storage are ready
 try{
-  await __loadFirebase();
+  await __loadFirebaseWithTimeout();
 }catch(err){
   window.__firebaseReady = false;
   __fatalFirebase("Firebase failed to load. Check firebaseConfig and that the app is served over https.", err);
@@ -6531,6 +6545,15 @@ function start(){
   if(ok) bootDashboard();
   else setAuthTab("signin");
 }
+
+window.addEventListener("error", ()=>{
+  document.getElementById("auth")?.classList.remove("hidden");
+  document.getElementById("dash")?.classList.add("hidden");
+});
+window.addEventListener("unhandledrejection", ()=>{
+  document.getElementById("auth")?.classList.remove("hidden");
+  document.getElementById("dash")?.classList.add("hidden");
+});
 /* ---------- Misc buttons for hub/workspace ---------- */
 
 $("#btnCreateEvent2")?.addEventListener?.("click", ()=>{});
