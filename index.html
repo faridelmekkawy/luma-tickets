@@ -32,6 +32,20 @@
       --shadow2:0 10px 26px rgba(15,23,42,.08);
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
+    body[data-theme="dark"]{
+      --bg0:#0b1020;
+      --bg1:#0b1020;
+      --panel:#111827;
+      --panel2:#1f2937;
+      --stroke:rgba(148,163,184,.18);
+      --stroke2:rgba(148,163,184,.26);
+      --border:rgba(148,163,184,.35);
+      --ink:#e2e8f0;
+      --muted:rgba(226,232,240,.72);
+      --muted2:rgba(226,232,240,.5);
+      --shadow:0 18px 40px rgba(2,6,23,.45);
+      --shadow2:0 10px 26px rgba(2,6,23,.4);
+    }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
@@ -209,6 +223,7 @@
       color:var(--muted2);
       font-size:12px;
     }
+    .sidebarFooter .pf{color:var(--ink);font-weight:600}
     .sidebar.collapsed .sidebarFooter .pf{display:none}
     .powered{
       display:flex;align-items:center;gap:8px;
@@ -218,7 +233,28 @@
       width:8px;height:8px;border-radius:999px;background:rgba(34,197,94,.85);
       box-shadow:0 0 0 4px rgba(34,197,94,.14);
     }
-    .lumaMark{font-weight:900;letter-spacing:.14em;font-size:12px;line-height:1;display:inline-block;padding:2px 6px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
+    .lumaMark{
+      font-weight:900;
+      letter-spacing:.14em;
+      font-size:12px;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:2px 6px;
+      border-radius:10px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      color:transparent;
+      text-indent:-999px;
+      overflow:hidden;
+      width:58px;
+      height:18px;
+      background-image:url("https://firebasestorage.googleapis.com/v0/b/events-339ce.firebasestorage.app/o/ChatGPT%20Image%20Dec%2023%2C%202025%2C%2012_55_43%20PM.png?alt=media&token=0facde2f-570c-4004-9e7b-d0d10aca94c3");
+      background-repeat:no-repeat;
+      background-position:center;
+      background-size:contain;
+    }
 
 
     /* Topbar */
@@ -451,6 +487,17 @@
       margin-top:4px;
       display:flex;flex-direction:column;gap:10px;
     }
+    .linkBtn{
+      background:transparent;
+      border:0;
+      padding:0;
+      color:var(--brand);
+      font-weight:600;
+      font-size:12px;
+      cursor:pointer;
+    }
+    .linkBtn:hover{text-decoration:underline}
+    .authLinks{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .field{display:flex;flex-direction:column;gap:8px}
     .field label{font-size:12px;color:var(--muted)}
     .input{
@@ -603,6 +650,28 @@
       vertical-align:top;
     }
     tbody tr:hover td{background:#f1f5fb}
+
+    body[data-theme="dark"] .navItem:hover{
+      background:rgba(148,163,184,.12);
+      border-color:rgba(148,163,184,.25);
+      color:var(--ink);
+    }
+    body[data-theme="dark"] .menuRow:hover{
+      background:rgba(148,163,184,.12);
+      border-color:rgba(148,163,184,.22);
+      color:var(--ink);
+    }
+    body[data-theme="dark"] .btn:hover{background:rgba(148,163,184,.12);border-color:rgba(148,163,184,.25)}
+    body[data-theme="dark"] tbody tr:hover td{background:rgba(148,163,184,.08)}
+    body[data-theme="dark"] .authLeft{
+      background:linear-gradient(180deg, #0f172a, #0b1020);
+      border-right:1px solid var(--stroke);
+    }
+    body[data-theme="dark"] .feat{
+      background:rgba(148,163,184,.08);
+      border-color:rgba(148,163,184,.12);
+    }
+    body[data-theme="dark"] .cardHead{background:rgba(148,163,184,.08)}
     .rowActions{display:flex;gap:8px;flex-wrap:wrap}
     .chip{
       display:inline-flex;align-items:center;gap:8px;
@@ -689,6 +758,20 @@
       border-top:1px solid var(--stroke);
       display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap
     }
+    .legalContent{
+      max-height:min(60vh, 520px);
+      overflow:auto;
+      padding-right:6px;
+      line-height:1.6;
+      font-size:12px;
+      color:var(--ink);
+    }
+    .legalContent h4{margin:16px 0 6px;font-size:13px}
+    .legalContent p{margin:0 0 10px;color:var(--muted)}
+    .legalContent ul{margin:6px 0 12px 18px;color:var(--muted)}
+    .footerLinks{display:flex;flex-wrap:wrap;gap:10px;font-size:12px}
+    .footerLinks a{color:var(--brand);text-decoration:none}
+    .footerLinks a:hover{text-decoration:underline}
 
     /* Toast */
     .toasts{
@@ -887,15 +970,15 @@
     .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .nowrap{white-space:nowrap}
   
-/* --- Fix: dark dropdowns + full scroll --- */
+/* --- Dropdowns + full scroll --- */
 select, option{
-  background-color: rgba(11,16,32,.96);
+  background-color: var(--panel);
   color: var(--ink);
 }
 select{
-  border: 1px solid rgba(255,255,255,.14);
+  border: 1px solid var(--stroke2);
 }
-option{ background-color: rgba(11,16,32,.98); }
+option{ background-color: var(--panel); color: var(--ink); }
 .content{ overflow:auto; }
 #dash{ min-height:100vh; }
 
@@ -945,6 +1028,16 @@ option{ background-color: rgba(11,16,32,.98); }
     <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 12h9"/>
     <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
       d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"/>
+  </symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.05.05a2 2 0 0 1-2.83 2.83l-.05-.05a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.52V21a2 2 0 0 1-4 0v-.07a1.7 1.7 0 0 0-1-1.52 1.7 1.7 0 0 0-1.87.34l-.05.05a2 2 0 1 1-2.83-2.83l.05-.05A1.7 1.7 0 0 0 5 15a1.7 1.7 0 0 0-1.52-1H3a2 2 0 0 1 0-4h.07A1.7 1.7 0 0 0 5 8.48a1.7 1.7 0 0 0-.34-1.87l-.05-.05a2 2 0 1 1 2.83-2.83l.05.05A1.7 1.7 0 0 0 8.48 5a1.7 1.7 0 0 0 1.52-1V4a2 2 0 0 1 4 0v.07A1.7 1.7 0 0 0 15.52 5a1.7 1.7 0 0 0 1.87-.34l.05-.05a2 2 0 1 1 2.83 2.83l-.05.05A1.7 1.7 0 0 0 19 8.48a1.7 1.7 0 0 0 1 1.52H21a2 2 0 0 1 0 4h-.07a1.7 1.7 0 0 0-1.52 1z"/>
+  </symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.5 6.5 0 0 0 9.8 9.8z"/>
   </symbol>
   <symbol id="i-plus" viewBox="0 0 24 24">
     <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 5v14M5 12h14"/>
@@ -1090,7 +1183,6 @@ option{ background-color: rgba(11,16,32,.98); }
       <div class="authTabs">
         <button class="tabBtn active" data-auth-tab="signin">Sign in</button>
         <button class="tabBtn" data-auth-tab="signup">Sign up</button>
-        <button class="tabBtn" data-auth-tab="forgot">Forgot password</button>
       </div>
 
       <!-- Sign in -->
@@ -1118,6 +1210,10 @@ option{ background-color: rgba(11,16,32,.98); }
               <input id="signin-pass" type="password" placeholder="••••••••" required>
             </div>
           </div>
+          <div class="authLinks">
+            <button class="linkBtn" id="btnForgot" type="button">Forgot password?</button>
+            <span class="muted2 small">Don’t have an account? <a href="#" id="go-signup">Sign up</a></span>
+          </div>
 
           <div class="split" style="margin-top:6px">
             <button class="btn primary" type="submit" style="flex:1">
@@ -1125,10 +1221,6 @@ option{ background-color: rgba(11,16,32,.98); }
               Enter Dashboard
             </button>
             
-          </div>
-
-          <div class="hint">
-            <b>Tip:</b> You can try the dashboard immediately using the <b></b> button.
           </div>
         </form>
       </div>
@@ -1255,6 +1347,13 @@ option{ background-color: rgba(11,16,32,.98); }
           <span>Overview across events</span>
         </div>
       </div>
+      <div class="navItem" id="navSignout">
+        <div class="ic"><svg width="18" height="18"><use href="#i-logout"/></svg></div>
+        <div class="txt">
+          <b>Sign out</b>
+          <span>Exit the dashboard</span>
+        </div>
+      </div>
 </nav>
 
     <div class="sidebarFooter">
@@ -1313,7 +1412,20 @@ option{ background-color: rgba(11,16,32,.98); }
               </select>
             </div>
 
-            
+            <div class="menuRow">
+              <div class="left">
+                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-moon"/></svg>
+                <div>
+                  <b style="font-size:12px">Theme</b><br>
+                  <small>Switch light/dark mode</small>
+                </div>
+              </div>
+              <select id="themeSelect" class="chip" style="background:transparent;color:var(--ink);border-color:rgba(255,255,255,.14)">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+
             </div>
 
             <div class="menuSep"></div>
@@ -3121,7 +3233,8 @@ async function appSignOut(){
 
 
 function setAuthTab(tab){
-  $$(".tabBtn").forEach(b=>b.classList.toggle("active", b.dataset.authTab===tab));
+  const activeTab = tab === "forgot" ? "signin" : tab;
+  $$(".tabBtn").forEach(b=>b.classList.toggle("active", b.dataset.authTab===activeTab));
   document.getElementById("auth-signin")?.classList.toggle("hidden", tab!=="signin");
   document.getElementById("auth-signup")?.classList.toggle("hidden", tab!=="signup");
   document.getElementById("auth-forgot")?.classList.toggle("hidden", tab!=="forgot");
@@ -3132,6 +3245,7 @@ function authInit(){
   if (y) y.textContent = new Date().getFullYear();
 
   applyLumaLogo();
+  initTheme();
 
   $$(".tabBtn").forEach(b =>
     b.addEventListener("click", () => setAuthTab(b.dataset.authTab))
@@ -3146,6 +3260,18 @@ function authInit(){
     e.preventDefault();
     setAuthTab("signin");
   });
+
+  $("#go-signup")?.addEventListener("click", (e)=>{
+    e.preventDefault();
+    setAuthTab("signup");
+  });
+
+  $("#btnForgot")?.addEventListener("click", (e)=>{
+    e.preventDefault();
+    setAuthTab("forgot");
+  });
+
+  renderFooterLinks();
 }
 
 function applyLumaLogo(){
@@ -3164,6 +3290,180 @@ function applyLumaLogo(){
   svgs.forEach(svg=>{
     if(!svg) return;
     svg.style.display = LUMA_LOGO_URL ? "none" : "block";
+  });
+}
+
+const THEME_KEY = "luma_theme";
+function applyTheme(mode){
+  const theme = mode === "dark" ? "dark" : "light";
+  document.body.dataset.theme = theme;
+  localStorage.setItem(THEME_KEY, theme);
+  const select = $("#themeSelect");
+  if(select) select.value = theme;
+}
+function initTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
+  const theme = saved || (prefersDark ? "dark" : "light");
+  applyTheme(theme);
+  const select = $("#themeSelect");
+  if(select && !select.__themeWired){
+    select.__themeWired = true;
+    select.addEventListener("change", ()=> applyTheme(select.value));
+  }
+}
+
+const LEGAL_PAGES = {
+  about: {
+    title: "About Luma — Event Owners",
+    body: `
+      <p>Luma is an event operations platform built for organizers who need clarity, control, and reliability.</p>
+      <p>Luma helps event owners create events, sell tickets, manage capacities, track performance, and control on-site check-ins — all from one dashboard. Everything is designed to reduce friction during setup and eliminate chaos on event day.</p>
+      <p>From ticket tiers and waves to real-time sales tracking and access validation, Luma gives organizers the tools they need to run professional, secure events at scale.</p>
+      <p>Luma does not run events — it empowers those who do.</p>
+    `
+  },
+  faqs: {
+    title: "Event Owner FAQs",
+    body: `
+      <h4>What does Luma provide for event owners?</h4>
+      <p>Luma provides:</p>
+      <ul>
+        <li>Event creation and management tools</li>
+        <li>Ticket tiers, waves, pricing, and capacity controls</li>
+        <li>Real-time sales and check-in tracking</li>
+        <li>Secure digital ticket verification</li>
+        <li>Organizer and usher access controls</li>
+        <li>Analytics to monitor performance</li>
+      </ul>
+      <h4>Does Luma handle my event operations?</h4>
+      <p>No. Luma provides the platform and tools. The event owner is responsible for event execution, staffing, venue coordination, and guest experience.</p>
+      <h4>Can I manage multiple events?</h4>
+      <p>Yes. Event owners can create and manage multiple events from a single dashboard.</p>
+      <h4>Can I limit ticket quantities per tier or wave?</h4>
+      <p>Yes. You control ticket capacities at all levels and can adjust them before or during sales.</p>
+      <h4>Can tickets be duplicated or reused?</h4>
+      <p>No. Once a ticket is checked in, it becomes invalid. Duplicate or manipulated tickets will be rejected.</p>
+      <h4>Can I control who checks in tickets?</h4>
+      <p>Yes. You can assign ushers and control access permissions.</p>
+      <h4>Does Luma handle refunds?</h4>
+      <p>Refunds are controlled by the event owner based on their own refund policy.</p>
+    `
+  },
+  terms: {
+    title: "Event Owner Terms & Conditions",
+    body: `
+      <h4>Platform Role</h4>
+      <p>Luma acts as a technology provider, not an event organizer, promoter, or venue operator.</p>
+      <h4>Event Responsibility</h4>
+      <p>You are fully responsible for:</p>
+      <ul>
+        <li>Event content and accuracy</li>
+        <li>Ticket pricing, availability, and refund policies</li>
+        <li>Event execution, staffing, security, and compliance</li>
+        <li>Guest admission decisions</li>
+      </ul>
+      <h4>Ticket Sales</h4>
+      <ul>
+        <li>Ticket quantities must reflect actual venue capacity.</li>
+        <li>Overselling, misrepresentation, or misuse may result in account suspension.</li>
+      </ul>
+      <h4>Access Control</h4>
+      <ul>
+        <li>Luma provides ticket verification tools, but final entry decisions are made by your team.</li>
+        <li>Any misuse of check-in tools may lead to platform restrictions.</li>
+      </ul>
+      <h4>Liability</h4>
+      <p>Luma is not liable for:</p>
+      <ul>
+        <li>Event cancellations or changes</li>
+        <li>Financial losses related to event execution</li>
+        <li>Disputes between event owners and attendees</li>
+      </ul>
+    `
+  },
+  privacy: {
+    title: "Event Owner Privacy Policy",
+    body: `
+      <h4>Data Collected</h4>
+      <p>As an event owner, Luma may collect:</p>
+      <ul>
+        <li>Account and contact information</li>
+        <li>Event configuration data</li>
+        <li>Sales, ticket, and check-in activity</li>
+      </ul>
+      <h4>Data Usage</h4>
+      <p>Your data is used to:</p>
+      <ul>
+        <li>Operate and improve the platform</li>
+        <li>Generate analytics and performance insights</li>
+        <li>Support security and fraud prevention</li>
+      </ul>
+      <h4>Data Access</h4>
+      <p>You have access to your event data through your dashboard. You are responsible for handling attendee data in compliance with applicable laws.</p>
+      <h4>Data Protection</h4>
+      <p>Luma applies reasonable technical and organizational measures to protect stored data.</p>
+    `
+  },
+  policies: {
+    title: "Event Owner Platform Policies",
+    body: `
+      <h4>Ticketing Policy</h4>
+      <ul>
+        <li>Tickets must be configured accurately.</li>
+        <li>Once an event is set live, changes may affect customer experience and should be handled carefully.</li>
+      </ul>
+      <h4>Check-in Policy</h4>
+      <ul>
+        <li>Each ticket is valid for a single entry.</li>
+        <li>Checked-in tickets cannot be reused or reversed.</li>
+      </ul>
+      <h4>Account Misuse</h4>
+      <p>Luma reserves the right to suspend or terminate accounts involved in:</p>
+      <ul>
+        <li>Fraudulent ticket activity</li>
+        <li>Capacity manipulation</li>
+        <li>Abuse of the platform or staff access</li>
+      </ul>
+      <h4>Compliance Policy</h4>
+      <p>Event owners are responsible for ensuring their events comply with local laws, venue rules, and safety regulations.</p>
+    `
+  }
+};
+
+function openLegalModal(key){
+  const page = LEGAL_PAGES[key];
+  if(!page) return;
+  openModal({
+    title: page.title,
+    desc: "",
+    bodyHtml: `<div class="legalContent">${page.body}</div>`,
+    footButtons: [{ label: "Close", kind: "primary", onClick: closeModal }]
+  });
+}
+
+function renderFooterLinks(){
+  const links = [
+    { key: "about", label: "About Luma" },
+    { key: "faqs", label: "Event Owner FAQs" },
+    { key: "terms", label: "Event Owner Terms & Conditions" },
+    { key: "privacy", label: "Event Owner Privacy Policy" },
+    { key: "policies", label: "Event Owner Platform Policies" }
+  ];
+  document.querySelectorAll(".footer").forEach(footer=>{
+    if(footer.querySelector(".footerLinks")) return;
+    const wrap = document.createElement("div");
+    wrap.className = "footerLinks";
+    wrap.innerHTML = links.map(l => `<a href="#" data-legal="${l.key}">${l.label}</a>`).join("");
+    footer.appendChild(wrap);
+  });
+  document.querySelectorAll("[data-legal]").forEach(link=>{
+    if(link.__legalWired) return;
+    link.__legalWired = true;
+    link.addEventListener("click", (e)=>{
+      e.preventDefault();
+      openLegalModal(link.dataset.legal);
+    });
   });
 }
 
@@ -6124,6 +6424,7 @@ on("#btnToggleSide","click", ()=>{
   document.querySelectorAll(".navItem").forEach(item=>{
     item.addEventListener("click", ()=>{
       const r = item.dataset.route;
+      if(!r) return;
       if(r==="workspace") setRoute("workspace");
       else if(r==="hub") setRoute("hub");
       else if(r==="notifications") setRoute("notifications");
@@ -6131,6 +6432,7 @@ on("#btnToggleSide","click", ()=>{
       else setRoute("hub");
     });
   });
+  on("#navSignout","click", appSignOut);
 
   // create event
   on("#btnCreateEvent","click", ()=> !isReadOnly() ? createEventModal() : toast("Read-only mode","Switch to Owner to create events."));
