@@ -2716,6 +2716,7 @@ window.__firebaseReady = false;
 
 // Keep backward-compatible name used elsewhere in this file
 let fbSignOut = null;
+let __authListenerBound = false;
 
 function __fatalFirebase(msg, err){
   console.error(msg, err || "");
@@ -3385,26 +3386,43 @@ async function loadData(){
   // Production-only: load from Firestore (owners/{uid}) with local cache fallback
   const uid = auth?.currentUser?.uid;
   const cached = localStorage.getItem(dataCacheKey(uid));
+  const cachedData = cached ? safeParseJSON(cached, null) : null;
   if(uid && window.__firebaseReady && db && getDoc){
     const ref = ownerDocRef(uid);
     const snap = await getDoc(ref);
     if(snap.exists()){
       const d = snap.data()?.data;
       if(d){
+        if(cachedData?.events?.length){
+          const cachedById = new Map((cachedData.events || []).map(ev=>[ev.id, ev]));
+          (d.events || []).forEach((ev)=>{
+            const cachedEv = cachedById.get(ev.id);
+            if(!cachedEv) return;
+            ev.bannerDataUrl = ev.bannerDataUrl || cachedEv.bannerDataUrl || "";
+            ev.logoDataUrl = ev.logoDataUrl || cachedEv.logoDataUrl || "";
+            ev.ownerLogoDataUrl = ev.ownerLogoDataUrl || cachedEv.ownerLogoDataUrl || "";
+            ev.design = ev.design || {};
+            const cachedDesign = cachedEv.design || {};
+            ev.design.bannerDataUrl = ev.design.bannerDataUrl || cachedDesign.bannerDataUrl || "";
+            ev.design.logoDataUrl = ev.design.logoDataUrl || cachedDesign.logoDataUrl || "";
+            ev.design.ownerLogoDataUrl = ev.design.ownerLogoDataUrl || cachedDesign.ownerLogoDataUrl || "";
+            ev.design.bgDataUrl = ev.design.bgDataUrl || cachedDesign.bgDataUrl || "";
+          });
+        }
         // cache for faster loads / offline
         localStorage.setItem(dataCacheKey(uid), JSON.stringify(d));
         return d;
       }
     }
     // First time: seed
-    const seed = cached ? safeParseJSON(cached, defaultData()) : defaultData();
+    const seed = cachedData || defaultData();
     await setDoc(ref, { data: seed, updatedAt: serverTimestamp() }, { merge: true });
     localStorage.setItem(dataCacheKey(uid), JSON.stringify(seed));
     return seed;
   }
 
   // Not signed in: fallback to localStorage only
-  if(cached) return safeParseJSON(cached, defaultData());
+  if(cachedData) return cachedData;
   const seed = defaultData();
   localStorage.setItem(dataCacheKey(uid), JSON.stringify(seed));
   return seed;
@@ -3546,12 +3564,31 @@ function saveAuth(){
   localStorage.setItem(STORAGE.authKey, JSON.stringify({ email: state.user.email, viewAs: state.viewAs }));
 }
 
+async function ensureAuthListener(){
+  if(__authListenerBound || !window.__firebaseReady || !auth || !onAuthStateChanged) return;
+  __authListenerBound = true;
+  onAuthStateChanged(auth, async (user)=>{
+    if(user){
+      state.user = { name: user.displayName || "Owner", email: user.email || "" };
+      state.viewAs = "Owner";
+      saveAuth();
+      await bootDashboard();
+    }else{
+      state.user = null;
+      state.__booted = false;
+      document.getElementById("dash")?.classList.add("hidden");
+      document.getElementById("auth")?.classList.remove("hidden");
+    }
+  });
+}
+
 async function appSignOut(){
   try{
     await fbSignOut(auth);
   }catch(_e){}
   localStorage.removeItem(STORAGE.authKey);
   state.user = null;
+  state.__booted = false;
   state.activeEventId = null;
   state.route = "hub";
   state.activeTab = "overview";
@@ -3787,6 +3824,7 @@ function renderFooterLinks(){
       if(name) await updateProfile(cred.user, { displayName: name });
       state.user = { name: cred.user.displayName || name || "Owner", email: cred.user.email };
       state.viewAs = "Owner";
+      saveAuth();
       toast("Account created", "Welcome! Loading your Events Hub...");
       await bootDashboard();
     }catch(err){
@@ -3812,6 +3850,7 @@ function renderFooterLinks(){
       const cred = await signInWithEmailAndPassword(auth, email, pass);
       state.user = { name: cred.user.displayName || "Owner", email: cred.user.email };
       state.viewAs = "Owner";
+      saveAuth();
       toast("Signed in", "Loading your Events Hub...");
       await bootDashboard();
     }catch(err){
@@ -3843,16 +3882,7 @@ function renderFooterLinks(){
   
 
   // Firebase auth session restore
-  if(window.__firebaseReady && auth && onAuthStateChanged){
-    onAuthStateChanged(auth, async (user)=>{
-      if(user){
-        state.user = { name: user.displayName || "Owner", email: user.email || "" };
-        state.viewAs = "Owner";
-        // If auth screen is visible, auto-enter dashboard
-        await bootDashboard();
-      }
-    });
-  }
+  // Bound in start() after Firebase init to avoid missing the listener.
 
 
 /* ---------- UI helpers ---------- */
@@ -7208,6 +7238,8 @@ function simulateTick(){
 
 
 async function bootDashboard(){
+  if(state.__booted) return;
+  state.__booted = true;
   // Defensive: the DOM might not contain these sections in some deployments
   document.getElementById("auth")?.classList.add("hidden");
   document.getElementById("dash")?.classList.remove("hidden");
@@ -7273,12 +7305,12 @@ async function start(){
   // Defensive: if sections are missing (or replaced by another index shell), avoid crashing.
   document.getElementById("auth")?.classList.toggle("hidden", ok);
   document.getElementById("dash")?.classList.toggle("hidden", !ok);
+  await initFirebase();
+  await ensureAuthListener();
   if(ok){
-    await initFirebase();
     await bootDashboard();
   }else{
     setAuthTab("signin");
-    initFirebase();
   }
 }
 
