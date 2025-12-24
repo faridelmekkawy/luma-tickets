@@ -125,8 +125,20 @@
       display:grid;place-items:center;
     }
     .logoMark svg{opacity:.95}
+    .sidebar .logoMark{
+      width:100px;
+      height:100px;
+      border-radius:24px;
+      background:var(--panel2);
+      box-shadow:0 18px 38px rgba(15,23,42,.12);
+    }
+    .sidebar .logoMark img,
+    .sidebar .logoMark svg{
+      width:70px;
+      height:70px;
+    }
     .brandText{display:flex;flex-direction:column;line-height:1.05;min-width:0}
-    .brandText b{font-size:14px;letter-spacing:.2px}
+    .brandText b{font-size:15px;letter-spacing:.2px}
     .brandText span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .sidebar.collapsed .brandText{display:none}
 
@@ -965,6 +977,20 @@
       font-size:12px;
       display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap
     }
+    .globalFooter{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      z-index:40;
+      padding:10px 16px;
+      border-top:1px solid var(--stroke);
+      background:var(--panel);
+      box-shadow:0 -12px 24px rgba(15,23,42,.08);
+    }
+    .globalFooter .powered{font-size:12px}
+    .globalFooter .footerLinks{gap:14px}
+    .globalFooter .footerLinks a{font-weight:600}
 
     /* Utility */
     .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -979,8 +1005,10 @@ select{
   border: 1px solid var(--stroke2);
 }
 option{ background-color: var(--panel); color: var(--ink); }
-.content{ overflow:auto; }
-#dash{ min-height:100vh; }
+  .content{ overflow:auto; padding:16px 16px 96px; }
+  .authWrap{padding-bottom:96px;}
+  .sidebar{padding-bottom:96px;}
+  #dash{ min-height:100vh; }
 
 </style>
 </head>
@@ -1135,8 +1163,8 @@ option{ background-color: var(--panel); color: var(--ink); }
       <div class="brandRow" style="border:0;margin:0;padding:0 0 10px 0">
         <div class="logoMark">
         <!-- Luma Logo URL placeholder: set window.LUMA_LOGO_URL in code (or leave empty to use SVG) -->
-        <img id="lumaLogoImgAuth" alt="Luma" style="display:none;width:22px;height:22px;object-fit:contain;border-radius:6px"/>
-        <svg id="lumaLogoSvgAuth" width="22" height="22"><use href="#i-luma"/></svg>
+        <img id="lumaLogoImgAuth" alt="Luma" style="display:none;width:70px;height:70px;object-fit:contain;border-radius:10px"/>
+        <svg id="lumaLogoSvgAuth" width="70" height="70"><use href="#i-luma"/></svg>
       </div>
         <div class="brandText">
           <b>Luma Tickets</b>
@@ -1211,8 +1239,8 @@ option{ background-color: var(--panel); color: var(--ink); }
             </div>
           </div>
           <div class="authLinks">
-            <button class="linkBtn" id="btnForgot" type="button">Forgot password?</button>
-            <span class="muted2 small">Don’t have an account? <a href="#" id="go-signup">Sign up</a></span>
+            <button class="linkBtn" id="btnForgot" type="button">Forgot your password?</button>
+            <span class="muted2 small">Don’t have an account? <button class="linkBtn" id="go-signup" type="button">Create one</button></span>
           </div>
 
           <div class="split" style="margin-top:6px">
@@ -1258,7 +1286,7 @@ option{ background-color: var(--panel); color: var(--ink); }
             Create account
           </button>
 
-          <div class="muted small">Already have an account? <a href="#" id="go-signin">Sign in</a></div>
+          <div class="muted small">Already have an account? <button class="linkBtn" id="go-signin" type="button">Sign in</button></div>
         </form>
       </div>
 
@@ -1279,7 +1307,7 @@ option{ background-color: var(--panel); color: var(--ink); }
             <svg width="18" height="18"><use href="#i-webhook"/></svg>
             Send reset link
           </button>
-          <div class="muted small">Remembered it? <a href="#" id="go-signin2">Back to sign in</a></div>
+          <div class="muted small">Remembered it? <button class="linkBtn" id="go-signin2" type="button">Back to sign in</button></div>
         </form>
       </div>
 
@@ -1298,8 +1326,8 @@ option{ background-color: var(--panel); color: var(--ink); }
     <div class="brandRow" id="brandHome">
       <div class="logoMark">
         <!-- Luma Logo URL placeholder: set window.LUMA_LOGO_URL in code (or leave empty to use SVG) -->
-        <img id="lumaLogoImgDash" alt="Luma" style="display:none;width:22px;height:22px;object-fit:contain;border-radius:6px"/>
-        <svg id="lumaLogoSvgDash" width="22" height="22"><use href="#i-luma"/></svg>
+        <img id="lumaLogoImgDash" alt="Luma" style="display:none;width:70px;height:70px;object-fit:contain;border-radius:10px"/>
+        <svg id="lumaLogoSvgDash" width="70" height="70"><use href="#i-luma"/></svg>
       </div>
       <div class="brandText">
         <b>Luma Tickets</b>
@@ -1347,11 +1375,11 @@ option{ background-color: var(--panel); color: var(--ink); }
           <span>Overview across events</span>
         </div>
       </div>
-      <div class="navItem" id="navSignout">
-        <div class="ic"><svg width="18" height="18"><use href="#i-logout"/></svg></div>
+      <div class="navItem" data-route="settings">
+        <div class="ic"><svg width="18" height="18"><use href="#i-settings"/></svg></div>
         <div class="txt">
-          <b>Sign out</b>
-          <span>Exit the dashboard</span>
+          <b>Settings</b>
+          <span>Profile, theme, and access</span>
         </div>
       </div>
 </nav>
@@ -1397,44 +1425,12 @@ option{ background-color: var(--panel); color: var(--ink); }
               <span class="chip info" id="menuPlan">Owner</span>
             </div>
             <div class="menuSep"></div>
-
-            <div class="menuRow">
+            <div class="menuRow" id="btnOpenSettings">
               <div class="left">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-lock"/></svg>
+                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-settings"/></svg>
                 <div>
-                  <b style="font-size:12px">View as</b><br>
-                  <small>Switch to read-only mode</small>
-                </div>
-              </div>
-              <select id="viewAs" class="chip" style="background:transparent;color:var(--ink);border-color:rgba(255,255,255,.14)">
-                <option value="Owner">Owner</option>
-                <option value="Viewer">Viewer</option>
-              </select>
-            </div>
-
-            <div class="menuRow">
-              <div class="left">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-moon"/></svg>
-                <div>
-                  <b style="font-size:12px">Theme</b><br>
-                  <small>Switch light/dark mode</small>
-                </div>
-              </div>
-              <select id="themeSelect" class="chip" style="background:transparent;color:var(--ink);border-color:rgba(255,255,255,.14)">
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </div>
-
-            </div>
-
-            <div class="menuSep"></div>
-            <div class="menuRow" id="btnLogout">
-              <div class="left">
-                <svg width="18" height="18" style="color:var(--muted)"><use href="#i-logout"/></svg>
-                <div>
-                  <b style="font-size:12px">Sign out</b><br>
-                  <small>Exit the dashboard</small>
+                  <b style="font-size:12px">Open settings</b><br>
+                  <small>Manage profile and preferences</small>
                 </div>
               </div>
             </div>
@@ -1755,6 +1751,130 @@ option{ background-color: var(--panel); color: var(--ink); }
         <div class="footer">
           <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
           <span class="muted2">Analytics overview</span>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div id="page-settings" class="hidden">
+        <div class="split">
+          <div>
+            <h2 style="margin:0;font-size:18px">Settings</h2>
+            <div class="muted small" style="margin-top:6px">Manage your profile, theme, and dashboard preferences.</div>
+          </div>
+          <div class="right">
+            <span class="badge info"><strong id="settingsRole">Owner</strong> access</span>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+        <div class="grid cols2">
+          <div class="card">
+            <div class="cardHead">
+              <div>
+                <h3>Profile</h3>
+                <p>Account details used across your dashboard.</p>
+              </div>
+            </div>
+            <div class="cardBody">
+              <div class="field">
+                <label>Display name</label>
+                <div class="input">
+                  <input id="settingsName" type="text" placeholder="Owner name" disabled>
+                </div>
+              </div>
+              <div class="field">
+                <label>Email</label>
+                <div class="input">
+                  <input id="settingsEmail" type="email" placeholder="name@company.com" disabled>
+                </div>
+              </div>
+              <div class="muted2 small">Need changes? Update your account in the sign-in provider.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="cardHead">
+              <div>
+                <h3>Access & appearance</h3>
+                <p>Control theme mode and dashboard permissions.</p>
+              </div>
+            </div>
+            <div class="cardBody">
+              <div class="field">
+                <label>Theme</label>
+                <div class="input">
+                  <svg width="18" height="18" style="color:var(--muted)"><use href="#i-moon"/></svg>
+                  <select id="themeSelect">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label>View mode</label>
+                <div class="input">
+                  <svg width="18" height="18" style="color:var(--muted)"><use href="#i-lock"/></svg>
+                  <select id="viewAs">
+                    <option value="Owner">Owner</option>
+                    <option value="Viewer">Viewer</option>
+                  </select>
+                </div>
+              </div>
+              <div class="muted2 small">Viewer mode is read-only and hides write actions.</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+        <div class="grid cols2">
+          <div class="card">
+            <div class="cardHead">
+              <div>
+                <h3>Notifications</h3>
+                <p>Choose which updates you want to receive.</p>
+              </div>
+            </div>
+            <div class="cardBody">
+              <label class="row" style="gap:10px;align-items:center">
+                <input type="checkbox" checked>
+                <span>Event performance summaries</span>
+              </label>
+              <label class="row" style="gap:10px;align-items:center;margin-top:10px">
+                <input type="checkbox" checked>
+                <span>Critical incident alerts</span>
+              </label>
+              <label class="row" style="gap:10px;align-items:center;margin-top:10px">
+                <input type="checkbox">
+                <span>Product updates and tips</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="cardHead">
+              <div>
+                <h3>Security</h3>
+                <p>Manage your session and sign-out options.</p>
+              </div>
+            </div>
+            <div class="cardBody">
+              <div class="row" style="justify-content:space-between;align-items:center">
+                <div>
+                  <b>Sign out</b>
+                  <div class="muted2 small">Exit the dashboard on this device.</div>
+                </div>
+                <button class="btn danger" id="btnSettingsSignout">
+                  <svg width="18" height="18"><use href="#i-logout"/></svg>
+                  Sign out
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+          <span class="muted2">Settings</span>
         </div>
       </div>
 
@@ -2449,6 +2569,11 @@ option{ background-color: var(--panel); color: var(--ink); }
   </main>
 </section>
 
+<footer class="footer globalFooter">
+  <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+  <span class="muted2">Policies, terms, and platform details</span>
+</footer>
+
 <!-- Order Drawer -->
 <div class="drawerOverlay" id="drawerOverlay" role="dialog" aria-modal="true">
   <div class="drawer" id="drawer">
@@ -2973,7 +3098,7 @@ let state = {
   uiWired: false,
   user: null,
   viewAs: "Owner",        // Owner or Viewer (read-only)
-  route: "hub",           // hub, workspace, notifications, analytics, event
+  route: "hub",           // hub, workspace, notifications, analytics, settings, event
   activeEventId: null,
   activeTab: "overview",  // event workspace tab
   attentionFeed: [],
@@ -3772,6 +3897,7 @@ function setRoute(route, opts={}){
   document.getElementById("page-workspace")?.classList.toggle("hidden", route!=="workspace");
   document.getElementById("page-notifications")?.classList.toggle("hidden", route!=="notifications");
   document.getElementById("page-analytics")?.classList.toggle("hidden", route!=="analytics");
+  document.getElementById("page-settings")?.classList.toggle("hidden", route!=="settings");
     document.getElementById("page-event")?.classList.toggle("hidden", route!=="event");
 
   $("#sideSubtitle").textContent =
@@ -3779,6 +3905,7 @@ function setRoute(route, opts={}){
     route==="workspace" ? "Workspace" :
     route==="notifications" ? "Attention" :
     route==="analytics" ? "Analytics" :
+    route==="settings" ? "Settings" :
         route==="event" ? "Event Workspace" : "Dashboard";
 
   const crumb =
@@ -3786,11 +3913,13 @@ function setRoute(route, opts={}){
     route==="workspace" ? `Select an event to open its <b>Workspace</b>` :
     route==="notifications" ? `You are in <b>What needs attention</b>` :
     route==="analytics" ? `You are in <b>Analytics</b>` :
+    route==="settings" ? `You are in <b>Settings</b>` :
         route==="event" ? `You are in <b>Event Workspace</b>` : `Dashboard`;
   $("#crumb").innerHTML = crumb;
 
   if(route==="analytics") renderAllAnalytics();
     if(route==="notifications") renderAttentionPage();
+  if(route==="settings") renderTopIdentity();
   if(route==="workspace") renderWorkspacePicker();
   if(route==="hub") renderHub();
 
@@ -4004,6 +4133,12 @@ function renderTopIdentity(){
   $("#roleBadge").innerHTML = state.viewAs==="Viewer" ? "<strong>Viewer</strong> read-only" : "<strong>Owner</strong> access";
   $("#pfMini").textContent = state.viewAs==="Viewer" ? "Viewer" : "Owner";
   $("#viewAs").value = state.viewAs;
+  const settingsName = $("#settingsName");
+  const settingsEmail = $("#settingsEmail");
+  const settingsRole = $("#settingsRole");
+  if(settingsName) settingsName.value = nm;
+  if(settingsEmail) settingsEmail.value = em;
+  if(settingsRole) settingsRole.textContent = state.viewAs === "Viewer" ? "Viewer" : "Owner";
 }
 
 function renderHub(){
@@ -6484,10 +6619,15 @@ on("#btnToggleSide","click", ()=>{
       else if(r==="hub") setRoute("hub");
       else if(r==="notifications") setRoute("notifications");
       else if(r==="analytics") setRoute("analytics");
+      else if(r==="settings") setRoute("settings");
       else setRoute("hub");
     });
   });
-  on("#navSignout","click", appSignOut);
+  on("#btnOpenSettings","click", ()=>{
+    setRoute("settings");
+    document.getElementById("menuPanel")?.classList.remove("open");
+  });
+  on("#btnSettingsSignout","click", appSignOut);
 
   // create event
   on("#btnCreateEvent","click", ()=> !isReadOnly() ? createEventModal() : toast("Read-only mode","Switch to Owner to create events."));
@@ -6523,7 +6663,7 @@ on("#btnToggleSide","click", ()=>{
     if(!e.target.closest(".menu")) document.getElementById("menuPanel")?.classList.remove("open");
   });
 
-  on("#btnLogout","click", appSignOut);
+  
   
   on("#viewAs","change", ()=>{
     state.viewAs = document.getElementById("viewAs")?.value || "Owner";
