@@ -72,6 +72,16 @@
       font-size:12px;color:var(--muted);
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
+    .lumaLogo{
+      width:100px;
+      height:100px;
+      border-radius:22px;
+      object-fit:cover;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      box-shadow: 0 12px 24px rgba(0,0,0,.35);
+      flex:0 0 auto;
+    }
     .statusPill{
       display:flex; align-items:center; gap:8px;
       padding:8px 10px;
@@ -371,6 +381,11 @@
         <div class="s" id="topSub">Luma Tickets • Gate Terminal</div>
       </div>
     </div>
+    <img
+      class="lumaLogo"
+      src="https://firebasestorage.googleapis.com/v0/b/events-339ce.firebasestorage.app/o/ChatGPT%20Image%20Dec%2023%2C%202025%2C%2012_55_43%20PM.png?alt=media&token=0facde2f-570c-4004-9e7b-d0d10aca94c3"
+      alt="Luma logo"
+    />
     <div class="statusPill" title="Visual status only">
       <div class="dot" id="netDot"></div>
       <div id="netText">Offline</div>
