@@ -11,37 +11,34 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg0:#0b1020;
-      --bg1:#0b0f1a;
-      --panel:rgba(255,255,255,.06);
-      --panel2:rgba(255,255,255,.08);
-      --stroke:rgba(255,255,255,.10);
-      --stroke2:rgba(255,255,255,.14);
-      --ink:#f8fafc;
-      --muted:rgba(248,250,252,.70);
-      --muted2:rgba(248,250,252,.55);
-      --brand:#7c3aed;
-      --brand2:#22c55e;
+      --bg0:#f5f7fb;
+      --bg1:#f5f7fb;
+      --panel:#ffffff;
+      --panel2:#f1f5f9;
+      --stroke:rgba(15,23,42,.08);
+      --stroke2:rgba(15,23,42,.14);
+      --border:rgba(15,23,42,.18);
+      --ink:#0f172a;
+      --muted:rgba(15,23,42,.65);
+      --muted2:rgba(15,23,42,.45);
+      --brand:#2563eb;
+      --brand2:#16a34a;
       --warn:#f59e0b;
       --danger:#ef4444;
-      --info:#60a5fa;
-      --radius:18px;
-      --radius2:14px;
-      --shadow:0 18px 55px rgba(0,0,0,.45);
-      --shadow2:0 10px 32px rgba(0,0,0,.35);
+      --info:#2563eb;
+      --radius:16px;
+      --radius2:12px;
+      --shadow:0 18px 40px rgba(15,23,42,.08);
+      --shadow2:0 10px 26px rgba(15,23,42,.08);
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;
-      font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;
       color:var(--ink);
-      background:
-        radial-gradient(1000px 700px at 18% -10%, rgba(124,58,237,.35), transparent 55%),
-        radial-gradient(900px 700px at 95% 10%, rgba(34,197,94,.20), transparent 50%),
-        radial-gradient(900px 700px at 60% 120%, rgba(96,165,250,.14), transparent 55%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
+      background:var(--bg0);
       overflow:auto;
     }
     a{color:inherit}
@@ -58,9 +55,7 @@
     }
     .sidebar{
       border-right:1px solid var(--stroke);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      background:var(--panel);
       padding:14px 12px 12px;
       display:flex;
       flex-direction:column;
@@ -90,9 +85,7 @@
       justify-content:space-between;
       padding:10px 16px;
       border-bottom:1px solid var(--stroke);
-      background: rgba(10,14,26,.35);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      background:var(--panel);
     }
     .content{
       padding:16px;
@@ -146,20 +139,21 @@
       padding:10px 12px;
       border-radius:999px;
       border:1px solid var(--stroke);
-      background:rgba(255,255,255,.05);
+      background:var(--panel2);
       color:var(--ink);
       cursor:pointer;
-      box-shadow:0 10px 22px rgba(0,0,0,.20);
+      box-shadow:0 8px 18px rgba(15,23,42,.08);
       user-select:none;
     }
-    .pill:hover{background:rgba(255,255,255,.07);border-color:var(--stroke2)}
+    .pill:hover{background:#e8eefc;border-color:var(--stroke2)}
     .pill:active{transform:translateY(1px)}
     .pill.sm{padding:8px 10px;font-size:12px}
     .pill.ghost{background:transparent;box-shadow:none}
     .pill.ghost:hover{background:rgba(255,255,255,.04)}
     .pill.primary{
-      border-color: rgba(124,58,237,.45);
-      background: linear-gradient(135deg, rgba(124,58,237,.22), rgba(34,197,94,.12));
+      border-color: rgba(37,99,235,.35);
+      background: rgba(37,99,235,.12);
+      color:#1e3a8a;
     }
     .sidebar.collapsed .pill span.lbl{display:none}
 
@@ -183,20 +177,20 @@
       user-select:none;
     }
     .navItem:hover{
-      background:rgba(255,255,255,.04);
+      background:#f1f5fb;
       color:var(--ink);
-      border-color:rgba(255,255,255,.06);
+      border-color:var(--stroke2);
     }
     .navItem.active{
-      background: linear-gradient(135deg, rgba(124,58,237,.22), rgba(255,255,255,.05));
-      border-color: rgba(124,58,237,.30);
+      background: rgba(37,99,235,.12);
+      border-color: rgba(37,99,235,.25);
       color:var(--ink);
     }
     .navItem .ic{
       width:36px;height:36px;border-radius:12px;
       display:grid;place-items:center;
-      background:rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.08);
+      background:rgba(37,99,235,.08);
+      border:1px solid rgba(37,99,235,.14);
       flex:0 0 auto;
     }
     .navItem .txt{
@@ -243,7 +237,7 @@
       padding:10px 12px;
       border-radius:999px;
       border:1px solid var(--stroke);
-      background:rgba(255,255,255,.05);
+      background:var(--panel2);
       margin:0 12px;
       min-width: 200px;
     }
@@ -278,8 +272,8 @@
     .menuPanel{
       position:absolute;right:0;top:52px;
       width:260px;
-      background:rgba(18,22,36,.95);
-      border:1px solid rgba(255,255,255,.10);
+      background:var(--panel);
+      border:1px solid var(--stroke);
       border-radius:16px;
       box-shadow:var(--shadow2);
       padding:10px;
@@ -293,10 +287,10 @@
       color:var(--muted);
       border:1px solid transparent;
     }
-    .menuRow:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.06);color:var(--ink)}
+    .menuRow:hover{background:#f1f5fb;border-color:var(--stroke2);color:var(--ink)}
     .menuRow .left{display:flex;align-items:center;gap:10px}
     .menuRow small{color:var(--muted2)}
-    .menuSep{height:1px;background:rgba(255,255,255,.08);margin:8px 0}
+    .menuSep{height:1px;background:var(--stroke);margin:8px 0}
 
     /* Page blocks */
     .grid{
@@ -323,16 +317,16 @@
 
     .card{
       border:1px solid var(--stroke);
-      background:rgba(255,255,255,.05);
+      background:var(--panel);
       border-radius:var(--radius);
-      box-shadow: 0 14px 38px rgba(0,0,0,.25);
+      box-shadow: 0 14px 30px rgba(15,23,42,.06);
       overflow:hidden;
     }
     .cardHead{
       padding:14px 14px 10px;
       display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-      background:rgba(255,255,255,.02);
+      border-bottom:1px solid var(--stroke);
+      background:rgba(15,23,42,.02);
     }
     .cardHead h3{
       margin:0;
@@ -345,8 +339,8 @@
       display:flex;flex-direction:column;gap:6px;
       padding:12px 12px;
       border-radius:16px;
-      border:1px solid rgba(255,255,255,.10);
-      background: linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--stroke);
+      background: var(--panel2);
       min-height:84px;
     }
     .kpi .label{font-size:11px;color:var(--muted2)}
@@ -355,39 +349,39 @@
     .badge{
       display:inline-flex;align-items:center;gap:8px;
       padding:7px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.04);
+      border:1px solid var(--stroke);
+      background:var(--panel2);
       color:var(--muted);
       font-size:12px;
       white-space:nowrap;
     }
     .badge strong{color:var(--ink)}
-    .badge.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:rgba(248,250,252,.88)}
-    .badge.warn{border-color:rgba(245,158,11,.38);background:rgba(245,158,11,.10);color:rgba(248,250,252,.88)}
-    .badge.danger{border-color:rgba(239,68,68,.38);background:rgba(239,68,68,.10);color:rgba(248,250,252,.88)}
-    .badge.info{border-color:rgba(96,165,250,.38);background:rgba(96,165,250,.10);color:rgba(248,250,252,.88)}
+    .badge.ok{border-color:rgba(22,163,74,.35);background:rgba(22,163,74,.10);color:#14532d}
+    .badge.warn{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.10);color:#92400e}
+    .badge.danger{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#991b1b}
+    .badge.info{border-color:rgba(37,99,235,.35);background:rgba(37,99,235,.10);color:#1e3a8a}
 
     .btn{
       display:inline-flex;align-items:center;justify-content:center;gap:10px;
       padding:10px 12px;
       border-radius:14px;
       border:1px solid var(--stroke);
-      background:rgba(255,255,255,.05);
+      background:var(--panel2);
       color:var(--ink);
       cursor:pointer;
       user-select:none;
       transition:.12s ease;
-      box-shadow:0 10px 24px rgba(0,0,0,.18);
+      box-shadow:0 8px 18px rgba(15,23,42,.08);
       font-weight:700;
       font-size:13px;
     }
-    .btn:hover{background:rgba(255,255,255,.07);border-color:var(--stroke2)}
+    .btn:hover{background:#e8eefc;border-color:var(--stroke2)}
     .btn:active{transform:translateY(1px)}
     .btn.sm{padding:8px 10px;border-radius:12px;font-size:12px;box-shadow:none}
     .btn.ghost{background:transparent;box-shadow:none}
-    .btn.primary{border-color:rgba(124,58,237,.5);background:linear-gradient(135deg, rgba(124,58,237,.22), rgba(255,255,255,.04))}
-    .btn.good{border-color:rgba(34,197,94,.45);background:linear-gradient(135deg, rgba(34,197,94,.18), rgba(255,255,255,.04))}
-    .btn.danger{border-color:rgba(239,68,68,.45);background:linear-gradient(135deg, rgba(239,68,68,.14), rgba(255,255,255,.04))}
+    .btn.primary{border-color:rgba(37,99,235,.5);background:#2563eb;color:#fff}
+    .btn.good{border-color:rgba(22,163,74,.45);background:rgba(22,163,74,.15);color:#14532d}
+    .btn.danger{border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.12);color:#991b1b}
     .btn[disabled], .disabled{
       opacity:.55; cursor:not-allowed !important; filter:saturate(.8);
       transform:none !important;
@@ -412,8 +406,8 @@
     .authCard{
       width:min(980px, 100%);
       border-radius:24px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.05);
+      border:1px solid var(--stroke);
+      background:var(--panel);
       box-shadow:var(--shadow);
       overflow:hidden;
       display:grid;
@@ -422,11 +416,8 @@
     }
     .authLeft{
       padding:26px 24px;
-      border-right:1px solid rgba(255,255,255,.08);
-      background:
-        radial-gradient(900px 520px at 20% 10%, rgba(124,58,237,.30), transparent 60%),
-        radial-gradient(900px 520px at 95% 35%, rgba(34,197,94,.16), transparent 55%),
-        rgba(255,255,255,.02);
+      border-right:1px solid var(--stroke);
+      background:linear-gradient(180deg, #f8fafc, #eef2ff);
       display:flex;
       flex-direction:column;
       gap:14px;
@@ -466,8 +457,8 @@
       display:flex;align-items:center;gap:10px;
       padding:12px 12px;
       border-radius:14px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.04);
+      border:1px solid var(--stroke);
+      background:var(--panel2);
     }
     .input input, .input select, .input textarea{
       width:100%;
@@ -505,31 +496,28 @@
     @media (max-width:720px){ .eventGrid{grid-template-columns:1fr} }
 
     .eventCard{
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.04);
+      border:1px solid var(--stroke);
+      background:var(--panel);
       border-radius:22px;
       overflow:hidden;
-      box-shadow:0 18px 52px rgba(0,0,0,.25);
+      box-shadow:0 18px 40px rgba(15,23,42,.06);
       display:flex;
       flex-direction:column;
       min-height: 320px;
     }
     .eventBanner{
       height:120px;
-      background:
-        radial-gradient(700px 240px at 20% 30%, rgba(124,58,237,.40), transparent 62%),
-        radial-gradient(700px 240px at 85% 10%, rgba(34,197,94,.20), transparent 58%),
-        linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
+      background:linear-gradient(135deg, #dbeafe, #eff6ff);
       position:relative;
     }
     .eventBanner img{width:100%;height:100%;object-fit:cover;display:block}
     .eventLogo{
       position:absolute;left:14px;bottom:-18px;
       width:52px;height:52px;border-radius:18px;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(15,18,28,.65);
+      border:1px solid var(--stroke);
+      background:#fff;
       display:grid;place-items:center;
-      box-shadow:0 14px 34px rgba(0,0,0,.35);
+      box-shadow:0 14px 34px rgba(15,23,42,.12);
       overflow:hidden;
     }
     .eventLogo img{width:100%;height:100%;object-fit:cover}
@@ -603,31 +591,31 @@
       font-size:11px;
       color:var(--muted2);
       padding:12px 12px;
-      border-bottom:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.02);
+      border-bottom:1px solid var(--stroke);
+      background:var(--panel2);
       position:sticky;top:0;z-index:5;
     }
     tbody td{
       padding:12px 12px;
-      border-bottom:1px solid rgba(255,255,255,.06);
+      border-bottom:1px solid var(--stroke);
       font-size:12px;
-      color:rgba(248,250,252,.90);
+      color:var(--ink);
       vertical-align:top;
     }
-    tbody tr:hover td{background:rgba(255,255,255,.02)}
+    tbody tr:hover td{background:#f1f5fb}
     .rowActions{display:flex;gap:8px;flex-wrap:wrap}
     .chip{
       display:inline-flex;align-items:center;gap:8px;
       padding:6px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.03);
+      border:1px solid var(--stroke);
+      background:var(--panel2);
       font-size:12px;color:var(--muted);
       white-space:nowrap;
     }
-    .chip.good{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:rgba(248,250,252,.90)}
-    .chip.warn{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.10);color:rgba(248,250,252,.90)}
-    .chip.danger{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:rgba(248,250,252,.90)}
-    .chip.info{border-color:rgba(96,165,250,.35);background:rgba(96,165,250,.10);color:rgba(248,250,252,.90)}
+    .chip.good{border-color:rgba(22,163,74,.35);background:rgba(22,163,74,.10);color:#14532d}
+    .chip.warn{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.10);color:#92400e}
+    .chip.danger{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#991b1b}
+    .chip.info{border-color:rgba(37,99,235,.35);background:rgba(37,99,235,.10);color:#1e3a8a}
 
     /* Filters */
     .filters{
@@ -640,7 +628,7 @@
     /* Drawer */
     .drawerOverlay{
       position:fixed;inset:0;
-      background:rgba(0,0,0,.50);
+      background:rgba(15,23,42,.45);
       z-index:60;
       display:none;
     }
@@ -648,23 +636,23 @@
     .drawer{
       position:absolute;right:0;top:0;height:100%;
       width:min(520px, 92vw);
-      background:rgba(18,22,36,.98);
-      border-left:1px solid rgba(255,255,255,.12);
-      box-shadow: -20px 0 70px rgba(0,0,0,.55);
+      background:var(--panel);
+      border-left:1px solid var(--stroke);
+      box-shadow: -20px 0 70px rgba(15,23,42,.12);
       padding:14px;
       display:flex;flex-direction:column;gap:12px;
     }
     .drawerHead{
       display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
-      padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.08);
+      padding-bottom:10px;border-bottom:1px solid var(--stroke);
     }
     .drawerHead h3{margin:0;font-size:14px}
     .drawerHead p{margin:6px 0 0;color:var(--muted);font-size:12px}
     .drawerBody{overflow:auto;padding-right:2px}
     .kv{display:grid;grid-template-columns: 1fr 1.2fr; gap:10px; margin:10px 0}
     .kv div{
-      padding:10px;border-radius:14px;border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
+      padding:10px;border-radius:14px;border:1px solid var(--stroke);
+      background:var(--panel2);
     }
     .kv b{display:block;font-size:11px;color:var(--muted2);margin-bottom:6px}
     .kv span{font-size:12px}
@@ -672,7 +660,7 @@
     /* Modal */
     .modalOverlay{
       position:fixed;inset:0;
-      background:rgba(0,0,0,.55);
+      background:rgba(15,23,42,.45);
       z-index:80;
       display:none;
       padding:16px;
@@ -682,23 +670,23 @@
     .modal{
       width:min(720px, 96vw);
       border-radius:22px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(18,22,36,.98);
+      border:1px solid var(--stroke);
+      background:var(--panel);
       box-shadow:var(--shadow);
       overflow:hidden;
     }
     .modalHead{
       padding:14px 14px 10px;
       display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
-      border-bottom:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.02);
+      border-bottom:1px solid var(--stroke);
+      background:var(--panel2);
     }
     .modalHead h3{margin:0;font-size:14px}
     .modalHead p{margin:6px 0 0;font-size:12px;color:var(--muted)}
     .modalBody{padding:14px}
     .modalFoot{
       padding:12px 14px;
-      border-top:1px solid rgba(255,255,255,.08);
+      border-top:1px solid var(--stroke);
       display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap
     }
 
@@ -712,9 +700,9 @@
     .toast{
       padding:12px 12px;
       border-radius:18px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(18,22,36,.98);
-      box-shadow:0 16px 46px rgba(0,0,0,.45);
+      border:1px solid var(--stroke);
+      background:var(--panel);
+      box-shadow:0 16px 46px rgba(15,23,42,.12);
       display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
     }
     .toast b{font-size:12px}
@@ -731,23 +719,23 @@
     .timeline:before{
       content:"";
       position:absolute;left:8px;top:0;bottom:0;
-      width:2px;background:rgba(255,255,255,.10);
+      width:2px;background:var(--stroke);
       border-radius:2px;
     }
     .tItem{
       position:relative;
       padding:12px 12px 12px 14px;
       border-radius:18px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
+      border:1px solid var(--stroke);
+      background:var(--panel2);
     }
     .tItem:before{
       content:"";
       position:absolute;left:-10px;top:16px;
       width:14px;height:14px;border-radius:999px;
-      background:rgba(124,58,237,.9);
-      box-shadow:0 0 0 5px rgba(124,58,237,.18);
-      border:1px solid rgba(255,255,255,.12);
+      background:rgba(37,99,235,.9);
+      box-shadow:0 0 0 5px rgba(37,99,235,.18);
+      border:1px solid var(--stroke);
     }
     .tItem .top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
     .tItem b{font-size:13px}
@@ -755,18 +743,18 @@
     .tItem .prices{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
     .pricePill{
       padding:7px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.03);
-      font-size:12px;color:rgba(248,250,252,.90);
+      border:1px solid var(--stroke);
+      background:var(--panel2);
+      font-size:12px;color:var(--ink);
       display:inline-flex;align-items:center;gap:8px;
     }
     .pricePill.soldout{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10)}
     .pricePill small{color:var(--muted2)}
     .hint{
       padding:12px 12px;border-radius:18px;
-      border:1px solid rgba(96,165,250,.22);
-      background:rgba(96,165,250,.08);
-      color:rgba(248,250,252,.92);
+      border:1px solid rgba(37,99,235,.18);
+      background:rgba(37,99,235,.08);
+      color:var(--ink);
       font-size:12px;line-height:1.45;
     }
 
@@ -780,17 +768,17 @@
     .previewPanel{
       position:sticky;top:88px;
       border-radius:22px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
+      border:1px solid var(--stroke);
+      background:var(--panel);
       overflow:hidden;
-      box-shadow:0 18px 52px rgba(0,0,0,.22);
+      box-shadow:0 18px 52px rgba(15,23,42,.08);
       min-height: 520px;
     }
     .previewHead{
       padding:12px 12px;
-      border-bottom:1px solid rgba(255,255,255,.08);
+      border-bottom:1px solid var(--stroke);
       display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-      background:rgba(255,255,255,.02);
+      background:var(--panel2);
     }
     .toggles{display:flex;gap:8px;flex-wrap:wrap}
     .seg{
@@ -820,7 +808,7 @@
       box-shadow:0 20px 60px rgba(0,0,0,.45);
       overflow:hidden;
     }
-    .phoneTop{height:56px;display:flex;align-items:center;justify-content:center;color:rgba(248,250,252,.85);font-size:12px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .phoneTop{height:56px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;border-bottom:1px solid var(--stroke)}
     .ticketMock{
       padding:12px;
       background:
@@ -1462,32 +1450,27 @@ option{ background-color: rgba(11,16,32,.98); }
           </div>
         </div>
 
-        <div style="height:12px">
+        <div style="height:12px"></div>
+        <div class="grid cols3">
+          <div class="kpi">
+            <div class="label">Open alerts</div>
+            <div class="value" id="attOpen">0</div>
+            <div class="sub">Across all events</div>
           </div>
-          <div class="card" style="grid-column:1/-1;margin-top:12px">
-            <div class="cardBody">
-              <div class="split">
-                <div>
-                  <b>Status</b>
-                  <div class="muted small" style="margin-top:6px">Draft → On Sale → Live → Ended. Live is allowed on (or after) the event date.</div>
-                </div>
-                <div class="right" style="gap:10px;flex-wrap:wrap">
-                  <span class="chip info" id="ovStatusChip">Draft</span>
-                  <button class="btn sm" id="btnSetOnSale">Set On Sale</button>
-                  <button class="btn sm primary" id="btnGoLive">Go Live</button>
-                  <button class="btn sm danger" id="btnEndEvent">End</button>
-                </div>
-              </div>
-              <div class="hr"></div>
-              <div class="row" style="justify-content:space-between;gap:12px;flex-wrap:wrap">
-                <div class="muted small"><b>Venue:</b> <span id="ovVenue">—</span></div>
-                <div class="muted small"><b>Date:</b> <span id="ovDate">—</span></div>
-                <div class="muted small"><b>Location:</b> <a class="link" href="#" id="ovMapsLink" target="_blank" rel="noopener">Open in Maps</a></div>
-              </div>
-            </div>
+          <div class="kpi">
+            <div class="label">Live events</div>
+            <div class="value" id="attLiveCount">0</div>
+            <div class="sub">Currently selling / live</div>
           </div>
+          <div class="kpi">
+            <div class="label">Refund volume</div>
+            <div class="value" id="attRefunds">EGP 0</div>
+            <div class="sub">Potential revenue leakage</div>
+          </div>
+        </div>
 
-          <div class="grid cols2">
+        <div style="height:12px"></div>
+        <div class="grid cols2">
 
           <div class="card">
             <div class="cardHead">
@@ -1577,13 +1560,37 @@ option{ background-color: rgba(11,16,32,.98); }
           </div>
         </div>
 
+        <div style="height:12px"></div>
+        <div class="grid cols4">
+          <div class="kpi">
+            <div class="label">Tickets Sold</div>
+            <div class="value" id="allSold">0</div>
+            <div class="sub">Paid tickets across events</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Active Events</div>
+            <div class="value" id="allActive">0</div>
+            <div class="sub">Live or On Sale</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Avg Ticket Price</div>
+            <div class="value" id="allAvgPrice">EGP 0</div>
+            <div class="sub">Gross / tickets sold</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Refund Rate</div>
+            <div class="value" id="allRefundRate">0%</div>
+            <div class="sub">Refunds vs gross</div>
+          </div>
+        </div>
+
         <div style="height:14px"></div>
         <div class="grid cols2">
           <div class="card">
             <div class="cardHead">
               <div>
-                <h3>Sales over time (placeholder)</h3>
-                <p>A live-style chart preview.</p>
+                <h3>Sales over time</h3>
+                <p>Momentum snapshot across your events.</p>
               </div>
               <span class="badge info"><strong>Live</strong></span>
             </div>
@@ -1594,13 +1601,41 @@ option{ background-color: rgba(11,16,32,.98); }
           <div class="card">
             <div class="cardHead">
               <div>
-                <h3>Check-ins over time (placeholder)</h3>
-                <p>A live-style chart preview.</p>
+                <h3>Check-ins over time</h3>
+                <p>Operational flow across events.</p>
               </div>
               <span class="badge info"><strong>Live</strong></span>
             </div>
             <div class="cardBody">
               <canvas id="chartAllCheckins" height="180" style="width:100%"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:14px"></div>
+        <div class="grid cols2">
+          <div class="card">
+            <div class="cardHead">
+              <div>
+                <h3>Top events by net revenue</h3>
+                <p>Focus where the money is trending.</p>
+              </div>
+              <span class="badge"><strong>Ranked</strong></span>
+            </div>
+            <div class="cardBody">
+              <div id="allTopEvents" class="timeline"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="cardHead">
+              <div>
+                <h3>Tier sell-through</h3>
+                <p>How quickly tiers are moving.</p>
+              </div>
+              <span class="badge info"><strong>Insight</strong></span>
+            </div>
+            <div class="cardBody">
+              <div id="allTierFlow" class="timeline"></div>
             </div>
           </div>
         </div>
@@ -1661,6 +1696,7 @@ option{ background-color: rgba(11,16,32,.98); }
           <button class="subTab" data-tab="analytics"><svg width="16" height="16"><use href="#i-chart"/></svg> Analytics</button>
           <button class="subTab" data-tab="incidents"><svg width="16" height="16"><use href="#i-shield"/></svg> Incidents</button>
           <button class="subTab" data-tab="links"><svg width="16" height="16"><use href="#i-link"/></svg> Links</button>
+          <button class="subTab" data-tab="settings"><svg width="16" height="16"><use href="#i-settings"/></svg> Event Settings</button>
 </div>
 
         <!-- TAB: Overview -->
@@ -1730,7 +1766,7 @@ option{ background-color: rgba(11,16,32,.98); }
                   <table>
                     <thead>
                       <tr>
-                        <th>Name</th><th>Description</th><th>Base capacity</th><th>Actions</th>
+                        <th>Name</th><th>Description</th><th>Base capacity</th><th>Sold</th><th>Remaining</th><th>Actions</th>
                       </tr>
                     </thead>
                     <tbody id="tiersBody"></tbody>
@@ -2005,11 +2041,11 @@ option{ background-color: rgba(11,16,32,.98); }
                   </div>
                   <div class="field">
                     <label>Primary color</label>
-                    <div class="input"><input id="dsPrimary" type="color" value="#7c3aed"></div>
+                    <div class="input"><input id="dsPrimary" type="color" value="#2563eb"></div>
                   </div>
                   <div class="field">
                     <label>Accent color</label>
-                    <div class="input"><input id="dsAccent" type="color" value="#22c55e"></div>
+                    <div class="input"><input id="dsAccent" type="color" value="#16a34a"></div>
                   </div>
                   <div class="field">
                     <label>Font</label>
@@ -2025,7 +2061,7 @@ option{ background-color: rgba(11,16,32,.98); }
                   </div>
                   <div class="field">
                     <label>Font color</label>
-                    <div class="input"><input id="dsTextColor" type="color" value="#f8fafc"></div>
+                    <div class="input"><input id="dsTextColor" type="color" value="#0f172a"></div>
                   </div>
                   <div class="field">
                     <label>Ticket headline</label>
@@ -2234,14 +2270,13 @@ option{ background-color: rgba(11,16,32,.98); }
           </div>
         </div>
 
-        
-          <div style="height:14px"></div>
-
+        <!-- TAB: Event Settings -->
+        <div id="tab-settings" class="hidden">
           <div class="card">
             <div class="cardHead">
               <div>
                 <h3>Event Settings</h3>
-                <p>These fields are published to the customer marketplace and ticket/receipt views.</p>
+                <p>Keep public-facing event details accurate and consistent.</p>
               </div>
               <span class="badge info"><strong>Public</strong></span>
             </div>
@@ -2254,12 +2289,18 @@ option{ background-color: rgba(11,16,32,.98); }
                 </div>
 
                 <div class="field">
-                  <label>Location URL</label>
-                  <div class="input"><input id="setLocationUrl" placeholder="https://maps.google.com/..."></div>
-                  <div class="muted2 small">Used for “View location” buttons (no receipts should open this).</div>
+                  <label>Location (address / landmark)</label>
+                  <div class="input"><input id="setLocationText" placeholder="Street, area, city..."></div>
+                  <div class="muted2 small">Matches the location you set when creating the event.</div>
                 </div>
 
                 <div class="field">
+                  <label>Location URL (Google Maps / website)</label>
+                  <div class="input"><input id="setLocationUrl" placeholder="https://maps.google.com/..."></div>
+                  <div class="muted2 small">Used for “View location” buttons in the customer view.</div>
+                </div>
+
+                <div class="field" style="grid-column:1/-1">
                   <label>Event owner / organizer logo</label>
                   <div class="row" style="gap:10px;align-items:center">
                     <div class="logoBox" style="width:56px;height:56px;border-radius:14px;overflow:hidden;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04)">
@@ -2276,22 +2317,6 @@ option{ background-color: rgba(11,16,32,.98); }
                     </div>
                   </div>
                 </div>
-
-                <div class="field">
-                  <label>Receipt mode</label>
-                  <div class="input">
-                    <select id="setReceiptMode">
-                      <option value="internal">Internal receipt (recommended)</option>
-                      <option value="external">External receipt link</option>
-                    </select>
-                  </div>
-                  <div class="muted2 small">If external is selected, “View Receipt” opens the receipt URL. Otherwise it opens Luma’s receipt view.</div>
-                </div>
-
-                <div class="field" style="grid-column:1/-1">
-                  <label>Receipt URL (optional)</label>
-                  <div class="input"><input id="setReceiptUrl" placeholder="https://..."></div>
-                </div>
               </div>
 
               <div class="hr"></div>
@@ -2301,6 +2326,11 @@ option{ background-color: rgba(11,16,32,.98); }
             </div>
           </div>
 
+          <div class="footer">
+            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+            <span class="muted2">Event Settings</span>
+          </div>
+        </div>
 
       </div>
     </section>
@@ -2465,8 +2495,23 @@ function normalizeOrderDoc(id, o){
                  rawStatus==="cancelled" ? "Cancelled" :
                  rawStatus ? rawStatus[0].toUpperCase()+rawStatus.slice(1) : "Paid";
 
-  const amount = Number(o?.total ?? o?.amount ?? 0) || 0;
-  const unitPrice = Number(o?.unitPrice ?? (o?.qty ? amount/o.qty : amount) ?? 0) || 0;
+  const amount = Number(o?.total ?? o?.amount ?? o?.price ?? 0) || 0;
+  const qty = Number(o?.qty ?? o?.quantity ?? o?.count ?? 1) || 1;
+  const unitPrice = Number(o?.unitPrice ?? (qty ? amount/qty : amount) ?? 0) || 0;
+  const customer = (o?.name || o?.Name || o?.customer || o?.customerName || o?.fullName || o?.buyerName || "").toString();
+  const contact = {
+    phone: (o?.phone || o?.Phone || o?.contact?.phone || o?.buyerPhone || "").toString(),
+    email: (o?.email || o?.Email || o?.contact?.email || o?.buyerEmail || "").toString()
+  };
+  const tierId = o?.tierId || o?.tierid || o?.tier?.id || "";
+  const waveId = o?.waveId || o?.waveid || o?.wave?.id || "";
+  const tiers = Array.isArray(o?.tiers)
+    ? o.tiers.map(t=>({
+        tierId: t.tierId || t.id || "",
+        tierName: t.tierName || t.name || "",
+        qty: Number(t.qty ?? t.quantity ?? 1) || 1
+      }))
+    : (tierId ? [{ tierId, tierName: o?.tierName || o?.tier?.name || "", qty }] : []);
 
   return {
     id,
@@ -2475,10 +2520,14 @@ function normalizeOrderDoc(id, o){
     status,
     amount,
     currency: o?.currency || "EGP",
-    qty: Number(o?.qty ?? 1) || 1,
-    waveId: o?.waveId || "",
-    tierId: o?.tierId || "",
-    ticketId: o?.ticketId || "",
+    unitPrice,
+    qty,
+    waveId,
+    tierId,
+    ticketId: o?.ticketId || o?.ticketid || o?.ticket?.id || "",
+    customer,
+    contact,
+    tiers,
     customerUid: o?.uid || "",
   };
 }
@@ -2514,7 +2563,7 @@ async function ensureOrdersListener(eventId){
 
       // Mirror into data.events for existing UI helpers
       const ev = (data?.events||[]).find(x=>x.id===eventId);
-      if(ev) ev.orders = list;
+      if(ev) refreshEventFromOrders(ev, list);
 
       // Light refresh if user is on analytics or inside this event
       if(state.route==="analytics" || (state.route==="event" && state.activeEventId===eventId)){
@@ -2607,7 +2656,7 @@ async function syncEventToPublic(ev){
 
   const payload = {
     // visibility
-    published: true,
+    published: (ev.status || "Draft") !== "Draft",
     status: ev.status || "Draft",
 
     // basic info
@@ -2628,15 +2677,13 @@ async function syncEventToPublic(ev){
 
     // details
     desc: ev.desc || ev.description || "",
-    receiptMode: ev.receiptMode || "internal",
-    receiptUrl: ev.receiptUrl || "", 
 
     // design (ticket + email previews)
     design: {
-      primary: d.primary || "#7c3aed",
-      accent: d.accent || "#22c55e",
+      primary: d.primary || "#2563eb",
+      accent: d.accent || "#16a34a",
       fontFamily: d.fontFamily || "Montserrat",
-      textColor: d.textColor || "#f8fafc",
+      textColor: d.textColor || "#0f172a",
       headline: d.headline || "Your ticket is ready",
       emailText: d.emailText || "",
       bannerUrl: bannerUrl || d.bannerUrl || "",
@@ -2651,7 +2698,7 @@ async function syncEventToPublic(ev){
       name: t.name || "",
       desc: t.desc || "",
       capacity: Number(t.baseCap||t.capacity||0),
-      color: t.color || "#7c3aed",
+      color: t.color || "#2563eb",
       rules: Array.isArray(t.rules) ? t.rules : (typeof t.rulesText==="string" ? t.rulesText.split(/\n+/).map(s=>s.trim()).filter(Boolean) : [])
     })) : [],
     waves: Array.isArray(ev.waves) ? ev.waves : [],
@@ -2716,6 +2763,7 @@ const safe = s => (s ?? "").toString();
 const STORAGE = {
   userKey: "luma_owner_user",  authKey: "luma_owner_auth",
   dataKey: "luma_owner_data_v1",
+  navKey: "luma_owner_nav_v1",
 }
 
 function dataCacheKey(uid){
@@ -2723,6 +2771,25 @@ function dataCacheKey(uid){
   return `${STORAGE.dataKey}:${u}`;
 }
 ;
+
+function navCacheKey(uid){
+  const u = uid || "anon";
+  return `${STORAGE.navKey}:${u}`;
+}
+
+function saveNavState(){
+  const uid = auth.currentUser?.uid;
+  const payload = {
+    route: state.route,
+    activeEventId: state.activeEventId,
+    activeTab: state.activeTab
+  };
+  localStorage.setItem(navCacheKey(uid), JSON.stringify(payload));
+}
+
+function loadNavState(uid){
+  return safeParseJSON(localStorage.getItem(navCacheKey(uid)), null);
+}
 
 const ROLES = ["Usher","Manual Desk","Finance","Design","Viewer","Ops Manager"];
 
@@ -2909,10 +2976,10 @@ function saveData(){
   __saveTimer = setTimeout(async ()=>{
     try{
       const payload = JSON.stringify(data);
+      const uid = auth.currentUser?.uid;
       localStorage.setItem(dataCacheKey(uid), payload);
 
       {
-        const uid = auth.currentUser?.uid;
         if(uid){
           await setDoc(ownerDocRef(uid), { data, updatedAt: serverTimestamp() }, { merge: true });
         }
@@ -2949,8 +3016,6 @@ function markEventDirtyForPublic(ev){
 function schedulePublicSync(ev, reason="edit"){
   if(!ev) return;
   if(isReadOnly()) return;
-  // Don't publish drafts automatically
-  if((ev.status||"Draft")==="Draft") return;
   if(!__isPublicSyncEnabled()) return;
 
   markEventDirtyForPublic(ev);
@@ -3329,6 +3394,8 @@ function setRoute(route, opts={}){
     if(route==="notifications") renderAttentionPage();
   if(route==="workspace") renderWorkspacePicker();
   if(route==="hub") renderHub();
+
+  saveNavState();
 }
 
 /* ---------- Access control ---------- */
@@ -3368,6 +3435,113 @@ function eventFraud(ev){
 }
 function eventDenied(ev){
   return ev.incidents.filter(i=>String(i.outcome||"").toLowerCase().includes("denied")).length;
+}
+
+function tierSalesMap(ev){
+  const sales = {};
+  for(const o of (ev.orders || [])){
+    if(o.status !== "Paid") continue;
+    const items = (o.tiers && o.tiers.length)
+      ? o.tiers
+      : (o.tierId ? [{ tierId:o.tierId, qty:o.qty || 1, tierName:o.tierName || "" }] : []);
+    for(const it of items){
+      const tid = it.tierId;
+      if(!tid) continue;
+      sales[tid] = (sales[tid] || 0) + (Number(it.qty) || 1);
+    }
+  }
+  return sales;
+}
+
+function waveSalesMap(ev){
+  const sales = {};
+  for(const w of (ev.waves || [])){
+    sales[w.id] = {};
+  }
+  for(const o of (ev.orders || [])){
+    if(o.status !== "Paid") continue;
+    const items = (o.tiers && o.tiers.length)
+      ? o.tiers
+      : (o.tierId ? [{ tierId:o.tierId, qty:o.qty || 1, tierName:o.tierName || "" }] : []);
+    for(const it of items){
+      const tid = it.tierId;
+      if(!tid || !o.waveId) continue;
+      if(!sales[o.waveId]) sales[o.waveId] = {};
+      sales[o.waveId][tid] = (sales[o.waveId][tid] || 0) + (Number(it.qty) || 1);
+    }
+  }
+  return sales;
+}
+
+function enrichOrdersForEvent(ev, orders){
+  const tierById = Object.fromEntries((ev.tiers || []).map(t=>[t.id, t]));
+  const waveById = Object.fromEntries((ev.waves || []).map(w=>[w.id, w]));
+
+  return (orders || []).map(o=>{
+    const rawItems = (o.tiers && o.tiers.length)
+      ? o.tiers
+      : (o.tierId ? [{ tierId:o.tierId, tierName:o.tierName || "", qty:o.qty || 1 }] : []);
+    const tiers = rawItems.map(it=>{
+      const tid = it.tierId || "";
+      return {
+        tierId: tid,
+        tierName: it.tierName || tierById[tid]?.name || tid || "—",
+        qty: Number(it.qty || 1) || 1
+      };
+    });
+    const qty = o.qty || tiers.reduce((s,it)=>s+it.qty,0) || 1;
+    return {
+      ...o,
+      qty,
+      tiers,
+      tierName: o.tierName || tiers[0]?.tierName || "",
+      waveName: o.waveName || waveById[o.waveId]?.name || o.waveId || ""
+    };
+  });
+}
+
+function refreshEventFromOrders(ev, orders){
+  if(!ev) return;
+  const enriched = enrichOrdersForEvent(ev, orders || ev.orders || []);
+  ev.orders = enriched;
+
+  const salesByWave = waveSalesMap(ev);
+  for(const w of (ev.waves || [])){
+    const sold = salesByWave[w.id] || {};
+    w.sold = w.sold || {};
+    for(const tid of (w.tiersActive || [])){
+      w.sold[tid] = sold[tid] || 0;
+    }
+  }
+
+  const existing = new Map((ev.attendees || []).map(a=>[a.id, a]));
+  const attendees = [];
+  for(const o of enriched){
+    const name = o.customer || "—";
+    const contact = o.contact || {};
+    const items = (o.tiers && o.tiers.length) ? o.tiers : (o.tierId ? [{ tierId:o.tierId, tierName:o.tierName || "", qty:o.qty || 1 }] : []);
+    for(const it of items){
+      for(let i=0;i<(Number(it.qty)||1);i++){
+        const id = o.ticketId || `${o.id}-${it.tierId || "tier"}-${i+1}`;
+        const prev = existing.get(id);
+        attendees.push({
+          id,
+          name,
+          contact,
+          waveId: o.waveId || "",
+          waveName: o.waveName || "",
+          tierId: it.tierId || "",
+          tierName: it.tierName || "",
+          status: prev?.status || "Not checked-in",
+          checkinTime: prev?.checkinTime || "",
+          gateId: prev?.gateId || "",
+          gateName: prev?.gateName || "",
+          orderId: o.id || o.orderId || ""
+        });
+      }
+    }
+  }
+  ev.attendees = attendees;
 }
 
 function statusBadgeClass(s){
@@ -3455,6 +3629,8 @@ function renderHub(){
       e.id.toLowerCase().includes(q)
     );
   }
+
+  list.forEach(ev=> refreshEventFromOrders(ev));
 
   const grid = $("#eventsGrid");
   grid.innerHTML = "";
@@ -3562,6 +3738,11 @@ function renderEventWorkspace(){
     return;
   } // <--- Ensure this brace correctly closes the IF block
 
+  refreshEventFromOrders(ev);
+  $$("#subTabs .subTab").forEach(b=>b.classList.toggle("active", b.dataset.tab===state.activeTab));
+  if(!state.activeTab) state.activeTab = "overview";
+  switchTab(state.activeTab);
+
     // 1. Sync the status dropdown(s)
   const statusSelects = [$("#ovStatusSelectTop"), $("#ovStatusSelectOverview")].filter(Boolean);
   for (const sel of statusSelects) {
@@ -3658,6 +3839,7 @@ function renderEventWorkspace(){
 
   // links
   renderLinks(ev);
+  renderEventSettings(ev);
 
   // design studio
   renderDesignStudio(ev);
@@ -3668,11 +3850,13 @@ function renderEventWorkspace(){
 
 function switchTab(tab){
   state.activeTab = tab;
-  const tabs = ["overview","ticketing","orders","customers","staff","design","analytics","incidents","links"];
+  const tabs = ["overview","ticketing","orders","customers","staff","design","analytics","incidents","links","settings"];
   for(const t of tabs){
     const el = $("#tab-"+t);
     if(el) el.classList.toggle("hidden", t!==tab);
   }
+  if(state.route==="event") __setHash("event");
+  saveNavState();
   if(tab==="analytics"){
     // ensure charts draw after visible
     setTimeout(()=> renderEventAnalytics(currentEvent()), 80);
@@ -3791,12 +3975,18 @@ function renderActivityLog(ev){
 function renderTiers(ev){
   const body = $("#tiersBody");
   body.innerHTML = "";
+  const sales = tierSalesMap(ev);
   for(const t of ev.tiers){
+    const cap = Number(t.baseCap || t.capacity || 0);
+    const sold = sales[t.id] || 0;
+    const remaining = cap ? Math.max(cap - sold, 0) : 0;
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><b>${escapeHtml(t.name)}</b></td>
       <td class="muted">${escapeHtml(t.desc)}</td>
-      <td class="mono">${Number(t.baseCap||0).toLocaleString('en-US')}</td>
+      <td class="mono">${cap.toLocaleString('en-US')}</td>
+      <td class="mono">${sold.toLocaleString('en-US')}</td>
+      <td class="mono">${remaining.toLocaleString('en-US')}</td>
       <td>
         <div class="rowActions">
           <button class="btn sm" data-a="edit"><svg width="14" height="14"><use href="#i-edit"/></svg> Edit</button>
@@ -3831,7 +4021,7 @@ function tierModal(eventId, tierId=null){
         </div>
         <div class="field">
           <label>Tier color</label>
-          <div class="input"><input id="mTierColor" type="color" value="${escapeHtml(editing?.color||"#7c3aed")}" title="Tier color"></div>
+          <div class="input"><input id="mTierColor" type="color" value="${escapeHtml(editing?.color||"#2563eb")}" title="Tier color"></div>
           <div class="hint">Used for chips and highlights across orders and the marketplace.</div>
         </div>
 
@@ -3856,7 +4046,7 @@ function tierModal(eventId, tierId=null){
         const name = $("#mTierName").value.trim();
         const cap = Number($("#mTierCap").value||0);
         const desc = $("#mTierDesc").value.trim();
-        const color = ($("#mTierColor")?.value || "#7c3aed").trim();
+        const color = ($("#mTierColor")?.value || "#2563eb").trim();
         const rulesText = $("#mTierRules")?.value || "";
         const rules = rulesText.split(/\n+/).map(s=>s.trim().replace(/^[-•\s]+/,"")).filter(Boolean);
         if(!name){ toast("Missing name","Please enter a tier name."); return; }
@@ -3875,6 +4065,7 @@ function tierModal(eventId, tierId=null){
           addActivity(ev, "Ticketing updated", `Tier added — ${name}`, "info");
         }
         saveData();
+        schedulePublicSync(ev, "ticketing");
         closeModal();
         renderEventWorkspace();
       }}
@@ -3904,6 +4095,7 @@ function deleteTierModal(eventId, tierId){
       }
       addActivity(ev, "Ticketing updated", `Tier deleted — ${t.name}`, "warn");
       saveData();
+      schedulePublicSync(ev, "ticketing");
       renderEventWorkspace();
     }
   });
@@ -3914,9 +4106,10 @@ function renderWaves(ev){
   tl.innerHTML = "";
   const waves = [...(ev.waves||[])].sort((a,b)=> (a.start||"").localeCompare(b.start||""));
 
-  for(const w of waves){
+  waves.forEach((w, index)=>{
     const start = w.start ? w.start.replace("T"," ") : "—";
     const end = w.end ? w.end.replace("T"," ") : "—";
+    const displayName = w.name || `Wave ${index + 1}`;
     const node = document.createElement("div");
     node.className = "tItem";
 
@@ -3941,7 +4134,7 @@ function renderWaves(ev){
     node.innerHTML = `
       <div class="top">
         <div>
-          <b>${escapeHtml(w.name || "Wave")}</b>
+          <b>${escapeHtml(displayName)}</b>
           <div class="meta">
             <span class="chip info">Start: <span class="mono">${escapeHtml(start)}</span></span>
             <span class="chip">End: <span class="mono">${escapeHtml(end)}</span></span>
@@ -3963,7 +4156,7 @@ function renderWaves(ev){
     editBtn.addEventListener("click", ()=> waveModal(ev.id, w.id));
     delBtn.addEventListener("click", ()=> deleteWaveModal(ev.id, w.id));
     tl.appendChild(node);
-  }
+  });
 
   if(waves.length===0){
     tl.innerHTML = `<div class="tItem"><b>No waves yet</b><div class="meta">Add your first wave to enable ticket sales.</div></div>`;
@@ -3974,6 +4167,8 @@ function waveModal(eventId, waveId=null){
   const ev = data.events.find(e=>e.id===eventId);
   if(!ev) return;
   const editing = waveId ? ev.waves.find(w=>w.id===waveId) : null;
+  const nextIndex = ev.waves.length + (editing ? 0 : 1);
+  const defaultName = editing?.name || `Wave ${nextIndex}`;
 
   const tierOptions = ev.tiers.map(t=>{
     const checked = editing?.tiersActive?.includes(t.id) ? "checked" : "";
@@ -3992,7 +4187,7 @@ function waveModal(eventId, waveId=null){
       <div class="grid cols2">
         <div class="field">
           <label>Wave name</label>
-          <div class="input"><input id="mWaveName" value="${escapeHtml(editing?.name||"Wave 1")}" placeholder="Wave 1"></div>
+          <div class="input"><input id="mWaveName" value="${escapeHtml(defaultName)}" placeholder="Wave 1"></div>
         </div>
         <div class="field">
           <label>Wave ID (optional)</label>
@@ -4043,8 +4238,12 @@ function waveModal(eventId, waveId=null){
 
           const p = Number($(`#wPrice_${tid}`)?.value || 0);
           const qRaw = Number($(`#wQty_${tid}`)?.value || 0);
-          const q = (tBase>0 && qRaw>tBase) ? tBase : qRaw;
-          if(tBase>0 && qRaw>tBase) toast("Quantity adjusted", `Wave quantity for this tier was capped at base capacity (${tBase}).`);
+          const remaining = remainingForTier(tid);
+          const cap = (tBase>0) ? remaining : qRaw;
+          const q = (tBase>0 && qRaw>cap) ? cap : qRaw;
+          if(tBase>0 && qRaw>cap){
+            toast("Quantity adjusted", `Wave quantity was capped at remaining capacity (${cap}).`);
+          }
           pricing[tid] = p;
           qty[tid] = q;
           if(!(tid in sold)) sold[tid] = 0;
@@ -4079,6 +4278,7 @@ function waveModal(eventId, waveId=null){
         }
 
         saveData();
+        schedulePublicSync(ev, "ticketing");
         closeModal();
         renderEventWorkspace();
       }}
@@ -4088,17 +4288,26 @@ function waveModal(eventId, waveId=null){
   // Fill tier rows
   const tbody = $("#waveTierRows");
   tbody.innerHTML = "";
+  const tierSales = tierSalesMap(ev);
+  const waveSales = waveSalesMap(ev);
+  const remainingForTier = (tid)=>{
+    const base = ev.tiers.find(x=>x.id===tid)?.baseCap ?? 0;
+    const soldTotal = tierSales[tid] || 0;
+    const soldInWave = editing ? (waveSales[editing.id]?.[tid] || 0) : 0;
+    return Math.max(base - (soldTotal - soldInWave), 0);
+  };
   for(const t of ev.tiers){
     const active = editing?.tiersActive?.includes(t.id) || false;
     const priceVal = editing?.pricing?.[t.id] ?? 0;
     const qtyVal = editing?.qty?.[t.id] ?? 0;
-    const soldVal = editing?.sold?.[t.id] ?? 0;
+    const soldVal = (editing ? (waveSales[editing.id]?.[t.id] || 0) : 0);
+    const maxQty = remainingForTier(t.id);
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><b>${escapeHtml(t.name)}</b><div class="muted2 small">${escapeHtml(t.desc)}</div></td>
       <td><div class="input" style="padding:8px 10px"><input id="wPrice_${t.id}" type="number" min="0" value="${priceVal}" ${active?"":"disabled"}></div></td>
-      <td><div class="input" style="padding:8px 10px"><input id="wQty_${t.id}" type="number" min="0" max="${t.capacity||0}" value="${qtyVal}" ${active?"":"disabled"}></div></td>
+      <td><div class="input" style="padding:8px 10px"><input id="wQty_${t.id}" type="number" min="0" max="${maxQty}" value="${qtyVal}" ${active?"":"disabled"}></div></td>
       <td class="mono">${soldVal.toLocaleString('en-US')}</td>
     `;
     tbody.appendChild(tr);
@@ -4130,6 +4339,7 @@ function deleteWaveModal(eventId, waveId){
       ev.waves = ev.waves.filter(x=>x.id!==waveId);
       addActivity(ev, "Ticketing updated", `Wave deleted — ${w.name}`, "warn");
       saveData();
+      schedulePublicSync(ev, "ticketing");
       renderEventWorkspace();
     }
   });
@@ -4178,13 +4388,16 @@ function renderOrdersTable(ev){
   list.sort((a,b)=> (b.timestamp||"").localeCompare(a.timestamp||""));
 
   for(const o of list.slice(0,260)){
-    const tiersText = (o.tiers||[]).map(t=>`${t.tierName} ×${t.qty}`).join(", ");
+    const tierItems = (o.tiers && o.tiers.length)
+      ? o.tiers
+      : (o.tierId ? [{ tierName: o.tierName || o.tierId, qty: o.qty || 1 }] : []);
+    const tiersText = tierItems.map(t=>`${t.tierName} ×${t.qty}`).join(", ");
     const chipClass = o.status==="Paid" ? "good" : (o.status==="Refunded" ? "warn" : "danger");
     const dt = new Date(o.timestamp);
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td class="mono"><b>${escapeHtml(o.id)}</b></td>
-      <td>${escapeHtml(o.customer)}</td>
+      <td>${escapeHtml(o.customer || "—")}</td>
       <td class="muted">
         <div>${escapeHtml(o.contact?.phone || "—")}</div>
         <div class="muted2 small">${escapeHtml(o.contact?.email || "—")}</div>
@@ -4332,6 +4545,7 @@ function markCheckin(ev, attendeeId){
   addActivity(ev, `${a.name} checked in`, `${a.gateName || "Gate"} — ${fmtTime(new Date())}`, "ok");
 
   saveData();
+  schedulePublicSync(ev, "checkin");
   // immediate UI refresh
   renderEventWorkspace();
 }
@@ -4409,6 +4623,7 @@ function gateModal(eventId, gateId=null){
           addIncident(ev, name, "system", "—", "Staff/Gate updated", "Gate added");
         }
         saveData();
+        schedulePublicSync(ev, "gates");
         closeModal();
         renderEventWorkspace();
       }}
@@ -4434,6 +4649,7 @@ function deleteGateModal(eventId, gateId){
       }
       addIncident(ev, g.name, "system", "—", "Staff/Gate updated", "Gate deleted");
       saveData();
+      schedulePublicSync(ev, "gates");
       renderEventWorkspace();
     }
   });
@@ -4599,6 +4815,7 @@ function staffModal(eventId, staffId=null){
         }
 
         saveData();
+        schedulePublicSync(ev, "staff");
         closeModal();
         renderEventWorkspace();
       }}
@@ -4647,6 +4864,7 @@ function resetPinModal(eventId, staffId){
         s.pin = np;
         addIncident(ev, gateNameFromId(ev, s.gate), s.username, "—", "Staff updated", "PIN reset");
         saveData();
+        schedulePublicSync(ev, "staff");
         closeModal();
         renderEventWorkspace();
         toast("PIN reset","Staff PIN updated successfully.");
@@ -4670,6 +4888,7 @@ function toggleStaffModal(eventId, staffId){
       s.disabled = next;
       addIncident(ev, gateNameFromId(ev, s.gate), s.username, "—", "Staff updated", next ? "Staff disabled" : "Staff enabled");
       saveData();
+      schedulePublicSync(ev, "staff");
       renderEventWorkspace();
       toast(next ? "Staff disabled" : "Staff enabled", s.full);
     }
@@ -4707,6 +4926,7 @@ function reassignGateModal(eventId, staffId){
         s.gate = gateId;
         addIncident(ev, gateNameFromId(ev, gateId), s.username, "—", "Staff updated", "Gate reassigned");
         saveData();
+        schedulePublicSync(ev, "staff");
         closeModal();
         renderEventWorkspace();
       }}
@@ -4728,6 +4948,7 @@ function deleteStaffModal(eventId, staffId){
       ev.staff = ev.staff.filter(x=>x.id!==staffId);
       addIncident(ev, "—", "system", "—", "Staff updated", `Staff deleted (${s.username})`);
       saveData();
+      schedulePublicSync(ev, "staff");
       renderEventWorkspace();
       toast("Staff deleted", s.full);
     }
@@ -4785,12 +5006,13 @@ function renderLinks(ev){
   const base = location.origin && location.origin.startsWith("http") ? location.origin : "https://luma.tickets";
   $("#linkUsher").value = `${base}/usher?event=${encodeURIComponent(ev.id)}`;
   $("#linkDesk").value = `${base}/manual-desk?event=${encodeURIComponent(ev.id)}`;
+}
 
-  // Settings (published to marketplace)
+function renderEventSettings(ev){
+  if(!ev) return;
   $("#setEventDesc").value = ev.desc || ev.description || "";
+  $("#setLocationText").value = ev.locationText || "";
   $("#setLocationUrl").value = ev.locationUrl || "";
-  $("#setReceiptMode").value = ev.receiptMode || "internal";
-  $("#setReceiptUrl").value = ev.receiptUrl || "";
 
   const url = ev.ownerLogoUrl || "";
   const img = $("#ownerLogoPreview");
@@ -4822,10 +5044,10 @@ function renderDesignStudio(ev){
   // set builder input values only if empty (avoid resetting user typing mid-edit)
   if($("#dsHeadline").value === "") $("#dsHeadline").value = d.headline || "Your ticket is ready";
   if($("#dsEmailText").value === "") $("#dsEmailText").value = d.emailText || "";
-  $("#dsPrimary").value = d.primary || "#7c3aed";
-  $("#dsAccent").value = d.accent || "#22c55e";
+  $("#dsPrimary").value = d.primary || "#2563eb";
+  $("#dsAccent").value = d.accent || "#16a34a";
   if($("#dsFontFamily")) $("#dsFontFamily").value = d.fontFamily || "Montserrat";
-  if($("#dsTextColor")) $("#dsTextColor").value = d.textColor || "#f8fafc";
+  if($("#dsTextColor")) $("#dsTextColor").value = d.textColor || "#0f172a";
 
   // hook inputs
   const updatePreview = ()=>{
@@ -4852,11 +5074,11 @@ function renderDesignStudio(ev){
   });
 
   // file upload previews
-  wireFileInput("#dsBanner", (dataUrl)=>{ ev.design.bannerDataUrl = dataUrl; ev.bannerDataUrl = dataUrl; saveData(); updatePreview(); toast("Banner updated","Preview updated."); });
-  wireFileInput("#dsLogo", (dataUrl)=>{ ev.design.logoDataUrl = dataUrl; ev.logoDataUrl = dataUrl; saveData();
-  wireFileInput("#dsOwnerLogo", (dataUrl)=>{ ev.design.ownerLogoDataUrl = dataUrl; ev.ownerLogoDataUrl = dataUrl; saveData(); updatePreview(); toast("Owner logo updated","Preview updated."); });
+  wireFileInput("#dsBanner", (dataUrl)=>{ ev.design.bannerDataUrl = dataUrl; ev.bannerDataUrl = dataUrl; saveData(); schedulePublicSync(ev, "design"); updatePreview(); toast("Banner updated","Preview updated."); });
+  wireFileInput("#dsLogo", (dataUrl)=>{ ev.design.logoDataUrl = dataUrl; ev.logoDataUrl = dataUrl; saveData(); schedulePublicSync(ev, "design");
+  wireFileInput("#dsOwnerLogo", (dataUrl)=>{ ev.design.ownerLogoDataUrl = dataUrl; ev.ownerLogoDataUrl = dataUrl; saveData(); schedulePublicSync(ev, "design"); updatePreview(); toast("Owner logo updated","Preview updated."); });
  updatePreview(); toast("Logo updated","Preview updated."); });
-  wireFileInput("#dsBg", (dataUrl)=>{ ev.design.bgDataUrl = dataUrl; saveData(); updatePreview(); toast("Background updated","Preview updated."); });
+  wireFileInput("#dsBg", (dataUrl)=>{ ev.design.bgDataUrl = dataUrl; saveData(); schedulePublicSync(ev, "design"); updatePreview(); toast("Background updated","Preview updated."); });
 
   // preview mode buttons
   const __pm = $("#previewMode");
@@ -4883,6 +5105,7 @@ $$("#previewMode button").forEach(b=>{
       const draft = getDesignDraft(ev);
       Object.assign(ev.design, draft, { updatedAt: nowISO() });
       saveData();
+      schedulePublicSync(ev, "design");
       addActivity(ev, "Design saved", "Draft saved in Design Studio", "info");
       toast("Draft saved", "Your design draft was saved.");
       renderEventWorkspace();
@@ -4896,6 +5119,7 @@ $$("#previewMode button").forEach(b=>{
       const draft = getDesignDraft(ev);
       Object.assign(ev.design, draft, { updatedAt: nowISO(), published:true });
       saveData();
+      schedulePublicSync(ev, "design");
       addActivity(ev, "Design published", "Ticket + QR + email styling published", "ok");
       toast("Design published", "Your design is now published for this event.");
       renderEventWorkspace();
@@ -4913,10 +5137,10 @@ function getDesignDraft(ev){
     bannerDataUrl: d.bannerDataUrl || "",
     logoDataUrl: d.logoDataUrl || "",
     bgDataUrl: d.bgDataUrl || "",
-    primary: $("#dsPrimary").value || d.primary || "#7c3aed",
-    accent: $("#dsAccent").value || d.accent || "#22c55e",
+    primary: $("#dsPrimary").value || d.primary || "#2563eb",
+    accent: $("#dsAccent").value || d.accent || "#16a34a",
     fontFamily: ($("#dsFontFamily")?.value) || d.fontFamily || "Montserrat",
-    textColor: ($("#dsTextColor")?.value) || d.textColor || "#f8fafc",
+    textColor: ($("#dsTextColor")?.value) || d.textColor || "#0f172a",
     headline: $("#dsHeadline").value.trim() || d.headline || "Your ticket is ready",
     emailText: $("#dsEmailText").value.trim() || d.emailText || "",
     published: !!d.published,
@@ -5139,13 +5363,13 @@ function spark(canvas, seriesA, seriesB=null){
     ctx.stroke();
   };
 
-  drawLine(seriesA, "rgba(124,58,237,.95)");
-  if(seriesB) drawLine(seriesB, "rgba(34,197,94,.90)");
+  drawLine(seriesA, "rgba(37,99,235,.95)");
+  if(seriesB) drawLine(seriesB, "rgba(22,163,74,.90)");
 
   // last value badge
   const last = seriesA[seriesA.length-1] ?? 0;
-  ctx.fillStyle = "rgba(0,0,0,.30)";
-  ctx.strokeStyle = "rgba(255,255,255,.16)";
+  ctx.fillStyle = "rgba(15,23,42,.10)";
+  ctx.strokeStyle = "rgba(15,23,42,.18)";
   ctx.lineWidth = 1*devicePixelRatio;
   const label = String(Math.round(last));
   ctx.font = `${12*devicePixelRatio}px Montserrat, sans-serif`;
@@ -5156,7 +5380,7 @@ function spark(canvas, seriesA, seriesB=null){
   roundRect(ctx, x, y, tw, th, 10*devicePixelRatio);
   ctx.fill();
   ctx.stroke();
-  ctx.fillStyle = "rgba(248,250,252,.92)";
+  ctx.fillStyle = "#0f172a";
   ctx.fillText(label, x + 9*devicePixelRatio, y + 17*devicePixelRatio);
 }
 function roundRect(ctx, x,y,w,h,r){
@@ -5247,23 +5471,90 @@ function renderEventAnalytics(ev){
 /* ---------- Global analytics across events ---------- */
 
 function renderAllAnalytics(){
+  data.events.forEach(ev=> refreshEventFromOrders(ev));
   const gross = data.events.reduce((s,e)=>s+eventGross(e),0);
   const refunds = data.events.reduce((s,e)=>s+eventRefunds(e),0);
   const net = gross - refunds;
   const sold = data.events.reduce((s,e)=>s+eventSold(e),0);
   const check = data.events.reduce((s,e)=>s+eventCheckins(e),0);
   const attend = sold ? Math.round((check/sold)*100) : 0;
+  const active = data.events.filter(e=>e.status==="Live" || e.status==="On Sale").length;
+  const avgPrice = sold ? Math.round(gross / sold) : 0;
+  const refundRate = gross ? Math.round((refunds / gross) * 100) : 0;
 
   $("#allGross").textContent = fmtEGP(gross);
   $("#allRefunds").textContent = fmtEGP(refunds);
   $("#allNet").textContent = fmtEGP(net);
   $("#allAttend").textContent = `${attend}%`;
+  $("#allSold").textContent = sold.toLocaleString('en-US');
+  $("#allActive").textContent = active.toLocaleString('en-US');
+  $("#allAvgPrice").textContent = fmtEGP(avgPrice);
+  $("#allRefundRate").textContent = `${refundRate}%`;
 
   const points=14;
   const sA = Array.from({length:points}, (_,i)=> Math.max(0, net*0.12 + i*(net*0.05) + Math.sin(i/2)*net*0.02));
   const sB = Array.from({length:points}, (_,i)=> Math.max(0, check*0.18 + i*(check*0.06) + Math.cos(i/2.2)*check*0.02));
   spark($("#chartAllSales"), sA);
   spark($("#chartAllCheckins"), sB);
+
+  const topEvents = [...data.events]
+    .map(ev=>({
+      id: ev.id,
+      name: ev.name,
+      net: eventNet(ev),
+      sold: eventSold(ev),
+      attend: eventSold(ev) ? Math.round((eventCheckins(ev)/eventSold(ev))*100) : 0
+    }))
+    .sort((a,b)=>b.net-a.net)
+    .slice(0,5);
+
+  $("#allTopEvents").innerHTML = topEvents.map(ev=>{
+    return `<div class="tItem">
+      <div class="top">
+        <b>${escapeHtml(ev.name || "Untitled event")}</b>
+        <span class="chip info">${fmtEGP(ev.net)}</span>
+      </div>
+      <div class="meta">
+        <span class="chip">Sold <span class="mono">${ev.sold.toLocaleString('en-US')}</span></span>
+        <span class="chip">Attendance <span class="mono">${ev.attend}%</span></span>
+      </div>
+    </div>`;
+  }).join("") || `<div class="muted small">No events yet.</div>`;
+
+  const tierAgg = {};
+  for(const ev of data.events){
+    const sales = tierSalesMap(ev);
+    for(const t of (ev.tiers || [])){
+      const soldQty = sales[t.id] || 0;
+      const cap = Number(t.baseCap || t.capacity || 0);
+      const key = t.name || t.id;
+      if(!tierAgg[key]) tierAgg[key] = { name: key, sold:0, cap:0 };
+      tierAgg[key].sold += soldQty;
+      tierAgg[key].cap += cap;
+    }
+  }
+
+  const tierRows = Object.values(tierAgg)
+    .filter(t=>t.cap>0 || t.sold>0)
+    .map(t=>{
+      const pct = t.cap ? Math.round((t.sold / t.cap) * 100) : 0;
+      return {...t, pct};
+    })
+    .sort((a,b)=>b.pct-a.pct)
+    .slice(0,6);
+
+  $("#allTierFlow").innerHTML = tierRows.map(t=>{
+    return `<div class="tItem">
+      <div class="top">
+        <b>${escapeHtml(t.name)}</b>
+        <span class="chip">${t.pct}%</span>
+      </div>
+      <div class="meta">
+        <span class="chip">Sold <span class="mono">${t.sold.toLocaleString('en-US')}</span></span>
+        <span class="chip">Capacity <span class="mono">${t.cap.toLocaleString('en-US')}</span></span>
+      </div>
+    </div>`;
+  }).join("") || `<div class="muted small">No tier data yet.</div>`;
 }
 
 /* ---------- Attention page ---------- */
@@ -5273,6 +5564,8 @@ function renderAttentionPage(){
   const feed = $("#attFeed");
   feed.innerHTML = "";
   const items = [];
+
+  data.events.forEach(ev=> refreshEventFromOrders(ev));
 
   for(const ev of data.events){
     const denied = eventDenied(ev);
@@ -5304,6 +5597,9 @@ function renderAttentionPage(){
   }
 
   $("#attCount").textContent = items.length;
+  $("#attOpen").textContent = items.filter(i=>i.type==="warn").length.toLocaleString('en-US');
+  $("#attLiveCount").textContent = data.events.filter(e=>e.status==="Live" || e.status==="On Sale").length.toLocaleString('en-US');
+  $("#attRefunds").textContent = fmtEGP(data.events.reduce((s,e)=>s+eventRefunds(e),0));
 
   for(const it of items.slice(0,14)){
     const node = document.createElement("div");
@@ -5530,8 +5826,8 @@ function createEventModal(){
           activity: [],
           design: {
             bannerDataUrl:"", logoDataUrl:"", bgDataUrl:"",
-            primary:"#7c3aed", accent:"#22c55e",
-            fontFamily:"Montserrat", textColor:"#f8fafc",
+            primary:"#2563eb", accent:"#16a34a",
+            fontFamily:"Montserrat", textColor:"#0f172a",
             headline:"Your ticket is ready",
             emailText:"Thanks for joining us. Show this QR code at the gate to check in.",
             published:false, updatedAt: nowISO()
@@ -5760,7 +6056,7 @@ function wireDashboardUI(){
   on("#brandHome","click", ()=> goRoute("hub"));
 
   // Sidebar toggle
-    on("#btnTopEventSettings","click", ()=>{ const ev=currentEvent(); if(!ev) return; setWorkspaceTab("overview"); try{ document.getElementById("ovSubnav")?.scrollIntoView({block:"start"});}catch(_){ } });
+    on("#btnTopEventSettings","click", ()=>{ const ev=currentEvent(); if(!ev) return; switchTab("settings"); renderEventWorkspace(); });
 
 on("#btnToggleSide","click", ()=>{
     document.getElementById("sidebar")?.classList.toggle("collapsed");
@@ -5831,21 +6127,19 @@ on("#btnToggleSide","click", ()=>{
   });
 
   
-  // Settings (Links tab)
+  // Settings (Event Settings tab)
   on("#btnSaveSettings","click", async ()=>{
     const ev = currentEvent();
     if(!ev || isReadOnly()) return;
-    const before = { desc: ev.desc||"", locationUrl: ev.locationUrl||"", receiptMode: ev.receiptMode||"internal", receiptUrl: ev.receiptUrl||"" };
+    const before = { desc: ev.desc||"", locationText: ev.locationText||"", locationUrl: ev.locationUrl||"" };
     ev.desc = $("#setEventDesc")?.value?.trim() || "";
+    ev.locationText = $("#setLocationText")?.value?.trim() || "";
     ev.locationUrl = $("#setLocationUrl")?.value?.trim() || "";
-    ev.receiptMode = $("#setReceiptMode")?.value || "internal";
-    ev.receiptUrl = $("#setReceiptUrl")?.value?.trim() || "";
 
     const changes = [];
     if(before.desc!==ev.desc) changes.push("Description updated");
+    if(before.locationText!==ev.locationText) changes.push("Location updated");
     if(before.locationUrl!==ev.locationUrl) changes.push("Location URL updated");
-    if(before.receiptMode!==ev.receiptMode) changes.push("Receipt mode updated");
-    if(before.receiptUrl!==ev.receiptUrl) changes.push("Receipt URL updated");
 
     if(changes.length){
       addActivity(ev, "Event updated", changes.join(" • ").slice(0,120), "info");
@@ -6158,15 +6452,35 @@ async function bootDashboard(){
     data = defaultData();
   }
 
-  // Route: hub
-  state.route = "hub";
-  state.activeEventId = null;
-  state.activeTab = "overview";
+  const uid = auth.currentUser?.uid;
+  if(uid){
+    data.events = (data.events || []).filter(ev=>!ev.ownerUid || ev.ownerUid === uid);
+  }
+
+  // Restore last route (hash takes priority)
+  const savedNav = loadNavState(auth.currentUser?.uid);
+  if(location.hash){
+    __applyHash();
+  }else if(savedNav?.route){
+    state.route = savedNav.route;
+    state.activeEventId = savedNav.activeEventId || null;
+    state.activeTab = savedNav.activeTab || "overview";
+    setRoute(state.route, { noHash:true });
+  }else{
+    state.route = "hub";
+    state.activeEventId = null;
+    state.activeTab = "overview";
+    setRoute("hub", { noHash:true });
+  }
 
   // Wire UI handlers once
   if(!state.uiWired){
     try{ wireDashboardUI(); }catch(e){ console.error(e); }
     state.uiWired = true;
+  }
+  if(!state.__hashWired){
+    window.addEventListener("hashchange", __applyHash);
+    state.__hashWired = true;
   }
   render();
 }
