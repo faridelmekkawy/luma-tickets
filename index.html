@@ -32,7 +32,7 @@
       --shadow2:0 10px 26px rgba(15,23,42,.08);
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
-    body[data-theme="dark"]{
+    body.dark{
       --bg0:#0b1020;
       --bg1:#0b1020;
       --panel:#111827;
@@ -132,10 +132,10 @@
       background:var(--panel2);
       box-shadow:0 18px 38px rgba(15,23,42,.12);
     }
-    .sidebar .logoMark img,
-    .sidebar .logoMark svg{
-      width:70px;
-      height:70px;
+    .sidebar .logoMark img{
+      width:100px;
+      height:100px;
+      object-fit:contain;
     }
     .brandText{display:flex;flex-direction:column;line-height:1.05;min-width:0}
     .brandText b{font-size:15px;letter-spacing:.2px}
@@ -289,6 +289,49 @@
       margin:0 12px;
       min-width: 200px;
     }
+    .searchWrap{
+      position:relative;
+      flex:1;
+      max-width: 560px;
+      margin:0 12px;
+      min-width: 200px;
+    }
+    .searchWrap .search{
+      margin:0;
+    }
+    .searchResults{
+      position:absolute;
+      top:calc(100% + 8px);
+      left:0;
+      right:0;
+      background:var(--panel);
+      border:1px solid var(--stroke);
+      border-radius:16px;
+      box-shadow:var(--shadow2);
+      padding:8px;
+      z-index:40;
+      display:none;
+    }
+    .searchResults.open{display:block}
+    .searchResult{
+      width:100%;
+      text-align:left;
+      background:transparent;
+      border:1px solid transparent;
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      color:var(--ink);
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .searchResult:hover{
+      background:rgba(37,99,235,.08);
+      border-color:rgba(37,99,235,.25);
+    }
+    .searchResult span{font-size:12px;color:var(--muted)}
+    .searchResult b{font-size:13px;color:var(--ink)}
     .search input{
       border:0;outline:0;background:transparent;color:var(--ink);
       width:100%;
@@ -360,6 +403,7 @@
       .sidebar.collapsed{width:auto;min-width:0;max-width:none}
       .topbar{position:sticky;top:0;z-index:25}
       .search{display:none}
+      .searchWrap{display:none}
       .grid.cols4{grid-template-columns:1fr}
     }
 
@@ -663,27 +707,27 @@
     }
     tbody tr:hover td{background:#f1f5fb}
 
-    body[data-theme="dark"] .navItem:hover{
+    body.dark .navItem:hover{
       background:rgba(148,163,184,.12);
       border-color:rgba(148,163,184,.25);
       color:var(--ink);
     }
-    body[data-theme="dark"] .menuRow:hover{
+    body.dark .menuRow:hover{
       background:rgba(148,163,184,.12);
       border-color:rgba(148,163,184,.22);
       color:var(--ink);
     }
-    body[data-theme="dark"] .btn:hover{background:rgba(148,163,184,.12);border-color:rgba(148,163,184,.25)}
-    body[data-theme="dark"] tbody tr:hover td{background:rgba(148,163,184,.08)}
-    body[data-theme="dark"] .authLeft{
+    body.dark .btn:hover{background:rgba(148,163,184,.12);border-color:rgba(148,163,184,.25)}
+    body.dark tbody tr:hover td{background:rgba(148,163,184,.08)}
+    body.dark .authLeft{
       background:linear-gradient(180deg, #0f172a, #0b1020);
       border-right:1px solid var(--stroke);
     }
-    body[data-theme="dark"] .feat{
+    body.dark .feat{
       background:rgba(148,163,184,.08);
       border-color:rgba(148,163,184,.12);
     }
-    body[data-theme="dark"] .cardHead{background:rgba(148,163,184,.08)}
+    body.dark .cardHead{background:rgba(148,163,184,.08)}
     .rowActions{display:flex;gap:8px;flex-wrap:wrap}
     .chip{
       display:inline-flex;align-items:center;gap:8px;
@@ -1209,8 +1253,8 @@ option{ background-color: var(--panel); color: var(--ink); }
 
     <div class="authRight">
       <div class="authTabs">
-        <button class="tabBtn active" data-auth-tab="signin">Sign in</button>
-        <button class="tabBtn" data-auth-tab="signup">Sign up</button>
+        <button class="tabBtn active" data-auth-tab="signin" type="button">Sign in</button>
+        <button class="tabBtn" data-auth-tab="signup" id="btnAuthSignup" type="button">Sign up</button>
       </div>
 
       <!-- Sign in -->
@@ -1325,9 +1369,7 @@ option{ background-color: var(--panel); color: var(--ink); }
   <aside id="sidebar" class="sidebar">
     <div class="brandRow" id="brandHome">
       <div class="logoMark">
-        <!-- Luma Logo URL placeholder: set window.LUMA_LOGO_URL in code (or leave empty to use SVG) -->
-        <img id="lumaLogoImgDash" alt="Luma" style="display:none;width:70px;height:70px;object-fit:contain;border-radius:10px"/>
-        <svg id="lumaLogoSvgDash" width="70" height="70"><use href="#i-luma"/></svg>
+        <img id="lumaLogoImgDash" alt="Luma Tickets logo" style="width:100px;height:100px;object-fit:contain;border-radius:18px"/>
       </div>
       <div class="brandText">
         <b>Luma Tickets</b>
@@ -1398,9 +1440,12 @@ option{ background-color: var(--panel); color: var(--ink); }
         <div class="crumb" id="crumb">You are in <b>Events Hub</b></div>
       </div>
 
-      <div class="search" title="Search events, customers, orders">
-        <svg width="18" height="18" style="color:var(--muted)"><use href="#i-search"/></svg>
-        <input id="globalSearch" placeholder="Search events, orders, customers...">
+      <div class="searchWrap">
+        <div class="search" title="Search events, customers, orders">
+          <svg width="18" height="18" style="color:var(--muted)"><use href="#i-search"/></svg>
+          <input id="globalSearch" placeholder="Search events, orders, customers...">
+        </div>
+        <div class="searchResults" id="searchResults" role="listbox" aria-label="Search results"></div>
       </div>
 
       <div class="topActions">
@@ -3424,6 +3469,11 @@ function authInit(){
   $$(".tabBtn").forEach(b =>
     b.addEventListener("click", () => setAuthTab(b.dataset.authTab))
   );
+  $("#btnAuthSignup")?.addEventListener("click", (e)=>{
+    e.preventDefault();
+    setAuthTab("signup");
+    $("#signup-name")?.focus();
+  });
 
   $("#go-signin")?.addEventListener("click", (e)=>{
     e.preventDefault();
@@ -3443,9 +3493,16 @@ function authInit(){
   $("#btnForgot")?.addEventListener("click", (e)=>{
     e.preventDefault();
     setAuthTab("forgot");
+    const email = $("#signin-email")?.value?.trim();
+    if(email) $("#forgot-email").value = email;
+    $("#forgot-email")?.focus();
   });
 
   renderFooterLinks();
+  if(!state.__hashWired){
+    window.addEventListener("hashchange", __applyHash);
+    state.__hashWired = true;
+  }
 }
 
 function applyLumaLogo(){
@@ -3470,7 +3527,7 @@ function applyLumaLogo(){
 const THEME_KEY = "luma_theme";
 function applyTheme(mode){
   const theme = mode === "dark" ? "dark" : "light";
-  document.body.dataset.theme = theme;
+  document.body.classList.toggle("dark", theme === "dark");
   localStorage.setItem(THEME_KEY, theme);
   const select = $("#themeSelect");
   if(select) select.value = theme;
@@ -3489,118 +3546,57 @@ function initTheme(){
 
 const LEGAL_PAGES = {
   about: {
-    title: "About Luma — Event Owners",
+    title: "About Luma Tickets",
     body: `
-      <p>Luma is an event operations platform built for organizers who need clarity, control, and reliability.</p>
-      <p>Luma helps event owners create events, sell tickets, manage capacities, track performance, and control on-site check-ins — all from one dashboard. Everything is designed to reduce friction during setup and eliminate chaos on event day.</p>
-      <p>From ticket tiers and waves to real-time sales tracking and access validation, Luma gives organizers the tools they need to run professional, secure events at scale.</p>
-      <p>Luma does not run events — it empowers those who do.</p>
+      <p>Luma Tickets is an event operations platform designed for organizers who need clarity, control, and reliability.</p>
+      <p>The dashboard helps event owners create events, sell tickets, manage capacities, track performance, and control on-site check-ins — all in one workspace.</p>
+      <p>From ticket tiers and waves to real-time sales tracking and access validation, Luma Tickets equips organizers to run secure events at scale.</p>
+      <p>Luma Tickets does not run events — it empowers the teams who do.</p>
     `
   },
   faqs: {
-    title: "Event Owner FAQs",
+    title: "Frequently Asked Questions",
     body: `
-      <h4>What does Luma provide for event owners?</h4>
-      <p>Luma provides:</p>
+      <h4>What does Luma Tickets provide for event owners?</h4>
+      <p>Luma Tickets provides:</p>
       <ul>
         <li>Event creation and management tools</li>
         <li>Ticket tiers, waves, pricing, and capacity controls</li>
         <li>Real-time sales and check-in tracking</li>
-        <li>Secure digital ticket verification</li>
+        <li>Secure digital ticket validation</li>
         <li>Organizer and usher access controls</li>
         <li>Analytics to monitor performance</li>
       </ul>
-      <h4>Does Luma handle my event operations?</h4>
-      <p>No. Luma provides the platform and tools. The event owner is responsible for event execution, staffing, venue coordination, and guest experience.</p>
+      <h4>Does Luma Tickets run my event operations?</h4>
+      <p>No. Luma Tickets provides the platform and tools. The event owner remains responsible for event execution, staffing, venue coordination, and guest experience.</p>
       <h4>Can I manage multiple events?</h4>
-      <p>Yes. Event owners can create and manage multiple events from a single dashboard.</p>
+      <p>Yes. Owners can manage multiple events from a single dashboard.</p>
       <h4>Can I limit ticket quantities per tier or wave?</h4>
       <p>Yes. You control ticket capacities at all levels and can adjust them before or during sales.</p>
       <h4>Can tickets be duplicated or reused?</h4>
       <p>No. Once a ticket is checked in, it becomes invalid. Duplicate or manipulated tickets will be rejected.</p>
-      <h4>Can I control who checks in tickets?</h4>
-      <p>Yes. You can assign ushers and control access permissions.</p>
-      <h4>Does Luma handle refunds?</h4>
-      <p>Refunds are controlled by the event owner based on their own refund policy.</p>
     `
   },
   terms: {
-    title: "Event Owner Terms & Conditions",
+    title: "Terms of Service",
     body: `
-      <h4>Platform Role</h4>
-      <p>Luma acts as a technology provider, not an event organizer, promoter, or venue operator.</p>
-      <h4>Event Responsibility</h4>
-      <p>You are fully responsible for:</p>
+      <p>By using Luma Tickets, you agree to provide accurate event information, manage ticket access responsibly, and follow applicable laws and venue policies.</p>
+      <p>As an event owner, you are responsible for:</p>
       <ul>
-        <li>Event content and accuracy</li>
-        <li>Ticket pricing, availability, and refund policies</li>
-        <li>Event execution, staffing, security, and compliance</li>
-        <li>Guest admission decisions</li>
+        <li>All content you publish</li>
+        <li>Event safety and on-site operations</li>
+        <li>Payments, taxes, and compliance</li>
+        <li>Customer support and refunds</li>
       </ul>
-      <h4>Ticket Sales</h4>
-      <ul>
-        <li>Ticket quantities must reflect actual venue capacity.</li>
-        <li>Overselling, misrepresentation, or misuse may result in account suspension.</li>
-      </ul>
-      <h4>Access Control</h4>
-      <ul>
-        <li>Luma provides ticket verification tools, but final entry decisions are made by your team.</li>
-        <li>Any misuse of check-in tools may lead to platform restrictions.</li>
-      </ul>
-      <h4>Liability</h4>
-      <p>Luma is not liable for:</p>
-      <ul>
-        <li>Event cancellations or changes</li>
-        <li>Financial losses related to event execution</li>
-        <li>Disputes between event owners and attendees</li>
-      </ul>
+      <p>Luma Tickets reserves the right to suspend accounts for misuse, fraud, or policy violations.</p>
     `
   },
   privacy: {
-    title: "Event Owner Privacy Policy",
+    title: "Privacy Policy",
     body: `
-      <h4>Data Collected</h4>
-      <p>As an event owner, Luma may collect:</p>
-      <ul>
-        <li>Account and contact information</li>
-        <li>Event configuration data</li>
-        <li>Sales, ticket, and check-in activity</li>
-      </ul>
-      <h4>Data Usage</h4>
-      <p>Your data is used to:</p>
-      <ul>
-        <li>Operate and improve the platform</li>
-        <li>Generate analytics and performance insights</li>
-        <li>Support security and fraud prevention</li>
-      </ul>
-      <h4>Data Access</h4>
-      <p>You have access to your event data through your dashboard. You are responsible for handling attendee data in compliance with applicable laws.</p>
-      <h4>Data Protection</h4>
-      <p>Luma applies reasonable technical and organizational measures to protect stored data.</p>
-    `
-  },
-  policies: {
-    title: "Event Owner Platform Policies",
-    body: `
-      <h4>Ticketing Policy</h4>
-      <ul>
-        <li>Tickets must be configured accurately.</li>
-        <li>Once an event is set live, changes may affect customer experience and should be handled carefully.</li>
-      </ul>
-      <h4>Check-in Policy</h4>
-      <ul>
-        <li>Each ticket is valid for a single entry.</li>
-        <li>Checked-in tickets cannot be reused or reversed.</li>
-      </ul>
-      <h4>Account Misuse</h4>
-      <p>Luma reserves the right to suspend or terminate accounts involved in:</p>
-      <ul>
-        <li>Fraudulent ticket activity</li>
-        <li>Capacity manipulation</li>
-        <li>Abuse of the platform or staff access</li>
-      </ul>
-      <h4>Compliance Policy</h4>
-      <p>Event owners are responsible for ensuring their events comply with local laws, venue rules, and safety regulations.</p>
+      <p>Luma Tickets stores owner data securely and uses it only to provide product functionality, analytics, and system improvements.</p>
+      <p>We do not sell your data to third parties. Access to attendee information is limited to you and authorized staff.</p>
+      <p>We apply industry-standard security practices to protect credentials and sensitive data.</p>
     `
   }
 };
@@ -3618,17 +3614,16 @@ function openLegalModal(key){
 
 function renderFooterLinks(){
   const links = [
-    { key: "about", label: "About Luma" },
-    { key: "faqs", label: "Event Owner FAQs" },
-    { key: "terms", label: "Event Owner Terms & Conditions" },
-    { key: "privacy", label: "Event Owner Privacy Policy" },
-    { key: "policies", label: "Event Owner Platform Policies" }
+    { key: "about", label: "About Us" },
+    { key: "faqs", label: "FAQs" },
+    { key: "privacy", label: "Privacy Policy" },
+    { key: "terms", label: "Terms of Service" }
   ];
   document.querySelectorAll(".footer").forEach(footer=>{
     if(footer.querySelector(".footerLinks")) return;
     const wrap = document.createElement("div");
     wrap.className = "footerLinks";
-    wrap.innerHTML = links.map(l => `<a href="#" data-legal="${l.key}">${l.label}</a>`).join("");
+    wrap.innerHTML = links.map(l => `<a href="#legal:${l.key}" data-legal="${l.key}">${l.label}</a>`).join("");
     footer.appendChild(wrap);
   });
   document.querySelectorAll("[data-legal]").forEach(link=>{
@@ -3636,7 +3631,11 @@ function renderFooterLinks(){
     link.__legalWired = true;
     link.addEventListener("click", (e)=>{
       e.preventDefault();
-      openLegalModal(link.dataset.legal);
+      const key = link.dataset.legal;
+      if(!key) return;
+      const nextHash = `legal:${key}`;
+      if(location.hash !== `#${nextHash}`) location.hash = nextHash;
+      openLegalModal(key);
     });
   });
 }
@@ -3843,6 +3842,7 @@ function addActivity(ev, text, detail, type){
 //   #hub
 //   #event:<eventId>?tab=orders
 //   #notifications , #analytics
+//   #legal:<page>
 function __parseHash(){
   const raw = (location.hash||"").replace(/^#/, "").trim();
   if(!raw) return { route: null };
@@ -3850,6 +3850,9 @@ function __parseHash(){
   const params = new URLSearchParams(qs);
   if(path.startsWith("event:")){
     return { route:"event", eventId: path.slice(6), tab: params.get("tab")||null };
+  }
+  if(path.startsWith("legal:")){
+    return { route:"legal", legal: path.slice(6) };
   }
   if(path==="hub"||path==="workspace"||path==="notifications"||path==="analytics"||path==="hub"){
     return { route:path, tab: params.get("tab")||null };
@@ -3876,6 +3879,10 @@ function __setHash(route){
 function __applyHash(){
   const h = __parseHash();
   if(!h.route) return;
+  if(h.route === "legal" && h.legal){
+    openLegalModal(h.legal);
+    return;
+  }
   if(h.route==="event" && h.eventId){
     state.activeEventId = h.eventId;
     if(h.tab) state.activeTab = h.tab;
@@ -3922,6 +3929,7 @@ function setRoute(route, opts={}){
   if(route==="settings") renderTopIdentity();
   if(route==="workspace") renderWorkspacePicker();
   if(route==="hub") renderHub();
+  renderSearchResults();
 
   saveNavState();
 }
@@ -4112,6 +4120,7 @@ function renderAll(){
   renderAttentionPage();
   renderAllAnalytics();
   if(state.route==="event") renderEventWorkspace();
+  renderSearchResults();
 }
 
 // Backwards-compatible alias (some flows call render())
@@ -4154,15 +4163,6 @@ function renderHub(){
   if(venue) list = list.filter(e=>e.venue.toLowerCase().includes(venue));
   if(dFrom) list = list.filter(e=>e.date >= dFrom);
   if(dTo) list = list.filter(e=>e.date <= dTo);
-
-  const q = $("#globalSearch").value.trim().toLowerCase();
-  if(q){
-    list = list.filter(e =>
-      e.name.toLowerCase().includes(q) ||
-      e.venue.toLowerCase().includes(q) ||
-      e.id.toLowerCase().includes(q)
-    );
-  }
 
   list.forEach(ev=> refreshEventFromOrders(ev));
 
@@ -4236,6 +4236,57 @@ function renderHub(){
 
     grid.appendChild(card);
   }
+}
+
+function renderSearchResults(){
+  const panel = $("#searchResults");
+  if(!panel) return;
+  const query = ($("#globalSearch")?.value || "").trim().toLowerCase();
+  const hub = $("#page-hub");
+
+  if(state.route !== "hub"){
+    panel.classList.remove("open");
+    return;
+  }
+
+  if(!query){
+    panel.classList.remove("open");
+    panel.innerHTML = "";
+    hub?.classList.remove("hidden");
+    return;
+  }
+
+  const matches = data.events.filter(ev =>
+    ev.name.toLowerCase().includes(query) ||
+    ev.venue.toLowerCase().includes(query) ||
+    ev.id.toLowerCase().includes(query)
+  );
+
+  if(matches.length === 0){
+    panel.innerHTML = `<div class="muted small" style="padding:8px 10px">No results found.</div>`;
+  }else{
+    panel.innerHTML = matches.map(ev => `
+      <button class="searchResult" type="button" data-event-id="${ev.id}">
+        <b>${escapeHtml(ev.name)}</b>
+        <span>${escapeHtml(ev.venue)} • ${escapeHtml(ev.date || "TBA")}</span>
+      </button>
+    `).join("");
+  }
+  panel.classList.add("open");
+  hub?.classList.add("hidden");
+
+  panel.querySelectorAll("[data-event-id]").forEach(btn=>{
+    if(btn.__searchWired) return;
+    btn.__searchWired = true;
+    btn.addEventListener("click", ()=>{
+      const id = btn.dataset.eventId;
+      $("#globalSearch").value = "";
+      panel.classList.remove("open");
+      panel.innerHTML = "";
+      hub?.classList.remove("hidden");
+      if(id) openEventWorkspace(id);
+    });
+  });
 }
 
 function renderWorkspacePicker(){
@@ -6734,7 +6785,7 @@ on("#btnToggleSide","click", ()=>{
 
 // global search
   on("#globalSearch","input", ()=>{
-    if(state.route==="hub") renderHub();
+    if(state.route==="hub") renderSearchResults();
     if(state.route==="event"){
       const ev = currentEvent();
       if(!ev) return;
