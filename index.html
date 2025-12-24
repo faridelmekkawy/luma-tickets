@@ -742,6 +742,11 @@
     }
     body.dark .cardHead{background:rgba(148,163,184,.08)}
     .rowActions{display:flex;gap:8px;flex-wrap:wrap}
+    .rowActions.compact .btn.sm{
+      padding:6px 8px;
+      border-radius:10px;
+      font-size:11px;
+    }
     .chip{
       display:inline-flex;align-items:center;gap:8px;
       padding:6px 10px;border-radius:999px;
@@ -1296,7 +1301,7 @@ option{ background-color: var(--panel); color: var(--ink); }
             </div>
           </div>
           <div class="authLinks">
-            <button class="linkBtn" id="btnForgot" type="button">Forgot your password?</button>
+            <button class="linkBtn" id="btnForgot" data-auth-link="forgot" type="button">Forgot your password?</button>
             <span class="muted2 small">Don’t have an account? <button class="linkBtn" id="go-signup" type="button">Create one</button></span>
           </div>
 
@@ -2491,7 +2496,7 @@ option{ background-color: var(--panel); color: var(--ink); }
             <table>
               <thead>
                 <tr>
-                  <th>Time</th><th>Gate</th><th>Staff username</th><th>Customer</th><th>Outcome</th><th>Notes</th>
+                  <th>Time</th><th>Gate</th><th>Staff username</th><th>Order / Customer</th><th>Outcome</th><th>Notes</th>
                 </tr>
               </thead>
               <tbody id="incBody"></tbody>
@@ -2795,6 +2800,11 @@ function publicEventOrdersCol(eventId){
   return collection(db, "events", eventId, "orders");
 }
 
+// Scan logs live source (public events/{eventId}/scanLogs)
+function publicEventScanLogsCol(eventId){
+  return collection(db, "events", eventId, "scanLogs");
+}
+
 // Staff live source (public events/{eventId}/staff)
 function publicEventStaffCol(eventId){
   return collection(db, "events", eventId, "staff");
@@ -2854,6 +2864,36 @@ function normalizeOrderDoc(id, o){
   };
 }
 
+function normalizeScanLogDoc(id, log){
+  const ts = log?.createdAt;
+  let dt = null;
+  try{
+    if(ts?.toDate) dt = ts.toDate();
+    else if(typeof ts === "string") dt = new Date(ts);
+    else if(typeof ts?.seconds === "number") dt = new Date(ts.seconds*1000);
+  }catch(_){}
+  const ticketTier = log?.ticketId_Tierid || [log?.ticketId, log?.tierId].filter(Boolean).join("_");
+  const bits = [];
+  if(log?.reason) bits.push(log.reason);
+  if(log?.orderId) bits.push(`Order ${log.orderId}`);
+  if(ticketTier) bits.push(`Ticket ${ticketTier}`);
+  return {
+    id,
+    time: dt ? dt.toISOString() : (log?.createdAt || new Date().toISOString()),
+    gate: log?.gateName || "—",
+    staff: log?.staffUsername || "—",
+    staffId: log?.staffId || "",
+    customer: log?.orderId || "—",
+    orderId: log?.orderId || "",
+    ticketId: log?.ticketId || "",
+    tierId: log?.tierId || "",
+    ticketId_Tierid: ticketTier || "",
+    outcome: log?.outcome || "—",
+    notes: bits.join(" • "),
+    source: "scanLog"
+  };
+}
+
 // Keep a live cache of orders per event for analytics + orders tab
 async function hydrateAllOrders(){
   state.ordersByEvent = state.ordersByEvent || {};
@@ -2864,6 +2904,7 @@ async function hydrateAllOrders(){
   await Promise.all(evs.map(async (ev)=>{
     if(!ev?.id) return;
     await ensureOrdersListener(ev.id);
+    await ensureScanLogsListener(ev.id);
   }));
 }
 
@@ -2897,6 +2938,37 @@ async function ensureOrdersListener(eventId){
     state.ordersUnsubs[eventId] = unsub;
   }catch(err){
     console.warn("[Orders] could not attach listener", eventId, err);
+  }
+}
+
+async function ensureScanLogsListener(eventId){
+  if(!window.__firebaseReady || typeof onSnapshot !== "function"){
+    console.warn("[ScanLogs] Firebase not ready; skipping realtime listener.");
+    return;
+  }
+
+  if(state.scanLogsUnsubs?.[eventId]) return;
+  try{
+    const col = publicEventScanLogsCol(eventId);
+    const unsub = onSnapshot(col, (snap)=>{
+      const list = snap.docs.map(d=> normalizeScanLogDoc(d.id, d.data()));
+      list.sort((a,b)=> (b.time||"").localeCompare(a.time||""));
+      state.scanLogsByEvent[eventId] = list;
+
+      const ev = (data?.events||[]).find(x=>x.id===eventId);
+      if(ev){
+        ev.__scanLogs = list;
+      }
+
+      if(state.route==="analytics" || (state.route==="event" && state.activeEventId===eventId)){
+        try{ renderAll(); }catch(e){ console.warn(e); }
+      }
+    }, (err)=>{
+      console.warn("[ScanLogs listener] failed:", err);
+    });
+    state.scanLogsUnsubs[eventId] = unsub;
+  }catch(err){
+    console.warn("[ScanLogs] could not attach listener", eventId, err);
   }
 }
 
@@ -3169,7 +3241,9 @@ let state = {
   activeTab: "overview",  // event workspace tab
   attentionFeed: [],
   simulateOn: false,
-  designPreview: { mode:"mobile" }
+  designPreview: { mode:"mobile" },
+  scanLogsByEvent: {},
+  scanLogsUnsubs: {}
 };
 
 /* ---------- Data ---------- */
@@ -3336,6 +3410,24 @@ async function loadData(){
   return seed;
 }
 
+function sanitizeDataForFirestore(raw){
+  const clone = JSON.parse(JSON.stringify(raw || {}));
+  const events = clone.events || [];
+  for(const ev of events){
+    if(!ev) continue;
+    const design = ev.design || {};
+    const stripDataUrl = (obj, key)=>{
+      if(obj && typeof obj[key] === "string" && obj[key].startsWith("data:")){
+        obj[key] = "";
+      }
+    };
+    ["bannerDataUrl","logoDataUrl","ownerLogoDataUrl"].forEach(k=> stripDataUrl(ev, k));
+    ["bannerDataUrl","logoDataUrl","ownerLogoDataUrl","bgDataUrl"].forEach(k=> stripDataUrl(design, k));
+    ev.design = design;
+  }
+  return clone;
+}
+
 let __saveTimer = null;
 function saveData(){
   // Debounced save (keeps UI snappy)
@@ -3346,10 +3438,9 @@ function saveData(){
       const uid = auth?.currentUser?.uid;
       localStorage.setItem(dataCacheKey(uid), payload);
 
-      {
-        if(uid && window.__firebaseReady && setDoc){
-          await setDoc(ownerDocRef(uid), { data, updatedAt: serverTimestamp() }, { merge: true });
-        }
+      if(uid && window.__firebaseReady && setDoc){
+        const sanitized = sanitizeDataForFirestore(data);
+        await setDoc(ownerDocRef(uid), { data: sanitized, updatedAt: serverTimestamp() }, { merge: true });
       }
     }catch(err){
       console.error(err);
@@ -3517,6 +3608,16 @@ function authInit(){
     const email = $("#signin-email")?.value?.trim();
     if(email) $("#forgot-email").value = email;
     $("#forgot-email")?.focus();
+  });
+
+  $$("[data-auth-link]").forEach((btn)=>{
+    if(btn.__authWired) return;
+    btn.__authWired = true;
+    btn.addEventListener("click", (e)=>{
+      e.preventDefault();
+      const tab = btn.dataset.authLink;
+      if(tab) setAuthTab(tab);
+    });
   });
 
   renderFooterLinks();
@@ -3992,11 +4093,18 @@ function eventRefunds(ev){
 function eventNet(ev){
   return eventGross(ev) - eventRefunds(ev);
 }
+function getIncidentFeed(ev){
+  const scanLogs = state.scanLogsByEvent?.[ev.id] || ev.__scanLogs || [];
+  const manual = (ev.incidents || []).filter(i=>i.source !== "scanLog");
+  const merged = [...scanLogs, ...manual];
+  merged.sort((a,b)=> (b.time||"").localeCompare(a.time||""));
+  return merged;
+}
 function eventFraud(ev){
-  return ev.incidents.filter(i=>String(i.outcome||"").toLowerCase().includes("blocked")).length;
+  return getIncidentFeed(ev).filter(i=>String(i.outcome||"").toLowerCase().includes("blocked")).length;
 }
 function eventDenied(ev){
-  return ev.incidents.filter(i=>String(i.outcome||"").toLowerCase().includes("denied")).length;
+  return getIncidentFeed(ev).filter(i=>String(i.outcome||"").toLowerCase().includes("denied")).length;
 }
 
 function tierSalesMap(ev){
@@ -4082,6 +4190,8 @@ function refreshEventFromOrders(ev, orders){
     const name = o.customer || "—";
     const contact = o.contact || {};
     const items = (o.tiers && o.tiers.length) ? o.tiers : (o.tierId ? [{ tierId:o.tierId, tierName:o.tierName || "", qty:o.qty || 1 }] : []);
+    const checkedIn = !!(o.checkedIn || o.checkedInAt);
+    const checkinTime = o.checkedInAt?.toDate?.() || (typeof o.checkedInAt === "string" ? new Date(o.checkedInAt) : null);
     for(const it of items){
       for(let i=0;i<(Number(it.qty)||1);i++){
         const id = o.ticketId || `${o.id}-${it.tierId || "tier"}-${i+1}`;
@@ -4094,10 +4204,10 @@ function refreshEventFromOrders(ev, orders){
           waveName: o.waveName || "",
           tierId: it.tierId || "",
           tierName: it.tierName || "",
-          status: prev?.status || "Not checked-in",
-          checkinTime: prev?.checkinTime || "",
-          gateId: prev?.gateId || "",
-          gateName: prev?.gateName || "",
+          status: checkedIn ? "Checked-in" : (prev?.status || "Not checked-in"),
+          checkinTime: checkedIn ? (checkinTime ? checkinTime.toISOString() : (o.checkedInAt || "")) : (prev?.checkinTime || ""),
+          gateId: checkedIn ? (o.checkedInGate || prev?.gateId || "") : (prev?.gateId || ""),
+          gateName: checkedIn ? (o.checkedInGate || prev?.gateName || "") : (prev?.gateName || ""),
           orderId: o.id || o.orderId || ""
         });
       }
@@ -5157,6 +5267,16 @@ function markCheckin(ev, attendeeId){
 
   saveData();
   schedulePublicSync(ev, "checkin");
+  if(window.__firebaseReady && updateDoc && a.orderId){
+    const ref = doc(db, "events", ev.id, "orders", a.orderId);
+    updateDoc(ref, {
+      checkedIn: true,
+      checkedInAt: serverTimestamp(),
+      checkedInGate: a.gateName || "",
+      checkedInBy: auth?.currentUser?.uid || "",
+      checkedInByUsername: state.user?.name || state.user?.email || ""
+    }).catch(()=>{});
+  }
   // immediate UI refresh
   renderEventWorkspace();
 }
@@ -5282,7 +5402,7 @@ function renderStaff(ev){
       <td class="muted2">${escapeHtml(gateName)}</td>
       <td>${stChip}</td>
       <td>
-        <div class="rowActions">
+        <div class="rowActions compact">
           <button class="btn sm" data-a="edit"><svg width="14" height="14"><use href="#i-edit"/></svg> Edit</button>
           <button class="btn sm" data-a="pin"><svg width="14" height="14"><use href="#i-lock"/></svg> Reset PIN</button>
           <button class="btn sm" data-a="disable">${s.disabled ? "Enable" : "Disable"}</button>
@@ -5583,7 +5703,8 @@ function addIncident(ev, gateName, staffUser, customer, outcome, notes){
     staff: staffUser || "—",
     customer: customer || "—",
     outcome: outcome || "—",
-    notes: notes || ""
+    notes: notes || "",
+    source: "manual"
   });
   // also activity
   addActivity(ev, "Audit log updated", `${outcome} — ${gateName || "—"}`, outcome.toLowerCase().includes("denied") ? "warn" : "info");
@@ -5593,7 +5714,8 @@ function renderIncidents(ev){
   const body = $("#incBody");
   body.innerHTML = "";
 
-  for(const i of (ev.incidents||[]).slice(0,400)){
+  const feed = getIncidentFeed(ev);
+  for(const i of feed.slice(0,400)){
     const dt = new Date(i.time);
     const out = (i.outcome||"").toLowerCase();
     const cls = out.includes("denied") ? "danger" : (out.includes("blocked") ? "warn" : "info");
@@ -5609,7 +5731,7 @@ function renderIncidents(ev){
     body.appendChild(tr);
   }
 
-  if((ev.incidents||[]).length===0){
+  if(feed.length===0){
     body.innerHTML = `<tr><td colspan="6">
       <div class="hint"><b>No incidents yet</b>. Operational incidents will appear here automatically.</div>
     </td></tr>`;
@@ -5777,13 +5899,47 @@ function wireFileInput(sel, onDataUrl){
   });
   input._wired = true;
 }
-function fileToDataUrl(file){
+function readFileDataUrl(file){
   return new Promise((res, rej)=>{
     const r = new FileReader();
     r.onload = ()=> res(String(r.result||""));
     r.onerror = rej;
     r.readAsDataURL(file);
   });
+}
+function loadImage(dataUrl){
+  return new Promise((res, rej)=>{
+    const img = new Image();
+    img.onload = ()=> res(img);
+    img.onerror = rej;
+    img.src = dataUrl;
+  });
+}
+async function fileToDataUrl(file, opts={}){
+  const { maxSize = 1400, quality = 0.82 } = opts;
+  const dataUrl = await readFileDataUrl(file);
+  if(!file.type?.startsWith("image/")) return dataUrl;
+
+  try{
+    const img = await loadImage(dataUrl);
+    const maxDim = Math.max(img.width, img.height);
+    const shouldResize = maxDim > maxSize || file.size > 600 * 1024;
+    if(!shouldResize) return dataUrl;
+
+    const scale = Math.min(1, maxSize / maxDim);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(img.width * scale);
+    canvas.height = Math.round(img.height * scale);
+    const ctx = canvas.getContext("2d");
+    if(!ctx) return dataUrl;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    const preferWebp = file.type === "image/png" || file.type === "image/webp";
+    const mime = preferWebp ? "image/webp" : "image/jpeg";
+    return canvas.toDataURL(mime, quality);
+  }catch(_e){
+    return dataUrl;
+  }
 }
 
 function buildPreview(design){
@@ -6299,7 +6455,8 @@ function exportAttendees(ev, onlyCheckins=false){
 
 function exportIncidents(ev){
   const rows = [["Time","Gate","Staff Username","Customer Name","Outcome","Notes","Event"]];
-  for(const i of ev.incidents){
+  const feed = getIncidentFeed(ev);
+  for(const i of feed){
     rows.push([i.time, i.gate, i.staff, i.customer, i.outcome, i.notes, ev.name]);
   }
   downloadText(`${ev.id}-incidents.csv`, toCSV(rows));

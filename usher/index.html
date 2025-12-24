@@ -833,7 +833,7 @@
     return digits.slice(-4);
   }
 
-  async function writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome, reason}){
+  async function writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome, reason, ticketTierId}){
     // Recommended log collection for both approvals and failures
     try{
       const logsCol = collection(db, "events", eventId, "scanLogs");
@@ -845,6 +845,7 @@
         staffId: staff?.id || "",
         staffUsername: staff?.username || "",
         ticketId: ticketId || "",
+        ticketId_Tierid: ticketTierId || "",
         orderId: orderId || ""
       });
     }catch(_e){
@@ -872,7 +873,7 @@
       const codeSnap = await getDoc(codeRef);
 
       if(!codeSnap.exists()){
-        await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Ticket code not found"});
+        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId: ticketId, outcome:"denied", reason:"Ticket code not found"});
         showResult({ok:false, reason:"Ticket Not Found", gateName, when:new Date()});
         state.verifying = false;
         return;
@@ -882,7 +883,8 @@
       const codeEventId = code.eventId || code.eventID;
 
       if(String(codeEventId) !== String(eventId)){
-        await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Wrong event"});
+        const ticketTierId = code.tierId ? `${ticketId}_${code.tierId}` : ticketId;
+        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, outcome:"denied", reason:"Wrong event"});
         showResult({ok:false, reason:"Wrong Event", gateName, when:new Date()});
         state.verifying = false;
         return;
@@ -892,7 +894,8 @@
       if(code.redeemedAt || code.checkedInAt || code.usedAt){
         const usedGate = code.redeemedGate || code.checkedInGate || code.usedGate || "Unknown gate";
         const usedTime = code.redeemedAt?.toDate?.() || code.checkedInAt?.toDate?.() || code.usedAt?.toDate?.();
-        await writeScanLog({eventId, staff, gateName, ticketId, orderId: code.orderId, outcome:"denied", reason:"Already checked-in"});
+        const ticketTierId = code.tierId ? `${ticketId}_${code.tierId}` : ticketId;
+        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId: code.orderId, outcome:"denied", reason:"Already checked-in"});
         showResult({
           ok:false,
           reason:"Already checked-in",
@@ -908,7 +911,8 @@
       // Expired?
       const exp = code.expiresAt?.toDate?.() || null;
       if(exp && exp.getTime() < nowMs()){
-        await writeScanLog({eventId, staff, gateName, ticketId, orderId: code.orderId, outcome:"denied", reason:"Expired QR"});
+        const ticketTierId = code.tierId ? `${ticketId}_${code.tierId}` : ticketId;
+        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId: code.orderId, outcome:"denied", reason:"Expired QR"});
         showResult({ok:false, reason:"Expired QR", gateName, when:new Date()});
         state.verifying = false;
         return;
@@ -916,7 +920,8 @@
 
       const orderId = code.orderId;
       if(!orderId){
-        await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Order missing on code"});
+        const ticketTierId = code.tierId ? `${ticketId}_${code.tierId}` : ticketId;
+        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, outcome:"denied", reason:"Order missing on code"});
         showResult({ok:false, reason:"Invalid Ticket Data", gateName, when:new Date()});
         state.verifying = false;
         return;
@@ -927,7 +932,8 @@
       const orderSnap = await getDoc(orderRef);
 
       if(!orderSnap.exists()){
-        await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"denied", reason:"Order not found"});
+        const ticketTierId = code.tierId ? `${ticketId}_${code.tierId}` : ticketId;
+        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"denied", reason:"Order not found"});
         showResult({ok:false, reason:"Order Not Found", gateName, when:new Date()});
         state.verifying = false;
         return;
@@ -937,7 +943,9 @@
 
       // Must be paid
       if(String(order.status || "").toLowerCase() !== "paid"){
-        await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"denied", reason:"Unpaid order"});
+        const tierId = order.tierId || code.tierId || "";
+        const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
+        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"denied", reason:"Unpaid order"});
         showResult({ok:false, reason:"Not Paid", gateName, when:new Date(), customerName: order.Name || order.name || ""});
         state.verifying = false;
         return;
@@ -947,7 +955,9 @@
       if(order.checkedIn === true || order.checkedInAt){
         const usedGate = order.checkedInGate || "Unknown gate";
         const usedTime = order.checkedInAt?.toDate?.() || null;
-        await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"denied", reason:"Already checked-in"});
+        const tierId = order.tierId || code.tierId || "";
+        const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
+        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"denied", reason:"Already checked-in"});
         showResult({
           ok:false,
           reason:"Already checked-in",
@@ -965,7 +975,9 @@
       // Digits check
       const p4 = last4(order.phone);
       if(String(p4) !== String(state.digits)){
-        await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"denied", reason:"Wrong digits"});
+        const tierId = order.tierId || code.tierId || "";
+        const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
+        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"denied", reason:"Wrong digits"});
         showResult({
           ok:false,
           reason:"Wrong digits",
@@ -997,7 +1009,9 @@
         checkedInByUsername: staff?.username || ""
       });
 
-      await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"approved", reason:"OK"});
+      const tierId = order.tierId || code.tierId || "";
+      const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
+      await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"approved", reason:"OK"});
 
       showResult({
         ok:true,
@@ -1011,7 +1025,9 @@
       state.verifying = false;
 
     }catch(e){
-      await writeScanLog({eventId, staff, gateName, ticketId, orderId: state.scannedCodeDoc?.orderId, outcome:"denied", reason:"System error"});
+      const fallbackTier = state.scannedCodeDoc?.tierId || "";
+      const ticketTierId = fallbackTier ? `${ticketId}_${fallbackTier}` : ticketId;
+      await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId: state.scannedCodeDoc?.orderId, outcome:"denied", reason:"System error"});
       showResult({ok:false, reason:"System error", gateName, when:new Date()});
       state.verifying = false;
     }
