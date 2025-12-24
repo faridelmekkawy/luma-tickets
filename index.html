@@ -2605,6 +2605,11 @@ function publicEventOrdersCol(eventId){
   return collection(db, "events", eventId, "orders");
 }
 
+// Staff live source (public events/{eventId}/staff)
+function publicEventStaffCol(eventId){
+  return collection(db, "events", eventId, "staff");
+}
+
 function normalizeOrderDoc(id, o){
   const ts = o?.createdAt;
   let dt = null;
@@ -2836,6 +2841,50 @@ async function syncEventToPublic(ev){
   };
 
   await setDoc(publicEventRef(eventId), payload, { merge: true });
+}
+
+async function syncStaffToFirestore(ev){
+  if(!window.__firebaseReady || !db) return;
+  const uid = auth?.currentUser?.uid;
+  if(!uid || !ev?.id) return;
+
+  const staffList = Array.isArray(ev.staff) ? ev.staff : [];
+  const staffCol = publicEventStaffCol(ev.id);
+
+  const snap = await getDocs(staffCol);
+  const existingIds = new Set(snap.docs.map(d=>d.id));
+  const desiredIds = new Set(staffList.map(s=>s.id));
+
+  const ops = [];
+
+  for(const s of staffList){
+    const isUsher = s.role === "Usher";
+    const gateId = isUsher ? (s.gate || "") : "";
+    const gateName = isUsher ? gateNameFromId(ev, gateId) : "";
+    const payload = {
+      id: s.id,
+      full: s.full || "",
+      username: s.username || "",
+      pin: s.pin || "",
+      role: s.role || "",
+      gate: gateId,
+      gateName,
+      disabled: !!s.disabled,
+      events: Array.isArray(s.events) && s.events.length ? s.events : [ev.id],
+      ownerId: uid,
+      eventId: ev.id,
+      updatedAt: serverTimestamp(),
+    };
+    ops.push(setDoc(doc(staffCol, s.id), payload, { merge: true }));
+  }
+
+  for(const id of existingIds){
+    if(!desiredIds.has(id)){
+      ops.push(deleteDoc(doc(staffCol, id)));
+    }
+  }
+
+  await Promise.all(ops);
 }
 
 
@@ -5000,6 +5049,7 @@ function deleteGateModal(eventId, gateId){
       addIncident(ev, g.name, "system", "—", "Staff/Gate updated", "Gate deleted");
       saveData();
       schedulePublicSync(ev, "gates");
+      syncStaffToFirestore(ev).catch(console.warn);
       renderEventWorkspace();
     }
   });
@@ -5166,6 +5216,7 @@ function staffModal(eventId, staffId=null){
 
         saveData();
         schedulePublicSync(ev, "staff");
+        syncStaffToFirestore(ev).catch(console.warn);
         closeModal();
         renderEventWorkspace();
       }}
@@ -5215,6 +5266,7 @@ function resetPinModal(eventId, staffId){
         addIncident(ev, gateNameFromId(ev, s.gate), s.username, "—", "Staff updated", "PIN reset");
         saveData();
         schedulePublicSync(ev, "staff");
+        syncStaffToFirestore(ev).catch(console.warn);
         closeModal();
         renderEventWorkspace();
         toast("PIN reset","Staff PIN updated successfully.");
@@ -5239,6 +5291,7 @@ function toggleStaffModal(eventId, staffId){
       addIncident(ev, gateNameFromId(ev, s.gate), s.username, "—", "Staff updated", next ? "Staff disabled" : "Staff enabled");
       saveData();
       schedulePublicSync(ev, "staff");
+      syncStaffToFirestore(ev).catch(console.warn);
       renderEventWorkspace();
       toast(next ? "Staff disabled" : "Staff enabled", s.full);
     }
@@ -5277,6 +5330,7 @@ function reassignGateModal(eventId, staffId){
         addIncident(ev, gateNameFromId(ev, gateId), s.username, "—", "Staff updated", "Gate reassigned");
         saveData();
         schedulePublicSync(ev, "staff");
+        syncStaffToFirestore(ev).catch(console.warn);
         closeModal();
         renderEventWorkspace();
       }}
@@ -5299,6 +5353,7 @@ function deleteStaffModal(eventId, staffId){
       addIncident(ev, "—", "system", "—", "Staff updated", `Staff deleted (${s.username})`);
       saveData();
       schedulePublicSync(ev, "staff");
+      syncStaffToFirestore(ev).catch(console.warn);
       renderEventWorkspace();
       toast("Staff deleted", s.full);
     }
