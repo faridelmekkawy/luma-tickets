@@ -2393,6 +2393,8 @@ const firebaseConfig = {
   appId: "1:175601544315:web:00c94b4affa972b3a286de"
 };
 
+const LUMA_LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/events-339ce.firebasestorage.app/o/ChatGPT%20Image%20Dec%2023%2C%202025%2C%2012_55_43%20PM.png?alt=media&token=0facde2f-570c-4004-9e7b-d0d10aca94c3";
+
 // Firebase SDK dynamic imports (PRODUCTION ONLY)
 // This app MUST be served over https/http (e.g. Vercel). Opening via file:// is not supported.
 let initializeApp, getApp, getApps;
@@ -2456,7 +2458,6 @@ try{
 }catch(err){
   window.__firebaseReady = false;
   __fatalFirebase("Firebase failed to load. Check firebaseConfig and that the app is served over https.", err);
-  throw err;
 }
 
 
@@ -2602,7 +2603,7 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
 async function syncEventToPublic(ev){
     if(!window.__firebaseReady) return;
 
-  const uid = auth.currentUser?.uid;
+  const uid = auth?.currentUser?.uid;
   if(!uid) throw new Error("Not signed in.");
 
   const eventId = ev?.id;
@@ -2778,7 +2779,7 @@ function navCacheKey(uid){
 }
 
 function saveNavState(){
-  const uid = auth.currentUser?.uid;
+  const uid = auth?.currentUser?.uid;
   const payload = {
     route: state.route,
     activeEventId: state.activeEventId,
@@ -2942,9 +2943,9 @@ async function defaultData(){
 
 async function loadData(){
   // Production-only: load from Firestore (owners/{uid}) with local cache fallback
-  const uid = auth.currentUser?.uid;
+  const uid = auth?.currentUser?.uid;
   const cached = localStorage.getItem(dataCacheKey(uid));
-  if(uid){
+  if(uid && window.__firebaseReady && db && getDoc){
     const ref = ownerDocRef(uid);
     const snap = await getDoc(ref);
     if(snap.exists()){
@@ -2976,11 +2977,11 @@ function saveData(){
   __saveTimer = setTimeout(async ()=>{
     try{
       const payload = JSON.stringify(data);
-      const uid = auth.currentUser?.uid;
+      const uid = auth?.currentUser?.uid;
       localStorage.setItem(dataCacheKey(uid), payload);
 
       {
-        if(uid){
+        if(uid && window.__firebaseReady && setDoc){
           await setDoc(ownerDocRef(uid), { data, updatedAt: serverTimestamp() }, { merge: true });
         }
       }
@@ -3116,6 +3117,8 @@ function authInit(){
   const y = document.getElementById("year");
   if (y) y.textContent = new Date().getFullYear();
 
+  applyLumaLogo();
+
   $$(".tabBtn").forEach(b =>
     b.addEventListener("click", () => setAuthTab(b.dataset.authTab))
   );
@@ -3131,9 +3134,32 @@ function authInit(){
   });
 }
 
+function applyLumaLogo(){
+  const imgs = [$("#lumaLogoImgAuth"), $("#lumaLogoImgDash")];
+  const svgs = [$("#lumaLogoSvgAuth"), $("#lumaLogoSvgDash")];
+  imgs.forEach(img=>{
+    if(!img) return;
+    if(LUMA_LOGO_URL){
+      img.src = LUMA_LOGO_URL;
+      img.style.display = "block";
+    }else{
+      img.removeAttribute("src");
+      img.style.display = "none";
+    }
+  });
+  svgs.forEach(svg=>{
+    if(!svg) return;
+    svg.style.display = LUMA_LOGO_URL ? "none" : "block";
+  });
+}
+
   // Signup
   $("#form-signup")?.addEventListener("submit", async (e)=>{
     e.preventDefault();
+    if(!window.__firebaseReady || !auth){
+      toast("Firebase unavailable", "Auth is offline. Please check your connection and reload.");
+      return;
+    }
     const name = $("#signup-name").value.trim();
     const email = $("#signup-email").value.trim().toLowerCase();
     const pass = $("#signup-pass").value;
@@ -3157,6 +3183,10 @@ function authInit(){
   // Signin
   $("#form-signin")?.addEventListener("submit", async (e)=>{
     e.preventDefault();
+    if(!window.__firebaseReady || !auth){
+      toast("Firebase unavailable", "Auth is offline. Please check your connection and reload.");
+      return;
+    }
     const email = $("#signin-email").value.trim().toLowerCase();
     const pass = $("#signin-pass").value;
 
@@ -3178,6 +3208,10 @@ function authInit(){
   // Forgot password
   $("#form-forgot")?.addEventListener("submit", async (e)=>{
     e.preventDefault();
+    if(!window.__firebaseReady || !auth){
+      toast("Firebase unavailable", "Auth is offline. Please check your connection and reload.");
+      return;
+    }
     const email = $("#forgot-email").value.trim().toLowerCase();
     if(!email){
       toast("Missing email", "Type your email first.");
@@ -3195,14 +3229,16 @@ function authInit(){
   
 
   // Firebase auth session restore
-  onAuthStateChanged(auth, async (user)=>{
-    if(user){
-      state.user = { name: user.displayName || "Owner", email: user.email || "" };
-      state.viewAs = "Owner";
-      // If auth screen is visible, auto-enter dashboard
-      await bootDashboard();
-    }
-  });
+  if(window.__firebaseReady && auth && onAuthStateChanged){
+    onAuthStateChanged(auth, async (user)=>{
+      if(user){
+        state.user = { name: user.displayName || "Owner", email: user.email || "" };
+        state.viewAs = "Owner";
+        // If auth screen is visible, auto-enter dashboard
+        await bootDashboard();
+      }
+    });
+  }
 
 
 /* ---------- UI helpers ---------- */
@@ -5804,7 +5840,7 @@ function createEventModal(){
         const evId = slug(`${name}-${venue}-${date}`).slice(0,60) || uid8();
         const ev = {
           id: evId,
-          ownerUid: auth.currentUser?.uid || "",
+          ownerUid: auth?.currentUser?.uid || "",
           name,
           date,
           time,
@@ -6452,13 +6488,13 @@ async function bootDashboard(){
     data = defaultData();
   }
 
-  const uid = auth.currentUser?.uid;
+  const uid = auth?.currentUser?.uid;
   if(uid){
     data.events = (data.events || []).filter(ev=>!ev.ownerUid || ev.ownerUid === uid);
   }
 
   // Restore last route (hash takes priority)
-  const savedNav = loadNavState(auth.currentUser?.uid);
+  const savedNav = loadNavState(auth?.currentUser?.uid);
   if(location.hash){
     __applyHash();
   }else if(savedNav?.route){
