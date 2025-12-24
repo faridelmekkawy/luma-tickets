@@ -253,19 +253,32 @@
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      padding:2px 6px;
-      border-radius:10px;
+      padding:0;
+      border-radius:12px;
       background:rgba(255,255,255,.08);
       border:1px solid rgba(255,255,255,.12);
       color:transparent;
       text-indent:-999px;
       overflow:hidden;
-      width:58px;
-      height:18px;
-      background-image:url("https://firebasestorage.googleapis.com/v0/b/events-339ce.firebasestorage.app/o/ChatGPT%20Image%20Dec%2023%2C%202025%2C%2012_55_43%20PM.png?alt=media&token=0facde2f-570c-4004-9e7b-d0d10aca94c3");
+      width:92px;
+      height:28px;
+      background-image:var(--luma-logo-url, none);
       background-repeat:no-repeat;
       background-position:center;
       background-size:contain;
+      text-decoration:none;
+    }
+    .lumaMark:focus-visible{
+      outline:2px solid rgba(59,130,246,.6);
+      outline-offset:2px;
+    }
+    body.hasLumaLogo .logoMark{
+      background:transparent;
+      border-color:transparent;
+      box-shadow:none;
+    }
+    body.hasLumaLogo .logoMark img{
+      border-radius:10px;
     }
 
 
@@ -1207,7 +1220,7 @@ option{ background-color: var(--panel); color: var(--ink); }
       <div class="brandRow" style="border:0;margin:0;padding:0 0 10px 0">
         <div class="logoMark">
         <!-- Luma Logo URL placeholder: set window.LUMA_LOGO_URL in code (or leave empty to use SVG) -->
-        <img id="lumaLogoImgAuth" alt="Luma" style="display:none;width:70px;height:70px;object-fit:contain;border-radius:10px"/>
+        <img id="lumaLogoImgAuth" alt="Luma" style="display:none;width:70px;height:70px;object-fit:contain"/>
         <svg id="lumaLogoSvgAuth" width="70" height="70"><use href="#i-luma"/></svg>
       </div>
         <div class="brandText">
@@ -1246,7 +1259,7 @@ option{ background-color: var(--panel); color: var(--ink); }
       </div>
 
       <div class="footer">
-        <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+        <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
         <span class="muted2">Secure access • Owner workspace</span>
       </div>
     </div>
@@ -1356,7 +1369,7 @@ option{ background-color: var(--panel); color: var(--ink); }
       </div>
 
       <div class="footer">
-        <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+        <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
         <span class="muted2">© <span id="year"></span> Luma</span>
       </div>
     </div>
@@ -1369,7 +1382,7 @@ option{ background-color: var(--panel); color: var(--ink); }
   <aside id="sidebar" class="sidebar">
     <div class="brandRow" id="brandHome">
       <div class="logoMark">
-        <img id="lumaLogoImgDash" alt="Luma Tickets logo" style="width:100px;height:100px;object-fit:contain;border-radius:18px"/>
+        <img id="lumaLogoImgDash" alt="Luma Tickets logo" style="width:100px;height:100px;object-fit:contain"/>
       </div>
       <div class="brandText">
         <b>Luma Tickets</b>
@@ -1427,7 +1440,7 @@ option{ background-color: var(--panel); color: var(--ink); }
 </nav>
 
     <div class="sidebarFooter">
-      <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+      <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
       <div class="pf" id="pfMini">Owner</div>
     </div>
   </aside>
@@ -1540,7 +1553,7 @@ option{ background-color: var(--panel); color: var(--ink); }
         <div class="eventGrid" id="eventsGrid"></div>
 
         <div class="footer">
-          <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+          <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
           <span class="muted2">Owner Dashboard</span>
         </div>
       </div>
@@ -1794,7 +1807,7 @@ option{ background-color: var(--panel); color: var(--ink); }
         </div>
 
         <div class="footer">
-          <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+          <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
           <span class="muted2">Analytics overview</span>
         </div>
       </div>
@@ -1918,7 +1931,7 @@ option{ background-color: var(--panel); color: var(--ink); }
         </div>
 
         <div class="footer">
-          <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+          <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
           <span class="muted2">Settings</span>
         </div>
       </div>
@@ -2019,7 +2032,7 @@ option{ background-color: var(--panel); color: var(--ink); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
             <span class="muted2">Overview</span>
           </div>
         </div>
@@ -2074,7 +2087,7 @@ option{ background-color: var(--panel); color: var(--ink); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
             <span class="muted2">Ticketing</span>
           </div>
         </div>
@@ -2143,7 +2156,7 @@ option{ background-color: var(--panel); color: var(--ink); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
             <span class="muted2">Orders</span>
           </div>
         </div>
@@ -2210,7 +2223,7 @@ option{ background-color: var(--panel); color: var(--ink); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
             <span class="muted2">Customers / Attendees</span>
           </div>
         </div>
@@ -2268,7 +2281,7 @@ option{ background-color: var(--panel); color: var(--ink); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
             <span class="muted2">Staff & Gates</span>
           </div>
         </div>
@@ -2376,7 +2389,7 @@ option{ background-color: var(--panel); color: var(--ink); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
             <span class="muted2">Design Studio</span>
           </div>
         </div>
@@ -2456,7 +2469,7 @@ option{ background-color: var(--panel); color: var(--ink); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
             <span class="muted2">Analytics</span>
           </div>
         </div>
@@ -2486,7 +2499,7 @@ option{ background-color: var(--panel); color: var(--ink); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
             <span class="muted2">Incidents & Audit</span>
           </div>
         </div>
@@ -2542,7 +2555,7 @@ option{ background-color: var(--panel); color: var(--ink); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
             <span class="muted2">Links</span>
           </div>
         </div>
@@ -2604,7 +2617,7 @@ option{ background-color: var(--panel); color: var(--ink); }
           </div>
 
           <div class="footer">
-            <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+            <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
             <span class="muted2">Event Settings</span>
           </div>
         </div>
@@ -2615,7 +2628,7 @@ option{ background-color: var(--panel); color: var(--ink); }
 </section>
 
 <footer class="footer globalFooter">
-  <div class="powered"><span class="dot"></span><span>Powered by</span><span class="lumaMark" aria-label="Luma">LUMA</span></div>
+  <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
   <span class="muted2">Policies, terms, and platform details</span>
 </footer>
 
@@ -2694,6 +2707,7 @@ let app = null;
 let auth = null;
 let db = null;
 let storage = null;
+window.__firebaseReady = false;
 
 // Keep backward-compatible name used elsewhere in this file
 let fbSignOut = null;
@@ -2748,12 +2762,18 @@ async function __loadFirebaseWithTimeout(ms=4500){
   }
 }
 
-// Ensure auth/db/storage are ready
-try{
-  await __loadFirebaseWithTimeout();
-}catch(err){
-  window.__firebaseReady = false;
-  __fatalFirebase("Firebase failed to load. Check firebaseConfig and that the app is served over https.", err);
+async function initFirebase(){
+  if(window.__firebaseInit) return window.__firebaseInit;
+  window.__firebaseInit = (async ()=>{
+    try{
+      await __loadFirebaseWithTimeout();
+      window.__firebaseReady = true;
+    }catch(err){
+      window.__firebaseReady = false;
+      __fatalFirebase("Firebase failed to load. Check firebaseConfig and that the app is served over https.", err);
+    }
+  })();
+  return window.__firebaseInit;
 }
 
 
@@ -3087,6 +3107,7 @@ const fmtTime = (d=new Date())=>{
   return `${yy}-${mo}-${dd} • ${hh}:${mm}`;
 };
 const uid = (p="") => p + Math.random().toString(16).slice(2,10).toUpperCase();
+const uid8 = (p="") => uid(p);
 
 const slugId = (...parts)=>{
   const raw = parts.filter(Boolean).join(" ").toLowerCase().trim();
@@ -3275,7 +3296,7 @@ function seedInitialLogs(ev){
 /* ---------- Persistence ---------- */
 
 
-async function defaultData(){
+function defaultData(){
   // Production default: no sample events.
   return {
     version: 1,
@@ -3337,7 +3358,7 @@ function saveData(){
   }, 250);
 }
 
-let data = await loadData();
+let data = defaultData();
 
 /* ---------- Auto sync to Public Events (Customer Marketplace) ---------- */
 /**
@@ -3508,6 +3529,11 @@ function authInit(){
 function applyLumaLogo(){
   const imgs = [$("#lumaLogoImgAuth"), $("#lumaLogoImgDash")];
   const svgs = [$("#lumaLogoSvgAuth"), $("#lumaLogoSvgDash")];
+  document.body.classList.toggle("hasLumaLogo", !!LUMA_LOGO_URL);
+  document.documentElement.style.setProperty(
+    "--luma-logo-url",
+    LUMA_LOGO_URL ? `url("${LUMA_LOGO_URL}")` : "none"
+  );
   imgs.forEach(img=>{
     if(!img) return;
     if(LUMA_LOGO_URL){
@@ -6392,7 +6418,7 @@ function createEventModal(){
         if(!date) return toast("Missing info","Event date is required.","warn");
         if(!venue) return toast("Missing info","Venue is required.","warn");
 
-        const evId = slug(`${name}-${venue}-${date}`).slice(0,60) || uid8();
+        const evId = slugId(`${name}-${venue}-${date}`).slice(0,60) || uid8();
         const ev = {
           id: evId,
           ownerUid: auth?.currentUser?.uid || "",
@@ -7084,14 +7110,19 @@ async function bootDashboard(){
 }
 
 
-function start(){
+async function start(){
   authInit();
   const ok = loadAuth();
   // Defensive: if sections are missing (or replaced by another index shell), avoid crashing.
   document.getElementById("auth")?.classList.toggle("hidden", ok);
   document.getElementById("dash")?.classList.toggle("hidden", !ok);
-  if(ok) bootDashboard();
-  else setAuthTab("signin");
+  if(ok){
+    await initFirebase();
+    await bootDashboard();
+  }else{
+    setAuthTab("signin");
+    initFirebase();
+  }
 }
 
 window.addEventListener("error", ()=>{
