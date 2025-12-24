@@ -121,6 +121,23 @@
       line-height:1.35;
     }
     .cardBody{ padding:14px; }
+    .eventHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .eventLogo{
+      width:44px;
+      height:44px;
+      border-radius:12px;
+      object-fit:cover;
+      border:1px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.08);
+      box-shadow: 0 10px 20px rgba(0,0,0,.25);
+      flex:0 0 auto;
+    }
+    .eventLogo.hidden{ display:none; }
 
     .row{ display:flex; gap:10px; }
     .row > *{ flex:1; }
@@ -194,6 +211,12 @@
       min-height: 320px;
       display:flex; align-items:center; justify-content:center;
       position:relative;
+    }
+    .scanBox video{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      border-radius: var(--radius);
     }
     .scanHint{
       position:absolute; inset:0;
@@ -334,7 +357,6 @@
   </style>
 
   <!-- QR scanner (fast + battle-tested) -->
-  <script src="https://unpkg.com/html5-qrcode@2.3.10/minified/html5-qrcode.min.js"></script>
 </head>
 
 <body>
@@ -406,9 +428,14 @@
   <!-- SCAN VIEW -->
   <div class="view hidden" id="viewScan">
     <div class="card">
-      <div class="cardHead">
-        <h2 id="eventName">Event</h2>
-        <p>Gate locked • Fast scan • No overrides</p>
+            <div class="cardHead">
+        <div class="eventHead">
+          <div>
+            <h2 id="eventName">Event</h2>
+            <p>Gate locked • Fast scan • No overrides</p>
+          </div>
+          <img class="eventLogo hidden" id="eventLogo" alt="Event logo"/>
+        </div>
       </div>
 
       <div class="miniMeta">
@@ -425,7 +452,7 @@
       <div class="cardBody">
         <div class="scanWrap">
           <div class="scanBox">
-            <div id="qrReader" style="width:100%;height:100%"></div>
+            <video id="qrVideo" muted playsinline></video>
             <div class="scanHint" id="scanHint">
               <div class="big">Scan Dynamic QR</div>
               <div class="small">Point the camera at the QR. After scan, you will enter the last 4 digits manually.</div>
@@ -433,12 +460,24 @@
           </div>
 
           <!-- Digits + keypad -->
-          <div class="card" style="box-shadow:none;border-radius: var(--radius); background: rgba(255,255,255,.04)">
+          <div class="card hidden" id="verifyCard" style="box-shadow:none;border-radius: var(--radius); background: rgba(255,255,255,.04)">
             <div class="cardHead" style="border-bottom:1px solid var(--line)">
-              <h2 style="font-size:15px;margin:0">Enter last 4 digits</h2>
-              <p style="margin:6px 0 0">We do not display digits. Usher must type them.</p>
+              <h2 style="font-size:15px;margin:0">Verify ticket</h2>
+              <p style="margin:6px 0 0">Confirm name + tier, then enter last 4 digits.</p>
             </div>
             <div class="cardBody">
+              <div class="miniMeta" style="margin:-2px -2px 10px">
+                <div class="chip">
+                  <div class="k">Name</div>
+                  <div class="v" id="scanName">—</div>
+                </div>
+                <div class="chip">
+                  <div class="k">Tier</div>
+                  <div class="v" id="scanTier">—</div>
+                </div>
+              </div>
+
+              <label>Last 4 digits of phone</label>
               <div class="pinRow">
                 <div class="pinDisplay" id="digitsDisplay">____</div>
               </div>
@@ -463,19 +502,18 @@
               <div style="height:12px"></div>
 
               <div class="row">
-                <button class="btn" id="btnVerify" disabled>Verify</button>
+                <button class="btn" id="btnVerify" disabled>Check</button>
               </div>
 
               <div style="height:10px"></div>
 
               <div class="row">
-                <button class="btn warn" id="btnManualDesk">Send to Manual Desk</button>
                 <button class="btn secondary" id="btnLogout">Logout</button>
               </div>
 
               <div style="height:10px"></div>
               <div style="color:var(--muted);font-size:12px;line-height:1.35">
-                <span style="font-family:var(--mono)">Tip:</span> keep phone still. If scan repeats, we auto-lock during verification.
+                <span style="font-family:var(--mono)">Tip:</span> keep phone still. We auto-lock during verification.
               </div>
             </div>
           </div>
@@ -522,6 +560,7 @@
     getFirestore, doc, getDoc, collection, query, where, limit,
     getDocs, updateDoc, addDoc, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  import QrScanner from "https://unpkg.com/qr-scanner@1.4.2/qr-scanner.min.js";
 
   /******************************************************************
    * 2) CONFIG — PASTE YOUR FIREBASE CONFIG HERE
@@ -593,12 +632,23 @@
     setDigitsUI();
   }
 
+  function setVerifyCardVisible(show){
+    $("verifyCard").classList.toggle("hidden", !show);
+  }
+
+  function setScanMeta({name, tier}){
+    $("scanName").textContent = name || "—";
+    $("scanTier").textContent = tier || "—";
+  }
+
   function hardResetForNextScan(){
     state.scannedTicketId = null;
     state.scannedCodeDoc = null;
     state.scannedOrderDoc = null;
     clearDigits();
+    setScanMeta({name:"—", tier:"—"});
     setHint(true);
+    setVerifyCardVisible(false);
     state.verifying = false;
     $("btnVerify").disabled = true;
   }
@@ -883,63 +933,51 @@
   }
 
   /******************************************************************
-   * 7) QR SCANNING (html5-qrcode)
+   * 7) QR SCANNING (qr-scanner)
    ******************************************************************/
-  let qr = null;
+  let qrScanner = null;
 
   async function startScanner(){
-    if(qr) return;
-    if(!window.Html5Qrcode) {
-      alert("Scanner library failed to load.");
+    if(qrScanner) return;
+    const videoEl = $("qrVideo");
+    if(!videoEl){
+      alert("Scanner video missing.");
       return;
     }
 
-    qr = new Html5Qrcode("qrReader");
+    QrScanner.WORKER_PATH = "https://unpkg.com/qr-scanner@1.4.2/qr-scanner-worker.min.js";
+    qrScanner = new QrScanner(
+      videoEl,
+      async (decodedText) => {
+        if(state.verifying) return;
 
-    const config = {
-      fps: 12,
-      qrbox: { width: 260, height: 260 },
-      rememberLastUsedCamera: true,
-      supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
-    };
+        const t = nowMs();
+        if(t - state.lastScanAt < 900) return;
+        state.lastScanAt = t;
+
+        const ticketId = parseTicketIdFromQR(decodedText);
+        if(!ticketId) return;
+
+        if(state.scannedTicketId) return;
+
+        state.scannedTicketId = ticketId;
+        setHint(false);
+        setVerifyCardVisible(true);
+        setDigitsUI();
+        await loadScanPreview(ticketId);
+      },
+      {
+        preferredCamera: "environment",
+        highlightScanRegion: true,
+        highlightCodeOutline: true,
+        maxScansPerSecond: 12
+      }
+    );
 
     state.scanning = true;
 
     try{
-      const cams = await Html5Qrcode.getCameras();
-      if(!cams || cams.length === 0){
-        alert("No camera found.");
-        return;
-      }
-
-      // prefer back camera if present
-      const back = cams.find(c => /back|rear|environment/i.test(c.label));
-      const camId = (back || cams[0]).id;
-
-      await qr.start(
-        { deviceId: { exact: camId } },
-        config,
-        async (decodedText) => {
-          // throttle + lock during verification/result
-          if(state.verifying) return;
-
-          const t = nowMs();
-          if(t - state.lastScanAt < 900) return;
-          state.lastScanAt = t;
-
-          const ticketId = parseTicketIdFromQR(decodedText);
-          if(!ticketId) return;
-
-          // If a ticket is already loaded and waiting for digits, ignore new scans
-          if(state.scannedTicketId) return;
-
-          state.scannedTicketId = ticketId;
-          setHint(false);
-          setDigitsUI();
-        },
-        (_err) => { /* ignore per-frame decode errors */ }
-      );
-
+      await qrScanner.start();
     }catch(e){
       alert("Camera permission needed to scan.");
     }
@@ -947,13 +985,53 @@
 
   async function stopScanner(){
     try{
-      if(qr){
-        await qr.stop();
-        await qr.clear();
+      if(qrScanner){
+        await qrScanner.stop();
+        qrScanner.destroy();
       }
     }catch(_e){}
-    qr = null;
+    qrScanner = null;
     state.scanning = false;
+  }
+
+  async function loadScanPreview(ticketId){
+    if(!ticketId) return;
+    try{
+      const codeRef = doc(db, "ticket-codes", ticketId);
+      const codeSnap = await getDoc(codeRef);
+      if(!codeSnap.exists()){
+        showResult({ok:false, reason:"Ticket Not Found", gateName: state.staff?.gateName || "Gate", when:new Date()});
+        hardResetForNextScan();
+        return;
+      }
+
+      const code = codeSnap.data() || {};
+      const orderId = code.orderId;
+      if(!orderId){
+        showResult({ok:false, reason:"Invalid Ticket Data", gateName: state.staff?.gateName || "Gate", when:new Date()});
+        hardResetForNextScan();
+        return;
+      }
+
+      const orderRef = doc(db, "events", state.eventId, "orders", orderId);
+      const orderSnap = await getDoc(orderRef);
+      if(!orderSnap.exists()){
+        showResult({ok:false, reason:"Order Not Found", gateName: state.staff?.gateName || "Gate", when:new Date()});
+        hardResetForNextScan();
+        return;
+      }
+
+      const order = orderSnap.data() || {};
+      state.scannedCodeDoc = code;
+      state.scannedOrderDoc = order;
+      setScanMeta({
+        name: order.Name || order.name || "—",
+        tier: order.tierId || code.tierId || "—"
+      });
+    }catch(_e){
+      showResult({ok:false, reason:"System error", gateName: state.staff?.gateName || "Gate", when:new Date()});
+      hardResetForNextScan();
+    }
   }
 
   /******************************************************************
@@ -969,6 +1047,19 @@
   function showLogin(){
     $("viewLogin").classList.remove("hidden");
     $("viewScan").classList.add("hidden");
+  }
+
+  function setEventLogo(event){
+    const logoEl = $("eventLogo");
+    if(!logoEl) return;
+    const logoUrl = event?.logoUrl || event?.logo || event?.image || event?.eventLogo;
+    if(logoUrl){
+      logoEl.src = logoUrl;
+      logoEl.classList.remove("hidden");
+    }else{
+      logoEl.classList.add("hidden");
+      logoEl.removeAttribute("src");
+    }
   }
 
   function showScan(){
@@ -1034,6 +1125,7 @@
       $("gateName").textContent = state.staff.gateName || "Gate";
       $("topTitle").textContent = state.event.name ? `Usher • ${state.event.name}` : "Usher Scanner";
       $("topSub").textContent = state.staff.gateName ? `Gate: ${state.staff.gateName}` : "Gate Terminal";
+      setEventLogo(state.event);
 
       saveSession();
       showScan();
@@ -1072,10 +1164,6 @@
 
   $("btnVerify").addEventListener("click", async ()=>{
     await verifyCurrentScan();
-  });
-
-  $("btnManualDesk").addEventListener("click", ()=>{
-    alert("Manual Desk:\n\nPlease escort the guest to the manual desk for identity verification.\nNo overrides at the gate.");
   });
 
   $("btnCloseResult").addEventListener("click", ()=>{
@@ -1128,6 +1216,7 @@
         $("gateName").textContent = state.staff.gateName || "Gate";
         $("topTitle").textContent = state.event.name ? `Usher • ${state.event.name}` : "Usher Scanner";
         $("topSub").textContent = state.staff.gateName ? `Gate: ${state.staff.gateName}` : "Gate Terminal";
+        setEventLogo(state.event);
 
         showScan();
         await startScanner();
