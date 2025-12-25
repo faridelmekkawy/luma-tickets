@@ -2174,6 +2174,7 @@ option{ background-color: var(--panel); color: var(--ink); }
               <div class="muted small" style="margin-top:6px">Search by name, phone/email, or ticket code. Status updates instantly.</div>
             </div>
             <div class="right">
+              <button class="btn sm" id="btnInviteGuest"><svg width="16" height="16"><use href="#i-plus"/></svg> Invite Guest</button>
               <button class="btn sm ghost" id="btnExportAtt"><svg width="16" height="16"><use href="#i-people"/></svg> Export Attendees</button>
               <button class="btn sm ghost" id="btnExportCheckins"><svg width="16" height="16"><use href="#i-shield"/></svg> Export Check-ins</button>
             </div>
@@ -2809,6 +2810,11 @@ function publicEventScanLogsCol(eventId){
 // Staff live source (public events/{eventId}/staff)
 function publicEventStaffCol(eventId){
   return collection(db, "events", eventId, "staff");
+}
+
+// Invites live source (public events/{eventId}/invites)
+function publicEventInvitesCol(eventId){
+  return collection(db, "events", eventId, "invites");
 }
 
 function normalizeOrderDoc(id, o){
@@ -4555,6 +4561,7 @@ function renderEventWorkspace(){
   lockIfReadOnly($("#btnEditEvent"));
   lockIfReadOnly($("#btnDuplicateEvent"));
   lockIfReadOnly($("#btnDeleteEvent"));
+  lockIfReadOnly($("#btnInviteGuest"));
 
   // KPI calc
   const sold = eventSold(ev);
@@ -5213,6 +5220,137 @@ function openOrderDrawer(ev, o){
 }
 
 /* ---------- Customers / Attendees ---------- */
+
+function generateInviteToken(){
+  if(crypto?.randomUUID){
+    return crypto.randomUUID().replace(/-/g, "");
+  }
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function inviteRedeemUrl(inviteToken){
+  return `https://luma-tickets-2-0.vercel.app/redeem/${inviteToken}`;
+}
+
+function openInviteGuestModal(ev){
+  if(!ev) return;
+  if(!ev.tiers?.length){
+    toast("Add tiers first", "Create at least one ticket tier before inviting guests.");
+    return;
+  }
+  const tierOptions = ev.tiers.map(t=>`<option value="${escapeHtml(t.id)}">${escapeHtml(t.name)}</option>`).join("");
+  const bodyHtml = `
+    <div class="grid cols2">
+      <div class="field">
+        <label>Tier</label>
+        <div class="input">
+          <select id="inviteTier">
+            <option value="">Select a tier</option>
+            ${tierOptions}
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Expires (optional)</label>
+        <div class="input">
+          <input id="inviteExpires" type="date">
+        </div>
+      </div>
+      <div class="field">
+        <label>Recipient name (optional)</label>
+        <div class="input">
+          <input id="inviteName" placeholder="Guest name">
+        </div>
+      </div>
+      <div class="field">
+        <label>Recipient phone (optional)</label>
+        <div class="input">
+          <input id="invitePhone" placeholder="010...">
+        </div>
+      </div>
+      <div class="field">
+        <label>Recipient email (optional)</label>
+        <div class="input">
+          <input id="inviteEmail" type="email" placeholder="guest@email.com">
+        </div>
+      </div>
+    </div>
+    <div class="hint">We’ll generate a redeem URL after saving the invite.</div>
+  `;
+  openModal({
+    title: "Invite a guest",
+    desc: "Choose a tier and share the redeem link with your guest.",
+    bodyHtml,
+    footButtons: [
+      { label: "Cancel", kind: "ghost", onClick: closeModal },
+      {
+        label: "Create invite",
+        kind: "primary",
+        onClick: async ()=>{
+          if(isReadOnly()) return;
+          const tierId = $("#inviteTier")?.value || "";
+          if(!tierId){
+            toast("Missing tier", "Select a tier for this invite.");
+            return;
+          }
+          if(!window.__firebaseReady || !db || !setDoc){
+            toast("Offline", "Firebase is not ready yet.");
+            return;
+          }
+          const inviteToken = generateInviteToken();
+          const expiresRaw = $("#inviteExpires")?.value || "";
+          const expiresAt = expiresRaw
+            ? (Timestamp?.fromDate ? Timestamp.fromDate(new Date(`${expiresRaw}T23:59:59`)) : new Date(`${expiresRaw}T23:59:59`))
+            : null;
+          const payload = {
+            eventId: ev.id,
+            tierId,
+            status: "pending",
+            inviteToken,
+            recipient: {
+              name: $("#inviteName")?.value?.trim() || "",
+              phone: $("#invitePhone")?.value?.trim() || "",
+              email: $("#inviteEmail")?.value?.trim() || ""
+            },
+            createdBy: auth?.currentUser?.uid || "",
+            redeemedBy: "",
+            expiresAt,
+            createdAt: serverTimestamp()
+          };
+          try{
+            await setDoc(doc(publicEventInvitesCol(ev.id), inviteToken), payload, { merge: true });
+            const url = inviteRedeemUrl(inviteToken);
+            const tierName = ev.tiers.find(t=>t.id===tierId)?.name || tierId;
+            openModal({
+              title: "Invite created",
+              desc: "Share this link with your guest.",
+              bodyHtml: `
+                <div class="field">
+                  <label>Redeem URL</label>
+                  <div class="input">
+                    <input id="inviteLink" value="${escapeHtml(url)}" readonly>
+                  </div>
+                </div>
+                <div class="rowActions" style="margin-top:12px">
+                  <button class="btn sm" id="copyInviteLink"><svg width="16" height="16"><use href="#i-copy"/></svg> Copy link</button>
+                  <a class="btn sm ghost" href="${escapeHtml(url)}" target="_blank" rel="noopener">Open link</a>
+                </div>
+              `,
+              footButtons: [
+                { label: "Done", kind: "primary", onClick: closeModal }
+              ]
+            });
+            $("#copyInviteLink")?.addEventListener("click", ()=> copyText(url, "Invite link copied"));
+            addActivity(ev, "Invite created", `Tier: ${tierName}`, "info");
+          }catch(err){
+            console.error(err);
+            toast("Invite failed", "Could not create an invite.");
+          }
+        }
+      }
+    ]
+  });
+}
 
 function renderAttendeeFilters(ev){
   const waveSel = $("#attWave");
@@ -7150,6 +7288,11 @@ on("#btnToggleSide","click", ()=>{
       if(el) el.value="";
     });
     const ev=currentEvent(); if(ev) renderAttendeesTable(ev);
+  });
+  on("#btnInviteGuest","click", ()=>{
+    const ev = currentEvent();
+    if(!ev) return;
+    openInviteGuestModal(ev);
   });
 
   // gates / staff add
