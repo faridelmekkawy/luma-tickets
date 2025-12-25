@@ -529,6 +529,7 @@
     getFirestore, doc, getDoc, collection, query, where, limit,
     getDocs, updateDoc, addDoc, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  import { BrowserMultiFormatReader } from "https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/esm/index.js";
 
   /******************************************************************
    * 2) CONFIG — PASTE YOUR FIREBASE CONFIG HERE
@@ -953,14 +954,6 @@
   let qrControls = null;
   let selectedCameraId = "";
 
-  function getZXingReader(){
-    return (
-      window.ZXingBrowser?.BrowserMultiFormatReader ||
-      window.ZXing?.BrowserMultiFormatReader ||
-      window.BrowserMultiFormatReader
-    );
-  }
-
   async function startScanner(){
     if(qrScanner) return;
     const videoEl = $("qrVideo");
@@ -974,7 +967,7 @@
       return;
     }
 
-    const BrowserMultiFormatReader = getZXingReader();
+    const { BrowserMultiFormatReader } = window.ZXingBrowser || {};
     if(!BrowserMultiFormatReader){
       alert("Scanner library failed to load.");
       return;

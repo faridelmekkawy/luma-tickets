@@ -1082,14 +1082,6 @@
   let qrControls = null;
   let selectedCameraId = "";
 
-  function getZXingReader(){
-    return (
-      window.ZXingBrowser?.BrowserMultiFormatReader ||
-      window.ZXing?.BrowserMultiFormatReader ||
-      window.BrowserMultiFormatReader
-    );
-  }
-
   async function startScanner(){
     if(qrScanner) return;
     const videoEl = $("qrVideo");
@@ -1103,7 +1095,7 @@
       return;
     }
 
-    const BrowserMultiFormatReader = getZXingReader();
+    const { BrowserMultiFormatReader } = window.ZXingBrowser || {};
     if(!BrowserMultiFormatReader){
       setScanStatus("Scanner library failed to load.", true);
       return;
