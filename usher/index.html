@@ -4,6 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Luma Tickets — Usher Scanner</title>
+  <link rel="icon" href="data:,">
 
   <style>
     :root{
@@ -629,7 +630,8 @@
   </div>
 </div>
 
-<script type="module">
+  <script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js"></script>
+  <script type="module">
   /******************************************************************
    * 1) FIREBASE IMPORTS
    ******************************************************************/
@@ -638,7 +640,6 @@
     getFirestore, doc, getDoc, collection, query, where, limit,
     getDocs, updateDoc, addDoc, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-  import QrScanner from "https://unpkg.com/qr-scanner@1.4.2/qr-scanner.min.js";
 
   /******************************************************************
    * 2) CONFIG — PASTE YOUR FIREBASE CONFIG HERE
@@ -719,6 +720,27 @@
     $("scanTier").textContent = tier || "—";
   }
 
+  function resolveTierLabel(order, code){
+    const tierId = order?.tierId || code?.tierId || "";
+    return (
+      order?.tierName ||
+      order?.tier?.name ||
+      state.event?.tiers?.find((t)=> t.id === tierId)?.name ||
+      tierId ||
+      "—"
+    );
+  }
+
+  function resolveWaveLabel(order, code){
+    const waveId = order?.waveId || code?.waveId || "";
+    return (
+      order?.waveName ||
+      state.event?.waves?.find((w)=> w.id === waveId)?.name ||
+      waveId ||
+      "—"
+    );
+  }
+
   function hardResetForNextScan(){
     state.scannedTicketId = null;
     state.scannedCodeDoc = null;
@@ -742,7 +764,7 @@
     statusEl.classList.toggle("error", isError);
   }
 
-  function showResult({ok, reason, customerName, tierId, waveId, gateName, when, usedWhereWhen}){
+  function showResult({ok, reason, customerName, tierLabel, waveLabel, gateName, when, usedWhereWhen}){
     const overlay = $("resultOverlay");
     overlay.style.display = "flex";
 
@@ -752,8 +774,8 @@
     $("resultSub").textContent = ok ? "Entry Locked" : (reason || "Not Allowed");
 
     $("rCustomer").textContent = customerName || "—";
-    $("rTier").textContent = tierId || "—";
-    $("rWave").textContent = waveId || "—";
+    $("rTier").textContent = tierLabel || "—";
+    $("rWave").textContent = waveLabel || "—";
     $("rGate").textContent = gateName || "—";
     $("rTime").textContent = when ? fmtTime(when) : "—";
 
@@ -761,8 +783,8 @@
     if(!ok && usedWhereWhen){
       $("rGate").textContent = usedWhereWhen.gate || gateName || "—";
       $("rTime").textContent = usedWhereWhen.time ? fmtTime(usedWhereWhen.time) : $("rTime").textContent;
-      $("rTier").textContent = tierId || "—";
-      $("rWave").textContent = waveId || "—";
+      $("rTier").textContent = tierLabel || "—";
+      $("rWave").textContent = waveLabel || "—";
       $("rCustomer").textContent = customerName || "—";
       $("resultSub").textContent = `Already checked-in`;
     }
@@ -896,10 +918,14 @@
         const usedTime = code.redeemedAt?.toDate?.() || code.checkedInAt?.toDate?.() || code.usedAt?.toDate?.();
         const ticketTierId = code.tierId ? `${ticketId}_${code.tierId}` : ticketId;
         await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId: code.orderId, outcome:"denied", reason:"Already checked-in"});
+        const tierLabel = resolveTierLabel(null, code);
+        const waveLabel = resolveWaveLabel(null, code);
         showResult({
           ok:false,
           reason:"Already checked-in",
-          customerName: "", tierId: code.tierId, waveId: code.waveId,
+          customerName: "",
+          tierLabel,
+          waveLabel,
           gateName,
           when:new Date(),
           usedWhereWhen: {gate: usedGate, time: usedTime || null}
@@ -946,7 +972,17 @@
         const tierId = order.tierId || code.tierId || "";
         const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
         await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"denied", reason:"Unpaid order"});
-        showResult({ok:false, reason:"Not Paid", gateName, when:new Date(), customerName: order.Name || order.name || ""});
+        const tierLabel = resolveTierLabel(order, code);
+        const waveLabel = resolveWaveLabel(order, code);
+        showResult({
+          ok:false,
+          reason:"Not Paid",
+          gateName,
+          when:new Date(),
+          customerName: order.Name || order.name || "",
+          tierLabel,
+          waveLabel
+        });
         state.verifying = false;
         return;
       }
@@ -958,12 +994,14 @@
         const tierId = order.tierId || code.tierId || "";
         const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
         await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"denied", reason:"Already checked-in"});
+        const tierLabel = resolveTierLabel(order, code);
+        const waveLabel = resolveWaveLabel(order, code);
         showResult({
           ok:false,
           reason:"Already checked-in",
           customerName: order.Name || order.name || "",
-          tierId: order.tierId || code.tierId,
-          waveId: order.waveId || code.waveId,
+          tierLabel,
+          waveLabel,
           gateName,
           when:new Date(),
           usedWhereWhen: {gate: usedGate, time: usedTime}
@@ -978,12 +1016,14 @@
         const tierId = order.tierId || code.tierId || "";
         const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
         await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"denied", reason:"Wrong digits"});
+        const tierLabel = resolveTierLabel(order, code);
+        const waveLabel = resolveWaveLabel(order, code);
         showResult({
           ok:false,
           reason:"Wrong digits",
           customerName: order.Name || order.name || "",
-          tierId: order.tierId || code.tierId,
-          waveId: order.waveId || code.waveId,
+          tierLabel,
+          waveLabel,
           gateName,
           when:new Date()
         });
@@ -1013,11 +1053,13 @@
       const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
       await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"approved", reason:"OK"});
 
+      const tierLabel = resolveTierLabel(order, code);
+      const waveLabel = resolveWaveLabel(order, code);
       showResult({
         ok:true,
         customerName: order.Name || order.name || "",
-        tierId: order.tierId || code.tierId || "—",
-        waveId: order.waveId || code.waveId || "—",
+        tierLabel,
+        waveLabel,
         gateName,
         when: lockedAt
       });
@@ -1034,9 +1076,11 @@
   }
 
   /******************************************************************
-   * 7) QR SCANNING (qr-scanner)
+   * 7) QR SCANNING (ZXing Browser)
    ******************************************************************/
   let qrScanner = null;
+  let qrControls = null;
+  let selectedCameraId = "";
 
   async function startScanner(){
     if(qrScanner) return;
@@ -1051,50 +1095,50 @@
       return;
     }
 
-    QrScanner.WORKER_PATH = "https://unpkg.com/qr-scanner@1.4.2/qr-scanner-worker.min.js";
-    qrScanner = new QrScanner(
-      videoEl,
-      async (result) => {
-        if(state.verifying) return;
-
-        const decodedText = typeof result === "string" ? result : result?.data;
-        if(!decodedText) return;
-
-        const t = nowMs();
-        if(t - state.lastScanAt < 900) return;
-        state.lastScanAt = t;
-
-        const ticketId = parseTicketIdFromQR(decodedText);
-        if(!ticketId) return;
-
-        if(state.scannedTicketId) return;
-
-        state.scannedTicketId = ticketId;
-        setHint(false);
-        setVerifyCardVisible(true);
-        setDigitsUI();
-        await loadScanPreview(ticketId);
-      },
-      {
-        preferredCamera: "environment",
-        highlightScanRegion: true,
-        highlightCodeOutline: true,
-        maxScansPerSecond: 12
-      }
-    );
+    const { BrowserMultiFormatReader } = window.ZXingBrowser || {};
+    if(!BrowserMultiFormatReader){
+      setScanStatus("Scanner library failed to load.", true);
+      return;
+    }
+    qrScanner = new BrowserMultiFormatReader();
 
     try{
-      const hasCamera = await QrScanner.hasCamera();
-      if(!hasCamera){
+      const cameras = await BrowserMultiFormatReader.listVideoInputDevices();
+      if(!cameras.length){
         setScanStatus("No camera detected on this device.", true);
         await stopScanner();
         return;
       }
 
-      await qrScanner.start();
+      await populateCameraSelect(cameras);
+      const activeCameraId = selectedCameraId || cameras[0].deviceId;
+      qrControls = await qrScanner.decodeFromVideoDevice(
+        activeCameraId,
+        videoEl,
+        async (result) => {
+          if(!result || state.verifying) return;
+
+          const decodedText = result?.getText?.() || result?.text || "";
+          if(!decodedText) return;
+
+          const t = nowMs();
+          if(t - state.lastScanAt < 900) return;
+          state.lastScanAt = t;
+
+          const ticketId = parseTicketIdFromQR(decodedText);
+          if(!ticketId) return;
+
+          if(state.scannedTicketId) return;
+
+          state.scannedTicketId = ticketId;
+          setHint(false);
+          setVerifyCardVisible(true);
+          setDigitsUI();
+          await loadScanPreview(ticketId);
+        }
+      );
       state.scanning = true;
       setScanStatus("Scanning… hold the QR steady inside the frame.");
-      await populateCameraSelect();
     }catch(e){
       const message = e?.message || "Camera permission needed to scan.";
       setScanStatus(message, true);
@@ -1104,21 +1148,19 @@
 
   async function stopScanner(){
     try{
-      if(qrScanner){
-        await qrScanner.stop();
-        qrScanner.destroy();
-      }
+      qrControls?.stop();
+      qrScanner?.reset?.();
     }catch(_e){}
     qrScanner = null;
+    qrControls = null;
     state.scanning = false;
   }
 
-  async function populateCameraSelect(){
+  async function populateCameraSelect(cameras = []){
     const selectEl = $("cameraSelect");
-    if(!selectEl || !qrScanner) return;
+    if(!selectEl) return;
 
     try{
-      const cameras = await QrScanner.listCameras(true);
       if(!cameras.length){
         selectEl.innerHTML = `<option value="">No camera available</option>`;
         selectEl.disabled = true;
@@ -1129,14 +1171,14 @@
       selectEl.innerHTML = cameras
         .map((camera, index) => {
           const label = camera.label || `Camera ${index + 1}`;
-          return `<option value="${camera.id}">${label}</option>`;
+          return `<option value="${camera.deviceId}">${label}</option>`;
         })
         .join("");
 
       const preferred = cameras.find((camera) => /back|rear|environment/i.test(camera.label || "")) || cameras[0];
-      if(preferred?.id){
-        selectEl.value = preferred.id;
-        await qrScanner.setCamera(preferred.id);
+      if(preferred?.deviceId){
+        selectedCameraId = preferred.deviceId;
+        selectEl.value = preferred.deviceId;
       }
     }catch(_e){
       selectEl.innerHTML = `<option value="">Camera list unavailable</option>`;
@@ -1176,7 +1218,7 @@
       state.scannedOrderDoc = order;
       setScanMeta({
         name: order.Name || order.name || "—",
-        tier: order.tierId || code.tierId || "—"
+        tier: resolveTierLabel(order, code)
       });
     }catch(_e){
       showResult({ok:false, reason:"System error", gateName: state.staff?.gateName || "Gate", when:new Date()});
@@ -1336,8 +1378,11 @@
     if(!qrScanner) return;
     const cameraId = e.target.value;
     if(!cameraId) return;
+    selectedCameraId = cameraId;
     try{
-      await qrScanner.setCamera(cameraId);
+      setScanStatus("Switching camera…");
+      await stopScanner();
+      await startScanner();
       setScanStatus("Camera switched. Keep the QR steady.");
     }catch(_e){
       setScanStatus("Unable to switch camera.", true);
