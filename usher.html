@@ -4,6 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Luma Tickets — Usher Scanner</title>
+  <link rel="icon" href="data:,">
 
   <style>
     :root{
@@ -518,6 +519,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js"></script>
 <script type="module">
   /******************************************************************
    * 1) FIREBASE IMPORTS
@@ -965,6 +967,11 @@
       return;
     }
 
+    const { BrowserMultiFormatReader } = window.ZXingBrowser || {};
+    if(!BrowserMultiFormatReader){
+      alert("Scanner library failed to load.");
+      return;
+    }
     qrScanner = new BrowserMultiFormatReader();
 
     try{
