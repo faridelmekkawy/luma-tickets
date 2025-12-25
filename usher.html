@@ -195,6 +195,12 @@
       display:flex; align-items:center; justify-content:center;
       position:relative;
     }
+    .scanBox video{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      border-radius: var(--radius);
+    }
     .scanHint{
       position:absolute; inset:0;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -334,7 +340,6 @@
   </style>
 
   <!-- QR scanner (fast + battle-tested) -->
-  <script src="https://unpkg.com/html5-qrcode@2.3.10/minified/html5-qrcode.min.js"></script>
 </head>
 
 <body>
@@ -425,7 +430,7 @@
       <div class="cardBody">
         <div class="scanWrap">
           <div class="scanBox">
-            <div id="qrReader" style="width:100%;height:100%"></div>
+            <video id="qrVideo" muted playsinline autoplay></video>
             <div class="scanHint" id="scanHint">
               <div class="big">Scan Dynamic QR</div>
               <div class="small">Point the camera at the QR. After scan, you will enter the last 4 digits manually.</div>
@@ -522,6 +527,7 @@
     getFirestore, doc, getDoc, collection, query, where, limit,
     getDocs, updateDoc, addDoc, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  import { BrowserMultiFormatReader } from "https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/esm/index.js";
 
   /******************************************************************
    * 2) CONFIG — PASTE YOUR FIREBASE CONFIG HERE
@@ -593,6 +599,27 @@
     setDigitsUI();
   }
 
+  function resolveTierLabel(order, code){
+    const tierId = order?.tierId || code?.tierId || "";
+    return (
+      order?.tierName ||
+      order?.tier?.name ||
+      state.event?.tiers?.find((t)=> t.id === tierId)?.name ||
+      tierId ||
+      "—"
+    );
+  }
+
+  function resolveWaveLabel(order, code){
+    const waveId = order?.waveId || code?.waveId || "";
+    return (
+      order?.waveName ||
+      state.event?.waves?.find((w)=> w.id === waveId)?.name ||
+      waveId ||
+      "—"
+    );
+  }
+
   function hardResetForNextScan(){
     state.scannedTicketId = null;
     state.scannedCodeDoc = null;
@@ -607,7 +634,7 @@
     $("scanHint").classList.toggle("hidden", !show);
   }
 
-  function showResult({ok, reason, customerName, tierId, waveId, gateName, when, usedWhereWhen}){
+  function showResult({ok, reason, customerName, tierLabel, waveLabel, gateName, when, usedWhereWhen}){
     const overlay = $("resultOverlay");
     overlay.style.display = "flex";
 
@@ -617,8 +644,8 @@
     $("resultSub").textContent = ok ? "Entry Locked" : (reason || "Not Allowed");
 
     $("rCustomer").textContent = customerName || "—";
-    $("rTier").textContent = tierId || "—";
-    $("rWave").textContent = waveId || "—";
+    $("rTier").textContent = tierLabel || "—";
+    $("rWave").textContent = waveLabel || "—";
     $("rGate").textContent = gateName || "—";
     $("rTime").textContent = when ? fmtTime(when) : "—";
 
@@ -626,8 +653,8 @@
     if(!ok && usedWhereWhen){
       $("rGate").textContent = usedWhereWhen.gate || gateName || "—";
       $("rTime").textContent = usedWhereWhen.time ? fmtTime(usedWhereWhen.time) : $("rTime").textContent;
-      $("rTier").textContent = tierId || "—";
-      $("rWave").textContent = waveId || "—";
+      $("rTier").textContent = tierLabel || "—";
+      $("rWave").textContent = waveLabel || "—";
       $("rCustomer").textContent = customerName || "—";
       $("resultSub").textContent = `Already checked-in`;
     }
@@ -761,10 +788,14 @@
         const usedTime = code.redeemedAt?.toDate?.() || code.checkedInAt?.toDate?.() || code.usedAt?.toDate?.();
         const ticketTierId = code.tierId ? `${ticketId}_${code.tierId}` : ticketId;
         await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId: code.orderId, outcome:"denied", reason:"Already checked-in"});
+        const tierLabel = resolveTierLabel(null, code);
+        const waveLabel = resolveWaveLabel(null, code);
         showResult({
           ok:false,
           reason:"Already checked-in",
-          customerName: "", tierId: code.tierId, waveId: code.waveId,
+          customerName: "",
+          tierLabel,
+          waveLabel,
           gateName,
           when:new Date(),
           usedWhereWhen: {gate: usedGate, time: usedTime || null}
@@ -811,7 +842,17 @@
         const tierId = order.tierId || code.tierId || "";
         const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
         await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"denied", reason:"Unpaid order"});
-        showResult({ok:false, reason:"Not Paid", gateName, when:new Date(), customerName: order.Name || order.name || ""});
+        const tierLabel = resolveTierLabel(order, code);
+        const waveLabel = resolveWaveLabel(order, code);
+        showResult({
+          ok:false,
+          reason:"Not Paid",
+          gateName,
+          when:new Date(),
+          customerName: order.Name || order.name || "",
+          tierLabel,
+          waveLabel
+        });
         state.verifying = false;
         return;
       }
@@ -823,12 +864,14 @@
         const tierId = order.tierId || code.tierId || "";
         const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
         await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"denied", reason:"Already checked-in"});
+        const tierLabel = resolveTierLabel(order, code);
+        const waveLabel = resolveWaveLabel(order, code);
         showResult({
           ok:false,
           reason:"Already checked-in",
           customerName: order.Name || order.name || "",
-          tierId: order.tierId || code.tierId,
-          waveId: order.waveId || code.waveId,
+          tierLabel,
+          waveLabel,
           gateName,
           when:new Date(),
           usedWhereWhen: {gate: usedGate, time: usedTime}
@@ -843,12 +886,14 @@
         const tierId = order.tierId || code.tierId || "";
         const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
         await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"denied", reason:"Wrong digits"});
+        const tierLabel = resolveTierLabel(order, code);
+        const waveLabel = resolveWaveLabel(order, code);
         showResult({
           ok:false,
           reason:"Wrong digits",
           customerName: order.Name || order.name || "",
-          tierId: order.tierId || code.tierId,
-          waveId: order.waveId || code.waveId,
+          tierLabel,
+          waveLabel,
           gateName,
           when:new Date()
         });
@@ -878,11 +923,13 @@
       const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
       await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"approved", reason:"OK"});
 
+      const tierLabel = resolveTierLabel(order, code);
+      const waveLabel = resolveWaveLabel(order, code);
       showResult({
         ok:true,
         customerName: order.Name || order.name || "",
-        tierId: order.tierId || code.tierId || "—",
-        waveId: order.waveId || code.waveId || "—",
+        tierLabel,
+        waveLabel,
         gateName,
         when: lockedAt
       });
@@ -899,45 +946,46 @@
   }
 
   /******************************************************************
-   * 7) QR SCANNING (html5-qrcode)
+   * 7) QR SCANNING (ZXing Browser)
    ******************************************************************/
-  let qr = null;
+  let qrScanner = null;
+  let qrControls = null;
+  let selectedCameraId = "";
 
   async function startScanner(){
-    if(qr) return;
-    if(!window.Html5Qrcode) {
-      alert("Scanner library failed to load.");
+    if(qrScanner) return;
+    const videoEl = $("qrVideo");
+    if(!videoEl){
+      alert("Scanner video missing.");
       return;
     }
 
-    qr = new Html5Qrcode("qrReader");
+    if(!window.isSecureContext){
+      alert("Camera access requires HTTPS. Open the secure link for scanning.");
+      return;
+    }
 
-    const config = {
-      fps: 12,
-      qrbox: { width: 260, height: 260 },
-      rememberLastUsedCamera: true,
-      supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
-    };
-
-    state.scanning = true;
+    qrScanner = new BrowserMultiFormatReader();
 
     try{
-      const cams = await Html5Qrcode.getCameras();
-      if(!cams || cams.length === 0){
+      const cameras = await BrowserMultiFormatReader.listVideoInputDevices();
+      if(!cameras.length){
         alert("No camera found.");
+        await stopScanner();
         return;
       }
 
-      // prefer back camera if present
-      const back = cams.find(c => /back|rear|environment/i.test(c.label));
-      const camId = (back || cams[0]).id;
+      const preferred = cameras.find((camera) => /back|rear|environment/i.test(camera.label || "")) || cameras[0];
+      selectedCameraId = preferred?.deviceId || cameras[0].deviceId;
 
-      await qr.start(
-        { deviceId: { exact: camId } },
-        config,
-        async (decodedText) => {
-          // throttle + lock during verification/result
-          if(state.verifying) return;
+      qrControls = await qrScanner.decodeFromVideoDevice(
+        selectedCameraId,
+        videoEl,
+        async (result) => {
+          if(!result || state.verifying) return;
+
+          const decodedText = result?.getText?.() || result?.text || "";
+          if(!decodedText) return;
 
           const t = nowMs();
           if(t - state.lastScanAt < 900) return;
@@ -946,29 +994,28 @@
           const ticketId = parseTicketIdFromQR(decodedText);
           if(!ticketId) return;
 
-          // If a ticket is already loaded and waiting for digits, ignore new scans
           if(state.scannedTicketId) return;
 
           state.scannedTicketId = ticketId;
           setHint(false);
           setDigitsUI();
-        },
-        (_err) => { /* ignore per-frame decode errors */ }
+        }
       );
 
+      state.scanning = true;
     }catch(e){
       alert("Camera permission needed to scan.");
+      await stopScanner();
     }
   }
 
   async function stopScanner(){
     try{
-      if(qr){
-        await qr.stop();
-        await qr.clear();
-      }
+      qrControls?.stop();
+      qrScanner?.reset?.();
     }catch(_e){}
-    qr = null;
+    qrScanner = null;
+    qrControls = null;
     state.scanning = false;
   }
 
