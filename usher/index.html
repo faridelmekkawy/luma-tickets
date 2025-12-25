@@ -4,7 +4,6 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Luma Tickets — Usher Scanner</title>
-  <link rel="icon" href="data:,">
 
   <style>
     :root{
@@ -630,7 +629,7 @@
   </div>
 </div>
 
-  <script type="module">
+<script type="module">
   /******************************************************************
    * 1) FIREBASE IMPORTS
    ******************************************************************/
@@ -639,6 +638,7 @@
     getFirestore, doc, getDoc, collection, query, where, limit,
     getDocs, updateDoc, addDoc, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  import QrScanner from "https://unpkg.com/qr-scanner@1.4.2/qr-scanner.min.js";
 
   /******************************************************************
    * 2) CONFIG — PASTE YOUR FIREBASE CONFIG HERE
@@ -663,7 +663,6 @@
     event: null,
     staff: null,          // {id, username, gateName}
     scanning: false,
-    detecting: false,
     verifying: false,
     lastScanAt: 0,
     scannedTicketId: null,
@@ -720,27 +719,6 @@
     $("scanTier").textContent = tier || "—";
   }
 
-  function resolveTierLabel(order, code){
-    const tierId = order?.tierId || code?.tierId || "";
-    return (
-      order?.tierName ||
-      order?.tier?.name ||
-      state.event?.tiers?.find((t)=> t.id === tierId)?.name ||
-      tierId ||
-      "—"
-    );
-  }
-
-  function resolveWaveLabel(order, code){
-    const waveId = order?.waveId || code?.waveId || "";
-    return (
-      order?.waveName ||
-      state.event?.waves?.find((w)=> w.id === waveId)?.name ||
-      waveId ||
-      "—"
-    );
-  }
-
   function hardResetForNextScan(){
     state.scannedTicketId = null;
     state.scannedCodeDoc = null;
@@ -764,7 +742,7 @@
     statusEl.classList.toggle("error", isError);
   }
 
-  function showResult({ok, reason, customerName, tierLabel, waveLabel, gateName, when, usedWhereWhen}){
+  function showResult({ok, reason, customerName, tierId, waveId, gateName, when, usedWhereWhen}){
     const overlay = $("resultOverlay");
     overlay.style.display = "flex";
 
@@ -774,8 +752,8 @@
     $("resultSub").textContent = ok ? "Entry Locked" : (reason || "Not Allowed");
 
     $("rCustomer").textContent = customerName || "—";
-    $("rTier").textContent = tierLabel || "—";
-    $("rWave").textContent = waveLabel || "—";
+    $("rTier").textContent = tierId || "—";
+    $("rWave").textContent = waveId || "—";
     $("rGate").textContent = gateName || "—";
     $("rTime").textContent = when ? fmtTime(when) : "—";
 
@@ -783,8 +761,8 @@
     if(!ok && usedWhereWhen){
       $("rGate").textContent = usedWhereWhen.gate || gateName || "—";
       $("rTime").textContent = usedWhereWhen.time ? fmtTime(usedWhereWhen.time) : $("rTime").textContent;
-      $("rTier").textContent = tierLabel || "—";
-      $("rWave").textContent = waveLabel || "—";
+      $("rTier").textContent = tierId || "—";
+      $("rWave").textContent = waveId || "—";
       $("rCustomer").textContent = customerName || "—";
       $("resultSub").textContent = `Already checked-in`;
     }
@@ -855,7 +833,7 @@
     return digits.slice(-4);
   }
 
-  async function writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome, reason, ticketTierId}){
+  async function writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome, reason}){
     // Recommended log collection for both approvals and failures
     try{
       const logsCol = collection(db, "events", eventId, "scanLogs");
@@ -867,7 +845,6 @@
         staffId: staff?.id || "",
         staffUsername: staff?.username || "",
         ticketId: ticketId || "",
-        ticketId_Tierid: ticketTierId || "",
         orderId: orderId || ""
       });
     }catch(_e){
@@ -895,7 +872,7 @@
       const codeSnap = await getDoc(codeRef);
 
       if(!codeSnap.exists()){
-        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId: ticketId, outcome:"denied", reason:"Ticket code not found"});
+        await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Ticket code not found"});
         showResult({ok:false, reason:"Ticket Not Found", gateName, when:new Date()});
         state.verifying = false;
         return;
@@ -905,8 +882,7 @@
       const codeEventId = code.eventId || code.eventID;
 
       if(String(codeEventId) !== String(eventId)){
-        const ticketTierId = code.tierId ? `${ticketId}_${code.tierId}` : ticketId;
-        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, outcome:"denied", reason:"Wrong event"});
+        await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Wrong event"});
         showResult({ok:false, reason:"Wrong Event", gateName, when:new Date()});
         state.verifying = false;
         return;
@@ -916,16 +892,11 @@
       if(code.redeemedAt || code.checkedInAt || code.usedAt){
         const usedGate = code.redeemedGate || code.checkedInGate || code.usedGate || "Unknown gate";
         const usedTime = code.redeemedAt?.toDate?.() || code.checkedInAt?.toDate?.() || code.usedAt?.toDate?.();
-        const ticketTierId = code.tierId ? `${ticketId}_${code.tierId}` : ticketId;
-        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId: code.orderId, outcome:"denied", reason:"Already checked-in"});
-        const tierLabel = resolveTierLabel(null, code);
-        const waveLabel = resolveWaveLabel(null, code);
+        await writeScanLog({eventId, staff, gateName, ticketId, orderId: code.orderId, outcome:"denied", reason:"Already checked-in"});
         showResult({
           ok:false,
           reason:"Already checked-in",
-          customerName: "",
-          tierLabel,
-          waveLabel,
+          customerName: "", tierId: code.tierId, waveId: code.waveId,
           gateName,
           when:new Date(),
           usedWhereWhen: {gate: usedGate, time: usedTime || null}
@@ -937,8 +908,7 @@
       // Expired?
       const exp = code.expiresAt?.toDate?.() || null;
       if(exp && exp.getTime() < nowMs()){
-        const ticketTierId = code.tierId ? `${ticketId}_${code.tierId}` : ticketId;
-        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId: code.orderId, outcome:"denied", reason:"Expired QR"});
+        await writeScanLog({eventId, staff, gateName, ticketId, orderId: code.orderId, outcome:"denied", reason:"Expired QR"});
         showResult({ok:false, reason:"Expired QR", gateName, when:new Date()});
         state.verifying = false;
         return;
@@ -946,8 +916,7 @@
 
       const orderId = code.orderId;
       if(!orderId){
-        const ticketTierId = code.tierId ? `${ticketId}_${code.tierId}` : ticketId;
-        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, outcome:"denied", reason:"Order missing on code"});
+        await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Order missing on code"});
         showResult({ok:false, reason:"Invalid Ticket Data", gateName, when:new Date()});
         state.verifying = false;
         return;
@@ -958,8 +927,7 @@
       const orderSnap = await getDoc(orderRef);
 
       if(!orderSnap.exists()){
-        const ticketTierId = code.tierId ? `${ticketId}_${code.tierId}` : ticketId;
-        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"denied", reason:"Order not found"});
+        await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"denied", reason:"Order not found"});
         showResult({ok:false, reason:"Order Not Found", gateName, when:new Date()});
         state.verifying = false;
         return;
@@ -969,20 +937,8 @@
 
       // Must be paid
       if(String(order.status || "").toLowerCase() !== "paid"){
-        const tierId = order.tierId || code.tierId || "";
-        const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
-        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"denied", reason:"Unpaid order"});
-        const tierLabel = resolveTierLabel(order, code);
-        const waveLabel = resolveWaveLabel(order, code);
-        showResult({
-          ok:false,
-          reason:"Not Paid",
-          gateName,
-          when:new Date(),
-          customerName: order.Name || order.name || "",
-          tierLabel,
-          waveLabel
-        });
+        await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"denied", reason:"Unpaid order"});
+        showResult({ok:false, reason:"Not Paid", gateName, when:new Date(), customerName: order.Name || order.name || ""});
         state.verifying = false;
         return;
       }
@@ -991,17 +947,13 @@
       if(order.checkedIn === true || order.checkedInAt){
         const usedGate = order.checkedInGate || "Unknown gate";
         const usedTime = order.checkedInAt?.toDate?.() || null;
-        const tierId = order.tierId || code.tierId || "";
-        const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
-        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"denied", reason:"Already checked-in"});
-        const tierLabel = resolveTierLabel(order, code);
-        const waveLabel = resolveWaveLabel(order, code);
+        await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"denied", reason:"Already checked-in"});
         showResult({
           ok:false,
           reason:"Already checked-in",
           customerName: order.Name || order.name || "",
-          tierLabel,
-          waveLabel,
+          tierId: order.tierId || code.tierId,
+          waveId: order.waveId || code.waveId,
           gateName,
           when:new Date(),
           usedWhereWhen: {gate: usedGate, time: usedTime}
@@ -1013,17 +965,13 @@
       // Digits check
       const p4 = last4(order.phone);
       if(String(p4) !== String(state.digits)){
-        const tierId = order.tierId || code.tierId || "";
-        const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
-        await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"denied", reason:"Wrong digits"});
-        const tierLabel = resolveTierLabel(order, code);
-        const waveLabel = resolveWaveLabel(order, code);
+        await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"denied", reason:"Wrong digits"});
         showResult({
           ok:false,
           reason:"Wrong digits",
           customerName: order.Name || order.name || "",
-          tierLabel,
-          waveLabel,
+          tierId: order.tierId || code.tierId,
+          waveId: order.waveId || code.waveId,
           gateName,
           when:new Date()
         });
@@ -1049,17 +997,13 @@
         checkedInByUsername: staff?.username || ""
       });
 
-      const tierId = order.tierId || code.tierId || "";
-      const ticketTierId = tierId ? `${ticketId}_${tierId}` : ticketId;
-      await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId, outcome:"approved", reason:"OK"});
+      await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"approved", reason:"OK"});
 
-      const tierLabel = resolveTierLabel(order, code);
-      const waveLabel = resolveWaveLabel(order, code);
       showResult({
         ok:true,
         customerName: order.Name || order.name || "",
-        tierLabel,
-        waveLabel,
+        tierId: order.tierId || code.tierId || "—",
+        waveId: order.waveId || code.waveId || "—",
         gateName,
         when: lockedAt
       });
@@ -1067,29 +1011,19 @@
       state.verifying = false;
 
     }catch(e){
-      const fallbackTier = state.scannedCodeDoc?.tierId || "";
-      const ticketTierId = fallbackTier ? `${ticketId}_${fallbackTier}` : ticketId;
-      await writeScanLog({eventId, staff, gateName, ticketId, ticketTierId, orderId: state.scannedCodeDoc?.orderId, outcome:"denied", reason:"System error"});
+      await writeScanLog({eventId, staff, gateName, ticketId, orderId: state.scannedCodeDoc?.orderId, outcome:"denied", reason:"System error"});
       showResult({ok:false, reason:"System error", gateName, when:new Date()});
       state.verifying = false;
     }
   }
 
   /******************************************************************
-   * 7) QR SCANNING (BarcodeDetector)
+   * 7) QR SCANNING (qr-scanner)
    ******************************************************************/
-  let scanStream = null;
-  let scanInterval = null;
-  let selectedCameraId = "";
-  let barcodeDetector = null;
-
-  async function listCameras(){
-    const devices = await navigator.mediaDevices?.enumerateDevices?.() || [];
-    return devices.filter((device) => device.kind === "videoinput");
-  }
+  let qrScanner = null;
 
   async function startScanner(){
-    if(scanStream) return;
+    if(qrScanner) return;
     const videoEl = $("qrVideo");
     if(!videoEl){
       alert("Scanner video missing.");
@@ -1101,66 +1035,50 @@
       return;
     }
 
-    if(!("BarcodeDetector" in window)){
-      setScanStatus("Scanner not supported on this device.", true);
-      return;
-    }
+    QrScanner.WORKER_PATH = "https://unpkg.com/qr-scanner@1.4.2/qr-scanner-worker.min.js";
+    qrScanner = new QrScanner(
+      videoEl,
+      async (result) => {
+        if(state.verifying) return;
+
+        const decodedText = typeof result === "string" ? result : result?.data;
+        if(!decodedText) return;
+
+        const t = nowMs();
+        if(t - state.lastScanAt < 900) return;
+        state.lastScanAt = t;
+
+        const ticketId = parseTicketIdFromQR(decodedText);
+        if(!ticketId) return;
+
+        if(state.scannedTicketId) return;
+
+        state.scannedTicketId = ticketId;
+        setHint(false);
+        setVerifyCardVisible(true);
+        setDigitsUI();
+        await loadScanPreview(ticketId);
+      },
+      {
+        preferredCamera: "environment",
+        highlightScanRegion: true,
+        highlightCodeOutline: true,
+        maxScansPerSecond: 12
+      }
+    );
 
     try{
-      barcodeDetector = new BarcodeDetector({ formats: ["qr_code"] });
-
-      const constraints = {
-        video: selectedCameraId
-          ? { deviceId: { exact: selectedCameraId } }
-          : { facingMode: "environment" }
-      };
-
-      scanStream = await navigator.mediaDevices.getUserMedia(constraints);
-      videoEl.srcObject = scanStream;
-      await videoEl.play();
-
-      const cameras = await listCameras();
-      if(!cameras.length){
+      const hasCamera = await QrScanner.hasCamera();
+      if(!hasCamera){
         setScanStatus("No camera detected on this device.", true);
         await stopScanner();
         return;
       }
 
-      await populateCameraSelect(cameras);
+      await qrScanner.start();
       state.scanning = true;
       setScanStatus("Scanning… hold the QR steady inside the frame.");
-
-      scanInterval = window.setInterval(async ()=>{
-        if(state.verifying || state.detecting) return;
-        if(!videoEl || videoEl.readyState < 2) return;
-
-        state.detecting = true;
-        try{
-          const barcodes = await barcodeDetector.detect(videoEl);
-          if(!barcodes?.length) return;
-
-          const decodedText = barcodes[0]?.rawValue || "";
-          if(!decodedText) return;
-
-          const t = nowMs();
-          if(t - state.lastScanAt < 900) return;
-          state.lastScanAt = t;
-
-          const ticketId = parseTicketIdFromQR(decodedText);
-          if(!ticketId) return;
-          if(state.scannedTicketId) return;
-
-          state.scannedTicketId = ticketId;
-          setHint(false);
-          setVerifyCardVisible(true);
-          setDigitsUI();
-          await loadScanPreview(ticketId);
-        }catch(_e){
-          // ignore transient scan errors
-        }finally{
-          state.detecting = false;
-        }
-      }, 250);
+      await populateCameraSelect();
     }catch(e){
       const message = e?.message || "Camera permission needed to scan.";
       setScanStatus(message, true);
@@ -1170,25 +1088,21 @@
 
   async function stopScanner(){
     try{
-      if(scanInterval){
-        window.clearInterval(scanInterval);
-        scanInterval = null;
+      if(qrScanner){
+        await qrScanner.stop();
+        qrScanner.destroy();
       }
-      scanStream?.getTracks?.().forEach((track) => track.stop());
     }catch(_e){}
-    scanStream = null;
-    barcodeDetector = null;
-    const videoEl = $("qrVideo");
-    if(videoEl) videoEl.srcObject = null;
+    qrScanner = null;
     state.scanning = false;
-    state.detecting = false;
   }
 
-  async function populateCameraSelect(cameras = []){
+  async function populateCameraSelect(){
     const selectEl = $("cameraSelect");
-    if(!selectEl) return;
+    if(!selectEl || !qrScanner) return;
 
     try{
+      const cameras = await QrScanner.listCameras(true);
       if(!cameras.length){
         selectEl.innerHTML = `<option value="">No camera available</option>`;
         selectEl.disabled = true;
@@ -1199,14 +1113,14 @@
       selectEl.innerHTML = cameras
         .map((camera, index) => {
           const label = camera.label || `Camera ${index + 1}`;
-          return `<option value="${camera.deviceId}">${label}</option>`;
+          return `<option value="${camera.id}">${label}</option>`;
         })
         .join("");
 
       const preferred = cameras.find((camera) => /back|rear|environment/i.test(camera.label || "")) || cameras[0];
-      if(preferred?.deviceId){
-        selectedCameraId = preferred.deviceId;
-        selectEl.value = preferred.deviceId;
+      if(preferred?.id){
+        selectEl.value = preferred.id;
+        await qrScanner.setCamera(preferred.id);
       }
     }catch(_e){
       selectEl.innerHTML = `<option value="">Camera list unavailable</option>`;
@@ -1246,7 +1160,7 @@
       state.scannedOrderDoc = order;
       setScanMeta({
         name: order.Name || order.name || "—",
-        tier: resolveTierLabel(order, code)
+        tier: order.tierId || code.tierId || "—"
       });
     }catch(_e){
       showResult({ok:false, reason:"System error", gateName: state.staff?.gateName || "Gate", when:new Date()});
@@ -1403,14 +1317,11 @@
   });
 
   $("cameraSelect").addEventListener("change", async (e)=>{
-    if(!scanStream) return;
+    if(!qrScanner) return;
     const cameraId = e.target.value;
     if(!cameraId) return;
-    selectedCameraId = cameraId;
     try{
-      setScanStatus("Switching camera…");
-      await stopScanner();
-      await startScanner();
+      await qrScanner.setCamera(cameraId);
       setScanStatus("Camera switched. Keep the QR steady.");
     }catch(_e){
       setScanStatus("Unable to switch camera.", true);
