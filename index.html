@@ -2694,7 +2694,13 @@ const firebaseConfig = {
   appId: "1:175601544315:web:00c94b4affa972b3a286de"
 };
 
-const LUMA_LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/events-339ce.firebasestorage.app/o/ChatGPT%20Image%20Dec%2023%2C%202025%2C%2012_55_43%20PM.png?alt=media&token=0facde2f-570c-4004-9e7b-d0d10aca94c3";
+function normalizeStorageBucket(bucket){
+  if(!bucket) return "";
+  return bucket.replace(/\.firebasestorage\.app$/, ".appspot.com");
+}
+
+const STORAGE_BUCKET = normalizeStorageBucket(firebaseConfig.storageBucket);
+const LUMA_LOGO_URL = `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/ChatGPT%20Image%20Dec%2023%2C%202025%2C%2012_55_43%20PM.png?alt=media&token=0facde2f-570c-4004-9e7b-d0d10aca94c3`;
 
 // Firebase SDK dynamic imports (PRODUCTION ONLY)
 // This app MUST be served over https/http (e.g. Vercel). Opening via file:// is not supported.
@@ -2750,7 +2756,7 @@ async function __loadFirebase(){
   app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
-  storage = getStorage(app);
+  storage = STORAGE_BUCKET ? getStorage(app, `gs://${STORAGE_BUCKET}`) : getStorage(app);
 
   window.__firebaseReady = true;
 }
@@ -3002,7 +3008,7 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
       firebaseStorageDownloadTokens: token
     }
   });
-  const bucket = storage?.app?.options?.storageBucket || firebaseConfig.storageBucket;
+  const bucket = STORAGE_BUCKET || normalizeStorageBucket(storage?.app?.options?.storageBucket || firebaseConfig.storageBucket);
   if(bucket){
     return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(storagePath)}?alt=media&token=${token}`;
   }
