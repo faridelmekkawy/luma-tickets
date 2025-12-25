@@ -2989,7 +2989,17 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
   const contentType = blob.type || "image/jpeg";
 
   const r = stRef(storage, storagePath);
-  await uploadBytes(r, blob, { contentType });
+  const token = (crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  await uploadBytes(r, blob, {
+    contentType,
+    customMetadata: {
+      firebaseStorageDownloadTokens: token
+    }
+  });
+  const bucket = storage?.app?.options?.storageBucket || firebaseConfig.storageBucket;
+  if(bucket){
+    return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(storagePath)}?alt=media&token=${token}`;
+  }
   return await getDownloadURL(r);
 }
 
