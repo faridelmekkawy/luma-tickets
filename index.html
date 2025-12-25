@@ -2842,6 +2842,15 @@ function normalizeOrderDoc(id, o){
     phone: (o?.phone || o?.Phone || o?.contact?.phone || o?.buyerPhone || "").toString(),
     email: (o?.email || o?.Email || o?.contact?.email || o?.buyerEmail || "").toString()
   };
+  const checkinTs = o?.checkedInAt;
+  let checkinDate = null;
+  try{
+    if(checkinTs?.toDate) checkinDate = checkinTs.toDate();
+    else if(typeof checkinTs === "string") checkinDate = new Date(checkinTs);
+    else if(typeof checkinTs?.seconds === "number") checkinDate = new Date(checkinTs.seconds*1000);
+  }catch(_){}
+  const checkinIso = (checkinDate && !isNaN(checkinDate.getTime())) ? checkinDate.toISOString() : (o?.checkedInAt || "");
+  const checkedIn = typeof o?.checkedIn === "boolean" ? o.checkedIn : !!checkinIso;
   const tierId = o?.tierId || o?.tierid || o?.tier?.id || "";
   const waveId = o?.waveId || o?.waveid || o?.wave?.id || "";
   const tiers = Array.isArray(o?.tiers)
@@ -2868,6 +2877,11 @@ function normalizeOrderDoc(id, o){
     contact,
     tiers,
     customerUid: o?.uid || "",
+    checkedIn,
+    checkedInAt: checkinIso,
+    checkedInBy: o?.checkedInBy || "",
+    checkedInByUsername: o?.checkedInByUsername || "",
+    checkedInGate: o?.checkedInGate || ""
   };
 }
 
@@ -3394,6 +3408,17 @@ function defaultData(){
   };
 }
 
+function ensureDataShape(raw){
+  const base = defaultData();
+  const d = raw && typeof raw === "object" ? raw : {};
+  d.version = d.version || base.version;
+  d.events = Array.isArray(d.events) ? d.events : [];
+  d.staff = Array.isArray(d.staff) ? d.staff : [];
+  d.settings = d.settings && typeof d.settings === "object" ? d.settings : {};
+  d.automations = Array.isArray(d.automations) ? d.automations : [];
+  return d;
+}
+
 async function loadData(){
   // Production-only: load from Firestore (owners/{uid}) with local cache fallback
   const uid = auth?.currentUser?.uid;
@@ -3422,20 +3447,21 @@ async function loadData(){
           });
         }
         // cache for faster loads / offline
-        localStorage.setItem(dataCacheKey(uid), JSON.stringify(d));
-        return d;
+        const shaped = ensureDataShape(d);
+        localStorage.setItem(dataCacheKey(uid), JSON.stringify(shaped));
+        return shaped;
       }
     }
     // First time: seed
-    const seed = cachedData || defaultData();
+    const seed = ensureDataShape(cachedData || defaultData());
     await setDoc(ref, { data: seed, updatedAt: serverTimestamp() }, { merge: true });
     localStorage.setItem(dataCacheKey(uid), JSON.stringify(seed));
     return seed;
   }
 
   // Not signed in: fallback to localStorage only
-  if(cachedData) return cachedData;
-  const seed = defaultData();
+  if(cachedData) return ensureDataShape(cachedData);
+  const seed = ensureDataShape(defaultData());
   localStorage.setItem(dataCacheKey(uid), JSON.stringify(seed));
   return seed;
 }
@@ -3513,7 +3539,8 @@ function schedulePublicSync(ev, reason="edit"){
   __publicSyncTimers.set(key, setTimeout(async ()=>{
     try{
       // only sync if still dirty
-      const cur = data.events.find(x=>x.id===key);
+      const events = Array.isArray(data?.events) ? data.events : [];
+      const cur = events.find(x=>x.id===key);
       if(!cur || !cur.__publicDirty) return;
       cur.__publicDirty = false;
       await syncEventToPublic(cur);
@@ -3524,7 +3551,8 @@ function schedulePublicSync(ev, reason="edit"){
     }catch(err){
       console.error("Public sync failed", err);
       // keep dirty so we can retry on next change
-      const cur = data.events.find(x=>x.id===key);
+      const events = Array.isArray(data?.events) ? data.events : [];
+      const cur = events.find(x=>x.id===key);
       if(cur) cur.__publicDirty = true;
       toast("Sync warning", "Saved locally, but could not publish to customer marketplace yet.");
     }
@@ -4118,7 +4146,8 @@ function lockIfReadOnly(buttonEl){
 /* ---------- Core render ---------- */
 
 function currentEvent(){
-  return data.events.find(e=>e.id===state.activeEventId) || null;
+  const events = Array.isArray(data?.events) ? data.events : [];
+  return events.find(e=>e.id===state.activeEventId) || null;
 }
 function eventSold(ev){
   return ev.orders.filter(o=>o.status==="Paid").reduce((s,o)=>s+o.qty,0);
@@ -4329,13 +4358,14 @@ function renderTopIdentity(){
 }
 
 function renderHub(){
-  $("#hubCount").textContent = data.events.length;
+  const events = Array.isArray(data?.events) ? data.events : [];
+  $("#hubCount").textContent = events.length;
   const status = $("#hubStatus").value;
   const venue = $("#hubVenue").value.trim().toLowerCase();
   const dFrom = $("#hubDateFrom").value;
   const dTo = $("#hubDateTo").value;
 
-  let list = [...data.events];
+  let list = [...events];
 
   if(status) list = list.filter(e=>e.status===status);
   if(venue) list = list.filter(e=>e.venue.toLowerCase().includes(venue));
@@ -7406,12 +7436,12 @@ async function bootDashboard(){
 
   // Load data (Firestore if signed-in; local fallback)
   try{
-    data = await loadData();
+    data = ensureDataShape(await loadData());
     await hydrateAllOrders();
   }catch(err){
     console.error(err);
     toast("Load failed", "Could not load your data. Using local fallback.");
-    data = defaultData();
+    data = ensureDataShape(defaultData());
   }
 
   const uid = auth?.currentUser?.uid;
