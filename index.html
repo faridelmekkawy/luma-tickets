@@ -2842,6 +2842,15 @@ function normalizeOrderDoc(id, o){
     phone: (o?.phone || o?.Phone || o?.contact?.phone || o?.buyerPhone || "").toString(),
     email: (o?.email || o?.Email || o?.contact?.email || o?.buyerEmail || "").toString()
   };
+  const checkinTs = o?.checkedInAt;
+  let checkinDate = null;
+  try{
+    if(checkinTs?.toDate) checkinDate = checkinTs.toDate();
+    else if(typeof checkinTs === "string") checkinDate = new Date(checkinTs);
+    else if(typeof checkinTs?.seconds === "number") checkinDate = new Date(checkinTs.seconds*1000);
+  }catch(_){}
+  const checkinIso = (checkinDate && !isNaN(checkinDate.getTime())) ? checkinDate.toISOString() : (o?.checkedInAt || "");
+  const checkedIn = typeof o?.checkedIn === "boolean" ? o.checkedIn : !!checkinIso;
   const tierId = o?.tierId || o?.tierid || o?.tier?.id || "";
   const waveId = o?.waveId || o?.waveid || o?.wave?.id || "";
   const tiers = Array.isArray(o?.tiers)
@@ -2868,6 +2877,11 @@ function normalizeOrderDoc(id, o){
     contact,
     tiers,
     customerUid: o?.uid || "",
+    checkedIn,
+    checkedInAt: checkinIso,
+    checkedInBy: o?.checkedInBy || "",
+    checkedInByUsername: o?.checkedInByUsername || "",
+    checkedInGate: o?.checkedInGate || ""
   };
 }
 
