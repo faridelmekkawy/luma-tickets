@@ -630,7 +630,6 @@
   </div>
 </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js"></script>
   <script type="module">
   /******************************************************************
    * 1) FIREBASE IMPORTS
@@ -664,6 +663,7 @@
     event: null,
     staff: null,          // {id, username, gateName}
     scanning: false,
+    detecting: false,
     verifying: false,
     lastScanAt: 0,
     scannedTicketId: null,
@@ -1076,14 +1076,20 @@
   }
 
   /******************************************************************
-   * 7) QR SCANNING (ZXing Browser)
+   * 7) QR SCANNING (BarcodeDetector)
    ******************************************************************/
-  let qrScanner = null;
-  let qrControls = null;
+  let scanStream = null;
+  let scanInterval = null;
   let selectedCameraId = "";
+  let barcodeDetector = null;
+
+  async function listCameras(){
+    const devices = await navigator.mediaDevices?.enumerateDevices?.() || [];
+    return devices.filter((device) => device.kind === "videoinput");
+  }
 
   async function startScanner(){
-    if(qrScanner) return;
+    if(scanStream) return;
     const videoEl = $("qrVideo");
     if(!videoEl){
       alert("Scanner video missing.");
@@ -1095,15 +1101,25 @@
       return;
     }
 
-    const { BrowserMultiFormatReader } = window.ZXingBrowser || {};
-    if(!BrowserMultiFormatReader){
-      setScanStatus("Scanner library failed to load.", true);
+    if(!("BarcodeDetector" in window)){
+      setScanStatus("Scanner not supported on this device.", true);
       return;
     }
-    qrScanner = new BrowserMultiFormatReader();
 
     try{
-      const cameras = await BrowserMultiFormatReader.listVideoInputDevices();
+      barcodeDetector = new BarcodeDetector({ formats: ["qr_code"] });
+
+      const constraints = {
+        video: selectedCameraId
+          ? { deviceId: { exact: selectedCameraId } }
+          : { facingMode: "environment" }
+      };
+
+      scanStream = await navigator.mediaDevices.getUserMedia(constraints);
+      videoEl.srcObject = scanStream;
+      await videoEl.play();
+
+      const cameras = await listCameras();
       if(!cameras.length){
         setScanStatus("No camera detected on this device.", true);
         await stopScanner();
@@ -1111,14 +1127,19 @@
       }
 
       await populateCameraSelect(cameras);
-      const activeCameraId = selectedCameraId || cameras[0].deviceId;
-      qrControls = await qrScanner.decodeFromVideoDevice(
-        activeCameraId,
-        videoEl,
-        async (result) => {
-          if(!result || state.verifying) return;
+      state.scanning = true;
+      setScanStatus("Scanning… hold the QR steady inside the frame.");
 
-          const decodedText = result?.getText?.() || result?.text || "";
+      scanInterval = window.setInterval(async ()=>{
+        if(state.verifying || state.detecting) return;
+        if(!videoEl || videoEl.readyState < 2) return;
+
+        state.detecting = true;
+        try{
+          const barcodes = await barcodeDetector.detect(videoEl);
+          if(!barcodes?.length) return;
+
+          const decodedText = barcodes[0]?.rawValue || "";
           if(!decodedText) return;
 
           const t = nowMs();
@@ -1127,7 +1148,6 @@
 
           const ticketId = parseTicketIdFromQR(decodedText);
           if(!ticketId) return;
-
           if(state.scannedTicketId) return;
 
           state.scannedTicketId = ticketId;
@@ -1135,10 +1155,12 @@
           setVerifyCardVisible(true);
           setDigitsUI();
           await loadScanPreview(ticketId);
+        }catch(_e){
+          // ignore transient scan errors
+        }finally{
+          state.detecting = false;
         }
-      );
-      state.scanning = true;
-      setScanStatus("Scanning… hold the QR steady inside the frame.");
+      }, 250);
     }catch(e){
       const message = e?.message || "Camera permission needed to scan.";
       setScanStatus(message, true);
@@ -1148,12 +1170,18 @@
 
   async function stopScanner(){
     try{
-      qrControls?.stop();
-      qrScanner?.reset?.();
+      if(scanInterval){
+        window.clearInterval(scanInterval);
+        scanInterval = null;
+      }
+      scanStream?.getTracks?.().forEach((track) => track.stop());
     }catch(_e){}
-    qrScanner = null;
-    qrControls = null;
+    scanStream = null;
+    barcodeDetector = null;
+    const videoEl = $("qrVideo");
+    if(videoEl) videoEl.srcObject = null;
     state.scanning = false;
+    state.detecting = false;
   }
 
   async function populateCameraSelect(cameras = []){
@@ -1375,7 +1403,7 @@
   });
 
   $("cameraSelect").addEventListener("change", async (e)=>{
-    if(!qrScanner) return;
+    if(!scanStream) return;
     const cameraId = e.target.value;
     if(!cameraId) return;
     selectedCameraId = cameraId;
