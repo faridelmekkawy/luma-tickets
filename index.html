@@ -1039,21 +1039,6 @@
       font-size:12px;
       display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap
     }
-    .globalFooter{
-      position:fixed;
-      left:0;
-      right:0;
-      bottom:0;
-      z-index:40;
-      padding:10px 16px;
-      border-top:1px solid var(--stroke);
-      background:var(--panel);
-      box-shadow:0 -12px 24px rgba(15,23,42,.08);
-    }
-    .globalFooter .powered{font-size:12px}
-    .globalFooter .footerLinks{gap:14px}
-    .globalFooter .footerLinks a{font-weight:600}
-
     /* Utility */
     .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .nowrap{white-space:nowrap}
@@ -1067,10 +1052,7 @@ select{
   border: 1px solid var(--stroke2);
 }
 option{ background-color: var(--panel); color: var(--ink); }
-  .content{ overflow:auto; padding:16px 16px 96px; }
-  .authWrap{padding-bottom:96px;}
-  .sidebar{padding-bottom:96px;}
-  #dash{ min-height:100vh; }
+  .content{ overflow:auto; padding:16px; }
 
 </style>
 </head>
@@ -2633,7 +2615,7 @@ option{ background-color: var(--panel); color: var(--ink); }
   </main>
 </section>
 
-<footer class="footer globalFooter">
+<footer class="footer">
   <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
   <span class="muted2">Policies, terms, and platform details</span>
 </footer>
@@ -2953,6 +2935,12 @@ async function ensureOrdersListener(eventId){
       if(state.route==="analytics" || (state.route==="event" && state.activeEventId===eventId)){
         try{ renderAll(); }catch(e){ console.warn(e); }
       }
+      if(state.route==="hub"){
+        try{ renderHub(); }catch(e){ console.warn(e); }
+      }
+      if(state.route==="notifications"){
+        try{ renderAttentionPage(); }catch(e){ console.warn(e); }
+      }
     }, (err)=>{
       console.warn("[Orders listener] failed:", err);
     });
@@ -2983,6 +2971,12 @@ async function ensureScanLogsListener(eventId){
 
       if(state.route==="analytics" || (state.route==="event" && state.activeEventId===eventId)){
         try{ renderAll(); }catch(e){ console.warn(e); }
+      }
+      if(state.route==="hub"){
+        try{ renderHub(); }catch(e){ console.warn(e); }
+      }
+      if(state.route==="notifications"){
+        try{ renderAttentionPage(); }catch(e){ console.warn(e); }
       }
     }, (err)=>{
       console.warn("[ScanLogs listener] failed:", err);
@@ -3604,18 +3598,33 @@ function saveAuth(){
   localStorage.setItem(STORAGE.authKey, JSON.stringify({ email: state.user.email, viewAs: state.viewAs }));
 }
 
+function waitForAuthReady(){
+  if(!window.__firebaseReady || !auth || !onAuthStateChanged){
+    return Promise.resolve(null);
+  }
+  return new Promise((resolve)=>{
+    const unsub = onAuthStateChanged(auth, (user)=>{
+      try{ unsub(); }catch(_e){}
+      resolve(user || null);
+    });
+  });
+}
+
 async function ensureAuthListener(){
   if(__authListenerBound || !window.__firebaseReady || !auth || !onAuthStateChanged) return;
   __authListenerBound = true;
   onAuthStateChanged(auth, async (user)=>{
     if(user){
+      const uid = user.uid;
+      const shouldReload = !state.__booted || state.__bootedUid !== uid;
       state.user = { name: user.displayName || "Owner", email: user.email || "" };
       state.viewAs = "Owner";
       saveAuth();
-      await bootDashboard();
+      await bootDashboard({ force: shouldReload });
     }else{
       state.user = null;
       state.__booted = false;
+      state.__bootedUid = null;
       document.getElementById("dash")?.classList.add("hidden");
       document.getElementById("auth")?.classList.remove("hidden");
     }
@@ -7416,9 +7425,10 @@ function simulateTick(){
 /* ---------- Boot ---------- */
 
 
-async function bootDashboard(){
-  if(state.__booted) return;
+async function bootDashboard({ force = false } = {}){
+  if(state.__booted && !force) return;
   state.__booted = true;
+  state.__bootedUid = auth?.currentUser?.uid || null;
   // Defensive: the DOM might not contain these sections in some deployments
   document.getElementById("auth")?.classList.add("hidden");
   document.getElementById("dash")?.classList.remove("hidden");
@@ -7480,15 +7490,25 @@ async function bootDashboard(){
 
 async function start(){
   authInit();
-  const ok = loadAuth();
+  loadAuth();
   // Defensive: if sections are missing (or replaced by another index shell), avoid crashing.
-  document.getElementById("auth")?.classList.toggle("hidden", ok);
-  document.getElementById("dash")?.classList.toggle("hidden", !ok);
+  document.getElementById("auth")?.classList.add("hidden");
+  document.getElementById("dash")?.classList.add("hidden");
   await initFirebase();
+  const authUser = await waitForAuthReady();
   await ensureAuthListener();
-  if(ok){
-    await bootDashboard();
+  if(authUser){
+    state.user = {
+      name: authUser.displayName || state.user?.name || "Owner",
+      email: authUser.email || state.user?.email || ""
+    };
+    if(!state.viewAs) state.viewAs = "Owner";
+    saveAuth();
+    await bootDashboard({ force: true });
+    document.getElementById("auth")?.classList.add("hidden");
+    document.getElementById("dash")?.classList.remove("hidden");
   }else{
+    document.getElementById("auth")?.classList.remove("hidden");
     setAuthTab("signin");
   }
 }
