@@ -2724,15 +2724,15 @@ async function __loadFirebase(){
   const fsMod   = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
   ({ getFirestore, doc, collection, query, where, onSnapshot, getDoc, setDoc, updateDoc, deleteDoc,
      addDoc, getDocs, orderBy, limit, startAfter, serverTimestamp, Timestamp, increment } = fsMod);
-  // (Storage disabled to match index (35).html)
-  // const stMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js");
-  // ({ getStorage, uploadBytes, getDownloadURL, deleteObject } = stMod);
-  // stRef = stMod.ref;
+
+  const stMod   = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js");
+  ({ getStorage, uploadBytes, getDownloadURL, deleteObject } = stMod);
+  stRef = stMod.ref;
 
   app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
-  // storage = getStorage(app); // disabled to match index (35).html
+  storage = getStorage(app);
 
   window.__firebaseReady = true;
 }
@@ -2991,17 +2991,27 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
   if(!dataUrl) return "";
   // already a URL
   if(/^https?:\/\//i.test(dataUrl)) return dataUrl;
+  // only upload if it's a data URL
+  if(!/^data:/i.test(dataUrl)) return dataUrl;
 
-  // In file (35).html, there is no Storage SDK / upload flow.
-  // To keep storage behavior consistent, we DO NOT auto-upload local data URLs here.
-  // If the UI provided a data URL (from a file picker preview), we simply skip it
-  // so existing stored URLs remain unchanged.
-  if(/^data:/i.test(dataUrl)) return "";
+  if(!storage || !stRef){
+    throw new Error("Storage not ready. Make sure Firebase Storage SDK is loaded.");
+  }
 
-  // Any other string (e.g., relative path) is returned as-is.
-  return dataUrl;
+  const res = await fetch(dataUrl);
+  const blob = await res.blob();
+  const contentType = blob.type || "image/jpeg";
+
+  const r = stRef(storage, storagePath);
+  const token = (crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  await uploadBytes(r, blob, {
+    contentType,
+    customMetadata: {
+      firebaseStorageDownloadTokens: token
+    }
+  });
+  return await getDownloadURL(r);
 }
-
 
 // Sync one event to /events/{eventId} so customer.html can see it
 async function syncEventToPublic(ev){
