@@ -2994,9 +2994,17 @@ function normalizeStoragePath(storagePath){
   if(/^https?:\/\//i.test(trimmed) || /^gs:\/\//i.test(trimmed)) return trimmed;
   try{
     const decoded = decodeURIComponent(trimmed);
-    return decoded.split(/[?#]/)[0];
+    const cleaned = decoded.split(/[?#]/)[0];
+    if(/^firebasestorage\.googleapis\.com\//i.test(cleaned) || /^storage\.googleapis\.com\//i.test(cleaned)){
+      return `https://${cleaned}`;
+    }
+    return cleaned;
   }catch(_e){
-    return trimmed.split(/[?#]/)[0];
+    const cleaned = trimmed.split(/[?#]/)[0];
+    if(/^firebasestorage\.googleapis\.com\//i.test(cleaned) || /^storage\.googleapis\.com\//i.test(cleaned)){
+      return `https://${cleaned}`;
+    }
+    return cleaned;
   }
 }
 
@@ -3016,6 +3024,9 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
   const contentType = blob.type || "image/jpeg";
 
   const normalizedPath = normalizeStoragePath(storagePath);
+  if(!normalizedPath){
+    throw new Error("Storage path is empty after normalization.");
+  }
   const r = /^https?:\/\//i.test(normalizedPath) || /^gs:\/\//i.test(normalizedPath)
     ? refFromURL(normalizedPath)
     : stRef(storage, normalizedPath);
