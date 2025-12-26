@@ -3008,6 +3008,14 @@ function normalizeStoragePath(storagePath){
   }
 }
 
+function publicEventStoragePath(eventId, asset){
+  const safeEventId = String(eventId || "").replace(/^\/+|\/+$/g, "");
+  const safeAsset = String(asset || "").replace(/^\/+|\/+$/g, "");
+  if(!safeEventId) throw new Error("Event has no id.");
+  if(!safeAsset) throw new Error("Storage asset type missing.");
+  return `publicEvents/${safeEventId}/${safeAsset}`;
+}
+
 async function uploadDataUrlIfNeeded(dataUrl, storagePath){
   if(!dataUrl) return "";
   // already a URL
@@ -3069,22 +3077,22 @@ async function syncEventToPublic(ev){
 
   const bannerUrl = await uploadDataUrlIfNeeded(
     bannerSource,
-    `publicEvents/${eventId}/banner`
+    publicEventStoragePath(eventId, "banner")
   );
 
   const logoUrl = await uploadDataUrlIfNeeded(
     logoSource,
-    `publicEvents/${eventId}/logo`
+    publicEventStoragePath(eventId, "logo")
   );
 
   const bgUrl = await uploadDataUrlIfNeeded(
     bgSource,
-    `publicEvents/${eventId}/bg`
+    publicEventStoragePath(eventId, "bg")
   );
 
   const ownerLogoUrl = await uploadDataUrlIfNeeded(
     ownerLogoSource,
-    `publicEvents/${eventId}/ownerLogo`
+    publicEventStoragePath(eventId, "ownerLogo")
   );
 
   // Keep local cache in sync (so we don't re-upload on every save)
