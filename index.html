@@ -1039,21 +1039,6 @@
       font-size:12px;
       display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap
     }
-    .globalFooter{
-      position:fixed;
-      left:0;
-      right:0;
-      bottom:0;
-      z-index:40;
-      padding:10px 16px;
-      border-top:1px solid var(--stroke);
-      background:var(--panel);
-      box-shadow:0 -12px 24px rgba(15,23,42,.08);
-    }
-    .globalFooter .powered{font-size:12px}
-    .globalFooter .footerLinks{gap:14px}
-    .globalFooter .footerLinks a{font-weight:600}
-
     /* Utility */
     .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .nowrap{white-space:nowrap}
@@ -1067,10 +1052,7 @@ select{
   border: 1px solid var(--stroke2);
 }
 option{ background-color: var(--panel); color: var(--ink); }
-  .content{ overflow:auto; padding:16px 16px 96px; }
-  .authWrap{padding-bottom:96px;}
-  .sidebar{padding-bottom:96px;}
-  #dash{ min-height:100vh; }
+  .content{ overflow:auto; padding:16px; }
 
 </style>
 </head>
@@ -2633,7 +2615,7 @@ option{ background-color: var(--panel); color: var(--ink); }
   </main>
 </section>
 
-<footer class="footer globalFooter">
+<footer class="footer">
   <div class="powered"><span class="dot"></span><span>Powered by</span><a class="lumaMark" href="https://luma.tickets" target="_blank" rel="noopener" aria-label="Luma">LUMA</a></div>
   <span class="muted2">Policies, terms, and platform details</span>
 </footer>
@@ -2750,7 +2732,10 @@ async function __loadFirebase(){
   app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
-  storage = getStorage(app);
+  const bucket = (firebaseConfig?.storageBucket || "").includes(".firebasestorage.app")
+    ? `${firebaseConfig.projectId}.appspot.com`
+    : firebaseConfig?.storageBucket;
+  storage = bucket ? getStorage(app, `gs://${bucket}`) : getStorage(app);
 
   window.__firebaseReady = true;
 }
@@ -2953,6 +2938,12 @@ async function ensureOrdersListener(eventId){
       if(state.route==="analytics" || (state.route==="event" && state.activeEventId===eventId)){
         try{ renderAll(); }catch(e){ console.warn(e); }
       }
+      if(state.route==="hub"){
+        try{ renderHub(); }catch(e){ console.warn(e); }
+      }
+      if(state.route==="notifications"){
+        try{ renderAttentionPage(); }catch(e){ console.warn(e); }
+      }
     }, (err)=>{
       console.warn("[Orders listener] failed:", err);
     });
@@ -2983,6 +2974,12 @@ async function ensureScanLogsListener(eventId){
 
       if(state.route==="analytics" || (state.route==="event" && state.activeEventId===eventId)){
         try{ renderAll(); }catch(e){ console.warn(e); }
+      }
+      if(state.route==="hub"){
+        try{ renderHub(); }catch(e){ console.warn(e); }
+      }
+      if(state.route==="notifications"){
+        try{ renderAttentionPage(); }catch(e){ console.warn(e); }
       }
     }, (err)=>{
       console.warn("[ScanLogs listener] failed:", err);
@@ -7498,7 +7495,7 @@ async function start(){
   authInit();
   loadAuth();
   // Defensive: if sections are missing (or replaced by another index shell), avoid crashing.
-  document.getElementById("auth")?.classList.remove("hidden");
+  document.getElementById("auth")?.classList.add("hidden");
   document.getElementById("dash")?.classList.add("hidden");
   await initFirebase();
   const authUser = await waitForAuthReady();
@@ -7514,6 +7511,7 @@ async function start(){
     document.getElementById("auth")?.classList.add("hidden");
     document.getElementById("dash")?.classList.remove("hidden");
   }else{
+    document.getElementById("auth")?.classList.remove("hidden");
     setAuthTab("signin");
   }
 }
