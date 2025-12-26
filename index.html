@@ -2732,10 +2732,7 @@ async function __loadFirebase(){
   app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
-  const bucket = (firebaseConfig?.storageBucket || "").includes(".firebasestorage.app")
-    ? `${firebaseConfig.projectId}.appspot.com`
-    : firebaseConfig?.storageBucket;
-  storage = bucket ? getStorage(app, `gs://${bucket}`) : getStorage(app);
+  storage = getStorage(app);
 
   window.__firebaseReady = true;
 }
