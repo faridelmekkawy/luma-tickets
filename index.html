@@ -2688,7 +2688,7 @@ let getAuth, onAuthStateChanged, signInWithEmailAndPassword, sendPasswordResetEm
 let getFirestore, doc, collection, query, where, onSnapshot, getDoc, setDoc, updateDoc, deleteDoc,
     addDoc, getDocs, orderBy, limit, startAfter, serverTimestamp, Timestamp, increment;
 
-let getStorage, stRef, uploadBytes, getDownloadURL, deleteObject;
+let getStorage, stRef, refFromURL, uploadBytes, getDownloadURL, deleteObject;
 
 // Initialized by __loadFirebase()
 let app = null;
@@ -2728,6 +2728,7 @@ async function __loadFirebase(){
   const stMod   = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js");
   ({ getStorage, uploadBytes, getDownloadURL, deleteObject } = stMod);
   stRef = stMod.ref;
+  refFromURL = stMod.refFromURL;
 
   app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   auth = getAuth(app);
@@ -2987,6 +2988,18 @@ async function ensureScanLogsListener(eventId){
   }
 }
 
+function normalizeStoragePath(storagePath){
+  if(!storagePath) return "";
+  const trimmed = String(storagePath).trim();
+  if(/^https?:\/\//i.test(trimmed) || /^gs:\/\//i.test(trimmed)) return trimmed;
+  try{
+    const decoded = decodeURIComponent(trimmed);
+    return decoded.split(/[?#]/)[0];
+  }catch(_e){
+    return trimmed.split(/[?#]/)[0];
+  }
+}
+
 async function uploadDataUrlIfNeeded(dataUrl, storagePath){
   if(!dataUrl) return "";
   // already a URL
@@ -3002,7 +3015,10 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
   const blob = await res.blob();
   const contentType = blob.type || "image/jpeg";
 
-  const r = stRef(storage, storagePath);
+  const normalizedPath = normalizeStoragePath(storagePath);
+  const r = /^https?:\/\//i.test(normalizedPath) || /^gs:\/\//i.test(normalizedPath)
+    ? refFromURL(normalizedPath)
+    : stRef(storage, normalizedPath);
   const token = (crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`);
   await uploadBytes(r, blob, {
     contentType,
