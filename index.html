@@ -3604,18 +3604,33 @@ function saveAuth(){
   localStorage.setItem(STORAGE.authKey, JSON.stringify({ email: state.user.email, viewAs: state.viewAs }));
 }
 
+function waitForAuthReady(){
+  if(!window.__firebaseReady || !auth || !onAuthStateChanged){
+    return Promise.resolve(null);
+  }
+  return new Promise((resolve)=>{
+    const unsub = onAuthStateChanged(auth, (user)=>{
+      try{ unsub(); }catch(_e){}
+      resolve(user || null);
+    });
+  });
+}
+
 async function ensureAuthListener(){
   if(__authListenerBound || !window.__firebaseReady || !auth || !onAuthStateChanged) return;
   __authListenerBound = true;
   onAuthStateChanged(auth, async (user)=>{
     if(user){
+      const uid = user.uid;
+      const shouldReload = !state.__booted || state.__bootedUid !== uid;
       state.user = { name: user.displayName || "Owner", email: user.email || "" };
       state.viewAs = "Owner";
       saveAuth();
-      await bootDashboard();
+      await bootDashboard({ force: shouldReload });
     }else{
       state.user = null;
       state.__booted = false;
+      state.__bootedUid = null;
       document.getElementById("dash")?.classList.add("hidden");
       document.getElementById("auth")?.classList.remove("hidden");
     }
@@ -7416,9 +7431,10 @@ function simulateTick(){
 /* ---------- Boot ---------- */
 
 
-async function bootDashboard(){
-  if(state.__booted) return;
+async function bootDashboard({ force = false } = {}){
+  if(state.__booted && !force) return;
   state.__booted = true;
+  state.__bootedUid = auth?.currentUser?.uid || null;
   // Defensive: the DOM might not contain these sections in some deployments
   document.getElementById("auth")?.classList.add("hidden");
   document.getElementById("dash")?.classList.remove("hidden");
@@ -7480,14 +7496,23 @@ async function bootDashboard(){
 
 async function start(){
   authInit();
-  const ok = loadAuth();
+  loadAuth();
   // Defensive: if sections are missing (or replaced by another index shell), avoid crashing.
-  document.getElementById("auth")?.classList.toggle("hidden", ok);
-  document.getElementById("dash")?.classList.toggle("hidden", !ok);
+  document.getElementById("auth")?.classList.remove("hidden");
+  document.getElementById("dash")?.classList.add("hidden");
   await initFirebase();
+  const authUser = await waitForAuthReady();
   await ensureAuthListener();
-  if(ok){
-    await bootDashboard();
+  if(authUser){
+    state.user = {
+      name: authUser.displayName || state.user?.name || "Owner",
+      email: authUser.email || state.user?.email || ""
+    };
+    if(!state.viewAs) state.viewAs = "Owner";
+    saveAuth();
+    await bootDashboard({ force: true });
+    document.getElementById("auth")?.classList.add("hidden");
+    document.getElementById("dash")?.classList.remove("hidden");
   }else{
     setAuthTab("signin");
   }
