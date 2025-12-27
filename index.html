@@ -2735,6 +2735,13 @@ async function __loadFirebase(){
   db = getFirestore(app);
   storage = getStorage(app);
 
+  // --- DEBUG: expose Firebase runtime to DevTools (safe for debugging) ---
+  window.firebaseConfig = firebaseConfig;
+  window.fbApp = app;
+  window.fbAuth = auth;
+  window.fbDb = db;
+  window.fbStorage = storage;
+  window.__FB = { firebaseConfig, app, auth, db, storage };
   window.__firebaseReady = true;
 }
 
@@ -3010,22 +3017,39 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
     throw new Error("Storage not ready. Make sure Firebase Storage SDK is loaded.");
   }
 
-  const res = await fetch(dataUrl);
-  const blob = await res.blob();
-  const contentType = blob.type || "image/jpeg";
+  try{
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const contentType = blob.type || "image/jpeg";
 
-  const normalizedPath = normalizeStoragePath(storagePath);
-  const r = /^https?:\/\//i.test(normalizedPath) || /^gs:\/\//i.test(normalizedPath)
-    ? refFromURL(normalizedPath)
-    : stRef(storage, normalizedPath);
-  const token = (crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`);
-  await uploadBytes(r, blob, {
-    contentType,
-    customMetadata: {
-      firebaseStorageDownloadTokens: token
-    }
-  });
-  return await getDownloadURL(r);
+    const normalizedPath = normalizeStoragePath(storagePath);
+    const r = /^https?:\/\//i.test(normalizedPath) || /^gs:\/\//i.test(normalizedPath)
+      ? refFromURL(normalizedPath)
+      : stRef(storage, normalizedPath);
+    await uploadBytes(r, blob, {
+      contentType
+    });
+    return await getDownloadURL(r);
+  }catch(err){
+    console.error("[Storage upload failed]", {
+      code: err?.code,
+      message: err?.message,
+      name: err?.name,
+      customData: err?.customData,
+      status: err?.status,
+      serverResponse: err?.serverResponse,
+      _raw: err
+    });
+    try{
+      const anyResp =
+        err?.customData?.serverResponse ||
+        err?.serverResponse ||
+        err?.customData?.response ||
+        err?.response;
+      if(anyResp) console.error("[Storage server response]", anyResp);
+    }catch(_e){}
+    throw err;
+  }
 }
 
 // Sync one event to /events/{eventId} so customer.html can see it
