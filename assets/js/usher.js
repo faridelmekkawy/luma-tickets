@@ -40,6 +40,14 @@
     digits: ""
   };
 
+  const debugState = {
+    enabled: false,
+    lastRaw: "—",
+    lastTicketId: "—",
+    lastError: "—",
+    cameraLabel: "—"
+  };
+
   /******************************************************************
    * 4) HELPERS
    ******************************************************************/
@@ -96,7 +104,7 @@
     setScanMeta({name:"—", tier:"—"});
     setHint(true);
     setVerifyCardVisible(false);
-    state.verifying = false;
+    setVerifying(false);
     $("btnVerify").disabled = true;
   }
 
@@ -109,6 +117,34 @@
     if(!statusEl) return;
     statusEl.textContent = message;
     statusEl.classList.toggle("error", isError);
+  }
+
+  function setDebugVisible(show){
+    const panel = $("scanDebug");
+    if(!panel) return;
+    panel.classList.toggle("hidden", !show);
+  }
+
+  function setDebugValue(id, value){
+    const el = $(id);
+    if(!el) return;
+    el.textContent = value || "—";
+  }
+
+  function updateDebugPanel(){
+    if(!debugState.enabled) return;
+    setDebugValue("dbgSecure", window.isSecureContext ? "yes" : "no");
+    setDebugValue("dbgScanning", state.scanning ? "active" : "stopped");
+    setDebugValue("dbgVerifying", state.verifying ? "yes" : "no");
+    setDebugValue("dbgCamera", debugState.cameraLabel || "—");
+    setDebugValue("dbgLastRaw", debugState.lastRaw || "—");
+    setDebugValue("dbgTicketId", debugState.lastTicketId || "—");
+    setDebugValue("dbgLastError", debugState.lastError || "—");
+  }
+
+  function setVerifying(value){
+    state.verifying = value;
+    updateDebugPanel();
   }
 
   function showResult({ok, reason, customerName, tierId, waveId, gateName, when, usedWhereWhen}){
@@ -226,7 +262,7 @@
     if(!state.scannedTicketId) return;
     if(state.digits.length !== 4) return;
 
-    state.verifying = true;
+    setVerifying(true);
     $("btnVerify").disabled = true;
 
     const eventId = state.eventId;
@@ -243,7 +279,7 @@
       if(!codeSnap.exists()){
         await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Ticket code not found"});
         showResult({ok:false, reason:"Ticket Not Found", gateName, when:new Date()});
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
@@ -253,7 +289,7 @@
       if(String(codeEventId) !== String(eventId)){
         await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Wrong event"});
         showResult({ok:false, reason:"Wrong Event", gateName, when:new Date()});
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
@@ -270,7 +306,7 @@
           when:new Date(),
           usedWhereWhen: {gate: usedGate, time: usedTime || null}
         });
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
@@ -279,7 +315,7 @@
       if(exp && exp.getTime() < nowMs()){
         await writeScanLog({eventId, staff, gateName, ticketId, orderId: code.orderId, outcome:"denied", reason:"Expired QR"});
         showResult({ok:false, reason:"Expired QR", gateName, when:new Date()});
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
@@ -287,7 +323,7 @@
       if(!orderId){
         await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Order missing on code"});
         showResult({ok:false, reason:"Invalid Ticket Data", gateName, when:new Date()});
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
@@ -298,7 +334,7 @@
       if(!orderSnap.exists()){
         await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"denied", reason:"Order not found"});
         showResult({ok:false, reason:"Order Not Found", gateName, when:new Date()});
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
@@ -308,7 +344,7 @@
       if(String(order.status || "").toLowerCase() !== "paid"){
         await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"denied", reason:"Unpaid order"});
         showResult({ok:false, reason:"Not Paid", gateName, when:new Date(), customerName: order.Name || order.name || ""});
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
@@ -327,7 +363,7 @@
           when:new Date(),
           usedWhereWhen: {gate: usedGate, time: usedTime}
         });
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
@@ -344,7 +380,7 @@
           gateName,
           when:new Date()
         });
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
@@ -377,12 +413,12 @@
         when: lockedAt
       });
 
-      state.verifying = false;
+      setVerifying(false);
 
     }catch(e){
       await writeScanLog({eventId, staff, gateName, ticketId, orderId: state.scannedCodeDoc?.orderId, outcome:"denied", reason:"System error"});
       showResult({ok:false, reason:"System error", gateName, when:new Date()});
-      state.verifying = false;
+      setVerifying(false);
     }
   }
 
@@ -396,11 +432,15 @@
     const videoEl = $("qrVideo");
     if(!videoEl){
       alert("Scanner video missing.");
+      debugState.lastError = "Video element missing";
+      updateDebugPanel();
       return;
     }
 
     if(!window.isSecureContext){
       setScanStatus("Camera access requires HTTPS. Open the secure link for scanning.", true);
+      debugState.lastError = "Not in secure context (HTTPS required)";
+      updateDebugPanel();
       return;
     }
 
@@ -411,6 +451,7 @@
         if(state.verifying) return;
 
         const decodedText = typeof result === "string" ? result : result?.data;
+        debugState.lastRaw = decodedText || "—";
         if(!decodedText) return;
 
         const t = nowMs();
@@ -418,6 +459,9 @@
         state.lastScanAt = t;
 
         const ticketId = parseTicketIdFromQR(decodedText);
+        debugState.lastTicketId = ticketId || "—";
+        debugState.lastError = ticketId ? "—" : "Could not parse ticketId";
+        updateDebugPanel();
         if(!ticketId) return;
 
         if(state.scannedTicketId) return;
@@ -440,17 +484,23 @@
       const hasCamera = await QrScanner.hasCamera();
       if(!hasCamera){
         setScanStatus("No camera detected on this device.", true);
+        debugState.lastError = "No camera detected";
+        updateDebugPanel();
         await stopScanner();
         return;
       }
 
       await qrScanner.start();
       state.scanning = true;
+      debugState.lastError = "—";
       setScanStatus("Scanning… hold the QR steady inside the frame.");
       await populateCameraSelect();
+      updateDebugPanel();
     }catch(e){
       const message = e?.message || "Camera permission needed to scan.";
       setScanStatus(message, true);
+      debugState.lastError = message;
+      updateDebugPanel();
       await stopScanner();
     }
   }
@@ -464,6 +514,7 @@
     }catch(_e){}
     qrScanner = null;
     state.scanning = false;
+    updateDebugPanel();
   }
 
   async function populateCameraSelect(){
@@ -475,6 +526,8 @@
       if(!cameras.length){
         selectEl.innerHTML = `<option value="">No camera available</option>`;
         selectEl.disabled = true;
+        debugState.cameraLabel = "No camera";
+        updateDebugPanel();
         return;
       }
 
@@ -490,10 +543,14 @@
       if(preferred?.id){
         selectEl.value = preferred.id;
         await qrScanner.setCamera(preferred.id);
+        debugState.cameraLabel = preferred.label || `Camera ${cameras.indexOf(preferred) + 1}`;
       }
+      updateDebugPanel();
     }catch(_e){
       selectEl.innerHTML = `<option value="">Camera list unavailable</option>`;
       selectEl.disabled = true;
+      debugState.cameraLabel = "Unavailable";
+      updateDebugPanel();
     }
   }
 
@@ -685,6 +742,13 @@
     await startScanner();
   });
 
+  $("btnToggleDebug").addEventListener("click", ()=>{
+    debugState.enabled = !debugState.enabled;
+    setDebugVisible(debugState.enabled);
+    $("btnToggleDebug").textContent = debugState.enabled ? "Hide Diagnostics" : "Show Diagnostics";
+    updateDebugPanel();
+  });
+
   $("cameraSelect").addEventListener("change", async (e)=>{
     if(!qrScanner) return;
     const cameraId = e.target.value;
@@ -692,6 +756,8 @@
     try{
       await qrScanner.setCamera(cameraId);
       setScanStatus("Camera switched. Keep the QR steady.");
+      debugState.cameraLabel = e.target.selectedOptions?.[0]?.textContent || "—";
+      updateDebugPanel();
     }catch(_e){
       setScanStatus("Unable to switch camera.", true);
     }

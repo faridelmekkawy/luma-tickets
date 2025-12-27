@@ -240,6 +240,40 @@
     .scanStatus.error{
       color: #ffb4b4;
     }
+    .scanDebug{
+      border:1px solid var(--line);
+      border-radius: 14px;
+      padding:10px 12px;
+      background: rgba(0,0,0,.25);
+      display:grid;
+      gap:6px;
+      font-size:12px;
+    }
+    .scanDebugRow{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .scanDebugRow.long{
+      flex-direction:column;
+      align-items:flex-start;
+    }
+    .scanDebugRow .label{
+      color:var(--muted);
+      font-size:11px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .scanDebugRow .value{
+      font-family: var(--mono);
+      font-size:11px;
+      color: rgba(234,240,255,.92);
+      word-break: break-word;
+      text-align:right;
+    }
+    .scanDebugRow.long .value{
+      text-align:left;
+    }
     .scanBox{
       border-radius: var(--radius);
       border:1px dashed rgba(255,255,255,.18);

@@ -124,8 +124,41 @@
             <div class="control">
               <button class="btn secondary" id="btnRestartScanner">Restart Scanner</button>
             </div>
+            <div class="control">
+              <button class="btn secondary" id="btnToggleDebug">Show Diagnostics</button>
+            </div>
           </div>
           <div class="scanStatus" id="scanStatus">Ready to scan.</div>
+          <div class="scanDebug hidden" id="scanDebug">
+            <div class="scanDebugRow">
+              <span class="label">Secure context</span>
+              <span class="value" id="dbgSecure">—</span>
+            </div>
+            <div class="scanDebugRow">
+              <span class="label">Scanner</span>
+              <span class="value" id="dbgScanning">—</span>
+            </div>
+            <div class="scanDebugRow">
+              <span class="label">Verifying</span>
+              <span class="value" id="dbgVerifying">—</span>
+            </div>
+            <div class="scanDebugRow">
+              <span class="label">Camera</span>
+              <span class="value" id="dbgCamera">—</span>
+            </div>
+            <div class="scanDebugRow long">
+              <span class="label">Last raw</span>
+              <span class="value" id="dbgLastRaw">—</span>
+            </div>
+            <div class="scanDebugRow long">
+              <span class="label">Parsed ticketId</span>
+              <span class="value" id="dbgTicketId">—</span>
+            </div>
+            <div class="scanDebugRow long">
+              <span class="label">Last error</span>
+              <span class="value" id="dbgLastError">—</span>
+            </div>
+          </div>
 
           <!-- Digits + keypad -->
           <div class="verifyModal hidden" id="verifyModal">
