@@ -2735,9 +2735,13 @@ async function __loadFirebase(){
   db = getFirestore(app);
   storage = getStorage(app);
 
-  window.auth = auth;
-  window.db = db;
-  window.storage = storage;
+  // --- DEBUG: expose Firebase runtime to DevTools (safe for debugging) ---
+  window.firebaseConfig = firebaseConfig;
+  window.fbApp = app;
+  window.fbAuth = auth;
+  window.fbDb = db;
+  window.fbStorage = storage;
+  window.__FB = { firebaseConfig, app, auth, db, storage };
   window.__firebaseReady = true;
 }
 
@@ -3031,13 +3035,23 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
     });
     return await getDownloadURL(r);
   }catch(err){
-    console.error("[Storage upload failed]");
-    console.error("code:", err?.code);
-    console.error("message:", err?.message);
-    console.error("name:", err?.name);
-    console.error("customData:", err?.customData);
-    console.error("status:", err?.status);
-    console.error("serverResponse:", err?.serverResponse);
+    console.error("[Storage upload failed]", {
+      code: err?.code,
+      message: err?.message,
+      name: err?.name,
+      customData: err?.customData,
+      status: err?.status,
+      serverResponse: err?.serverResponse,
+      _raw: err
+    });
+    try{
+      const anyResp =
+        err?.customData?.serverResponse ||
+        err?.serverResponse ||
+        err?.customData?.response ||
+        err?.response;
+      if(anyResp) console.error("[Storage server response]", anyResp);
+    }catch(_e){}
     throw err;
   }
 }
