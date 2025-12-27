@@ -3363,7 +3363,7 @@ function renderEventSettings(ev){
   $("#setLocationText").value = ev.locationText || "";
   $("#setLocationUrl").value = ev.locationUrl || "";
 
-  const url = ev.ownerLogoUrl || "";
+  const url = ev.ownerLogoUrl || ev.ownerLogoDataUrl || ev.design?.ownerLogoDataUrl || "";
   const img = $("#ownerLogoPreview");
   const fb = $("#ownerLogoFallback");
   if(img){
@@ -3424,9 +3424,8 @@ function renderDesignStudio(ev){
 
   // file upload previews
   wireFileInput("#dsBanner", (dataUrl)=>{ ev.design.bannerDataUrl = dataUrl; ev.bannerDataUrl = dataUrl; saveData(); schedulePublicSync(ev, "design"); updatePreview(); toast("Banner updated","Preview updated."); });
-  wireFileInput("#dsLogo", (dataUrl)=>{ ev.design.logoDataUrl = dataUrl; ev.logoDataUrl = dataUrl; saveData(); schedulePublicSync(ev, "design");
+  wireFileInput("#dsLogo", (dataUrl)=>{ ev.design.logoDataUrl = dataUrl; ev.logoDataUrl = dataUrl; saveData(); schedulePublicSync(ev, "design"); updatePreview(); toast("Logo updated","Preview updated."); });
   wireFileInput("#dsOwnerLogo", (dataUrl)=>{ ev.design.ownerLogoDataUrl = dataUrl; ev.ownerLogoDataUrl = dataUrl; saveData(); schedulePublicSync(ev, "design"); updatePreview(); toast("Owner logo updated","Preview updated."); });
- updatePreview(); toast("Logo updated","Preview updated."); });
   wireFileInput("#dsBg", (dataUrl)=>{ ev.design.bgDataUrl = dataUrl; saveData(); schedulePublicSync(ev, "design"); updatePreview(); toast("Background updated","Preview updated."); });
 
   // preview mode buttons
@@ -4570,37 +4569,7 @@ on("#btnToggleSide","click", ()=>{
     }
   });
 
-  on("#btnOwnerLogoUpload","click", async ()=>{
-    const ev = currentEvent();
-    if(!ev || isReadOnly()) return;
-    const file = $("#ownerLogoFile")?.files?.[0];
-    if(!file){ toast("Missing file","Choose an image first."); return; }
-    try{
-      const dataUrl = await fileToDataUrl(file);
-      // upload (or store URL if already a URL)
-      const url = await uploadDataUrlIfNeeded(dataUrl, `publicEvents/${ev.id}/ownerLogo`);
-      ev.ownerLogoUrl = url;
-      addActivity(ev, "Branding updated", "Owner logo uploaded", "info");
-      saveData();
-      schedulePublicSync(ev, "owner-logo");
-      renderLinks(ev);
-      toast("Uploaded", "Owner logo uploaded.");
-    }catch(err){
-      console.error(err);
-      toast("Error", "Failed to upload owner logo.");
-    }
-  });
 
-  on("#btnOwnerLogoClear","click", async ()=>{
-    const ev = currentEvent();
-    if(!ev || isReadOnly()) return;
-    ev.ownerLogoUrl = "";
-    addActivity(ev, "Branding updated", "Owner logo removed", "warn");
-    saveData();
-    schedulePublicSync(ev, "owner-logo-clear");
-    renderLinks(ev);
-    toast("Removed", "Owner logo removed.");
-  });
 
 
 // global search
