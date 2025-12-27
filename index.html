@@ -2735,6 +2735,9 @@ async function __loadFirebase(){
   db = getFirestore(app);
   storage = getStorage(app);
 
+  window.auth = auth;
+  window.db = db;
+  window.storage = storage;
   window.__firebaseReady = true;
 }
 
@@ -3010,22 +3013,33 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
     throw new Error("Storage not ready. Make sure Firebase Storage SDK is loaded.");
   }
 
-  const res = await fetch(dataUrl);
-  const blob = await res.blob();
-  const contentType = blob.type || "image/jpeg";
+  try{
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const contentType = blob.type || "image/jpeg";
 
-  const normalizedPath = normalizeStoragePath(storagePath);
-  const r = /^https?:\/\//i.test(normalizedPath) || /^gs:\/\//i.test(normalizedPath)
-    ? refFromURL(normalizedPath)
-    : stRef(storage, normalizedPath);
-  const token = (crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`);
-  await uploadBytes(r, blob, {
-    contentType,
-    customMetadata: {
-      firebaseStorageDownloadTokens: token
-    }
-  });
-  return await getDownloadURL(r);
+    const normalizedPath = normalizeStoragePath(storagePath);
+    const r = /^https?:\/\//i.test(normalizedPath) || /^gs:\/\//i.test(normalizedPath)
+      ? refFromURL(normalizedPath)
+      : stRef(storage, normalizedPath);
+    const token = (crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+    await uploadBytes(r, blob, {
+      contentType,
+      customMetadata: {
+        firebaseStorageDownloadTokens: token
+      }
+    });
+    return await getDownloadURL(r);
+  }catch(err){
+    console.error("[Storage upload failed]");
+    console.error("code:", err?.code);
+    console.error("message:", err?.message);
+    console.error("name:", err?.name);
+    console.error("customData:", err?.customData);
+    console.error("status:", err?.status);
+    console.error("serverResponse:", err?.serverResponse);
+    throw err;
+  }
 }
 
 // Sync one event to /events/{eventId} so customer.html can see it
