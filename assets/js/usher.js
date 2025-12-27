@@ -96,6 +96,13 @@
     $("scanTier").textContent = tier || "—";
   }
 
+  function resolveTierName(tierId, tierName){
+    if(tierName) return tierName;
+    if(!tierId) return "—";
+    const tiers = state.event?.tiers || [];
+    return tiers.find(t => t.id === tierId)?.name || tierId;
+  }
+
   function hardResetForNextScan(){
     state.scannedTicketId = null;
     state.scannedCodeDoc = null;
@@ -147,7 +154,7 @@
     updateDebugPanel();
   }
 
-  function showResult({ok, reason, customerName, tierId, waveId, gateName, when, usedWhereWhen}){
+  function showResult({ok, reason, customerName, tierId, tierName, waveId, gateName, when, usedWhereWhen}){
     const overlay = $("resultOverlay");
     overlay.style.display = "flex";
 
@@ -157,7 +164,7 @@
     $("resultSub").textContent = ok ? "Entry Locked" : (reason || "Not Allowed");
 
     $("rCustomer").textContent = customerName || "—";
-    $("rTier").textContent = tierId || "—";
+    $("rTier").textContent = resolveTierName(tierId, tierName);
     $("rWave").textContent = waveId || "—";
     $("rGate").textContent = gateName || "—";
     $("rTime").textContent = when ? fmtTime(when) : "—";
@@ -166,7 +173,7 @@
     if(!ok && usedWhereWhen){
       $("rGate").textContent = usedWhereWhen.gate || gateName || "—";
       $("rTime").textContent = usedWhereWhen.time ? fmtTime(usedWhereWhen.time) : $("rTime").textContent;
-      $("rTier").textContent = tierId || "—";
+      $("rTier").textContent = resolveTierName(tierId, tierName);
       $("rWave").textContent = waveId || "—";
       $("rCustomer").textContent = customerName || "—";
       $("resultSub").textContent = `Already checked-in`;
@@ -358,6 +365,7 @@
           reason:"Already checked-in",
           customerName: order.Name || order.name || "",
           tierId: order.tierId || code.tierId,
+          tierName: order.tierName || "",
           waveId: order.waveId || code.waveId,
           gateName,
           when:new Date(),
@@ -376,6 +384,7 @@
           reason:"Wrong digits",
           customerName: order.Name || order.name || "",
           tierId: order.tierId || code.tierId,
+          tierName: order.tierName || "",
           waveId: order.waveId || code.waveId,
           gateName,
           when:new Date()
@@ -408,6 +417,7 @@
         ok:true,
         customerName: order.Name || order.name || "",
         tierId: order.tierId || code.tierId || "—",
+        tierName: order.tierName || "",
         waveId: order.waveId || code.waveId || "—",
         gateName,
         when: lockedAt
@@ -586,7 +596,7 @@
       state.scannedOrderDoc = order;
       setScanMeta({
         name: order.Name || order.name || "—",
-        tier: order.tierId || code.tierId || "—"
+        tier: resolveTierName(order.tierId || code.tierId, order.tierName)
       });
     }catch(_e){
       showResult({ok:false, reason:"System error", gateName: state.staff?.gateName || "Gate", when:new Date()});
