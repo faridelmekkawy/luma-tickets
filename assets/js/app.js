@@ -351,8 +351,7 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
   }
 
   try{
-    const res = await fetch(dataUrl);
-    const blob = await res.blob();
+    const blob = dataUrlToBlob(dataUrl);
     const contentType = blob.type || "image/jpeg";
 
     const normalizedPath = normalizeStoragePath(storagePath);
@@ -383,6 +382,28 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
     }catch(_e){}
     throw err;
   }
+}
+
+function dataUrlToBlob(dataUrl){
+  const parts = String(dataUrl).split(",");
+  if(parts.length < 2){
+    throw new Error("Invalid data URL");
+  }
+  const header = parts[0];
+  const data = parts.slice(1).join(",");
+  const isBase64 = /;base64/i.test(header);
+  const mime = header.match(/^data:([^;]+)/i)?.[1] || "application/octet-stream";
+
+  if(isBase64){
+    const binary = atob(data);
+    const bytes = new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++){
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new Blob([bytes], { type: mime });
+  }
+
+  return new Blob([decodeURIComponent(data)], { type: mime });
 }
 
 // Sync one event to /events/{eventId} so customer.html can see it
@@ -2467,9 +2488,12 @@ function waveModal(eventId, waveId=null){
   const waveSales = waveSalesMap(ev);
   const remainingForTier = (tid)=>{
     const base = ev.tiers.find(x=>x.id===tid)?.baseCap ?? 0;
-    const soldTotal = tierSales[tid] || 0;
-    const soldInWave = editing ? (waveSales[editing.id]?.[tid] || 0) : 0;
-    return Math.max(base - (soldTotal - soldInWave), 0);
+    if(base <= 0) return null;
+    const usedByWaves = (ev.waves || []).reduce((sum, w)=>{
+      if(editing && w.id === editing.id) return sum;
+      return sum + (Number(w.qty?.[tid]) || 0);
+    }, 0);
+    return Math.max(base - usedByWaves, 0);
   };
   for(const t of ev.tiers){
     const active = editing?.tiersActive?.includes(t.id) || false;
@@ -2477,12 +2501,13 @@ function waveModal(eventId, waveId=null){
     const qtyVal = editing?.qty?.[t.id] ?? 0;
     const soldVal = (editing ? (waveSales[editing.id]?.[t.id] || 0) : 0);
     const maxQty = remainingForTier(t.id);
+    const maxAttr = (maxQty === null) ? "" : `max="${maxQty}"`;
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><b>${escapeHtml(t.name)}</b><div class="muted2 small">${escapeHtml(t.desc)}</div></td>
       <td><div class="input" style="padding:8px 10px"><input id="wPrice_${t.id}" type="number" min="0" value="${priceVal}" ${active?"":"disabled"}></div></td>
-      <td><div class="input" style="padding:8px 10px"><input id="wQty_${t.id}" type="number" min="0" max="${maxQty}" value="${qtyVal}" ${active?"":"disabled"}></div></td>
+      <td><div class="input" style="padding:8px 10px"><input id="wQty_${t.id}" type="number" min="0" ${maxAttr} value="${qtyVal}" ${active?"":"disabled"}></div></td>
       <td class="mono">${soldVal.toLocaleString('en-US')}</td>
     `;
     tbody.appendChild(tr);
