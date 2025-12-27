@@ -4300,7 +4300,8 @@ function deleteEventModal(eventId){
     desc:`Delete "${ev.name}"? This removes the entire workspace and its data.`,
     danger:true,
     actionLabel:"Delete event",
-    onConfirm: ()=>{
+    onConfirm: async ()=>{
+      await deleteEventFromFirebase(ev);
       data.events = data.events.filter(e=>e.id!==eventId);
       saveData();
       toast("Event deleted", ev.name);
@@ -4311,6 +4312,32 @@ function deleteEventModal(eventId){
       renderAll();
     }
   });
+}
+
+async function deleteEventFromFirebase(ev){
+  if(!window.__firebaseReady || !db || !deleteDoc || !getDocs) return;
+
+  const collections = [
+    publicEventStaffCol(ev.id),
+    publicEventInvitesCol(ev.id),
+    publicEventOrdersCol(ev.id),
+    publicEventScanLogsCol(ev.id)
+  ];
+
+  const deletions = [];
+
+  for(const colRef of collections){
+    try{
+      const snap = await getDocs(colRef);
+      snap.forEach((docSnap)=> deletions.push(deleteDoc(docSnap.ref)));
+    }catch(err){
+      console.warn("Failed to delete subcollection documents", err);
+    }
+  }
+
+  deletions.push(deleteDoc(publicEventRef(ev.id)));
+
+  await Promise.allSettled(deletions);
 }
 
 function duplicateEvent(eventId){
