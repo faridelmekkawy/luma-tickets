@@ -3026,12 +3026,8 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
     const r = /^https?:\/\//i.test(normalizedPath) || /^gs:\/\//i.test(normalizedPath)
       ? refFromURL(normalizedPath)
       : stRef(storage, normalizedPath);
-    const token = (crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`);
     await uploadBytes(r, blob, {
-      contentType,
-      customMetadata: {
-        firebaseStorageDownloadTokens: token
-      }
+      contentType
     });
     return await getDownloadURL(r);
   }catch(err){
