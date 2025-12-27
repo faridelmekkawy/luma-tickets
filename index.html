@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://firebasestorage.googleapis.com https://*.googleusercontent.com; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://firebasestorage.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app; frame-ancestors 'none'; base-uri 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://firebasestorage.googleapis.com https://*.googleusercontent.com; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://firebasestorage.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://www.gstatic.com; base-uri 'self'">
   <title>Luma Tickets — Owner Dashboard</title>
   <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1542,12 +1542,7 @@
                       <span id="ownerLogoFallback" class="muted2" style="font-size:11px">No logo</span>
                     </div>
                     <div class="col" style="gap:6px">
-                      <input id="ownerLogoFile" type="file" accept="image/*">
-                      <div class="row" style="gap:8px">
-                        <button class="btn sm" id="btnOwnerLogoUpload"><svg width="16" height="16"><use href="#i-upload"/></svg> Upload</button>
-                        <button class="btn sm ghost" id="btnOwnerLogoClear"><svg width="16" height="16"><use href="#i-trash"/></svg> Remove</button>
-                      </div>
-                      <div class="muted2 small">Stored in Firebase Storage and published in the event payload.</div>
+                      <div class="muted2 small">Upload or update this logo from the Design Studio.</div>
                     </div>
                   </div>
                 </div>

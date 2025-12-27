@@ -351,8 +351,7 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
   }
 
   try{
-    const res = await fetch(dataUrl);
-    const blob = await res.blob();
+    const blob = dataUrlToBlob(dataUrl);
     const contentType = blob.type || "image/jpeg";
 
     const normalizedPath = normalizeStoragePath(storagePath);
@@ -383,6 +382,28 @@ async function uploadDataUrlIfNeeded(dataUrl, storagePath){
     }catch(_e){}
     throw err;
   }
+}
+
+function dataUrlToBlob(dataUrl){
+  const parts = String(dataUrl).split(",");
+  if(parts.length < 2){
+    throw new Error("Invalid data URL");
+  }
+  const header = parts[0];
+  const data = parts.slice(1).join(",");
+  const isBase64 = /;base64/i.test(header);
+  const mime = header.match(/^data:([^;]+)/i)?.[1] || "application/octet-stream";
+
+  if(isBase64){
+    const binary = atob(data);
+    const bytes = new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++){
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new Blob([bytes], { type: mime });
+  }
+
+  return new Blob([decodeURIComponent(data)], { type: mime });
 }
 
 // Sync one event to /events/{eventId} so customer.html can see it
@@ -2467,9 +2488,12 @@ function waveModal(eventId, waveId=null){
   const waveSales = waveSalesMap(ev);
   const remainingForTier = (tid)=>{
     const base = ev.tiers.find(x=>x.id===tid)?.baseCap ?? 0;
-    const soldTotal = tierSales[tid] || 0;
-    const soldInWave = editing ? (waveSales[editing.id]?.[tid] || 0) : 0;
-    return Math.max(base - (soldTotal - soldInWave), 0);
+    if(base <= 0) return null;
+    const usedByWaves = (ev.waves || []).reduce((sum, w)=>{
+      if(editing && w.id === editing.id) return sum;
+      return sum + (Number(w.qty?.[tid]) || 0);
+    }, 0);
+    return Math.max(base - usedByWaves, 0);
   };
   for(const t of ev.tiers){
     const active = editing?.tiersActive?.includes(t.id) || false;
@@ -2477,12 +2501,13 @@ function waveModal(eventId, waveId=null){
     const qtyVal = editing?.qty?.[t.id] ?? 0;
     const soldVal = (editing ? (waveSales[editing.id]?.[t.id] || 0) : 0);
     const maxQty = remainingForTier(t.id);
+    const maxAttr = (maxQty === null) ? "" : `max="${maxQty}"`;
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><b>${escapeHtml(t.name)}</b><div class="muted2 small">${escapeHtml(t.desc)}</div></td>
       <td><div class="input" style="padding:8px 10px"><input id="wPrice_${t.id}" type="number" min="0" value="${priceVal}" ${active?"":"disabled"}></div></td>
-      <td><div class="input" style="padding:8px 10px"><input id="wQty_${t.id}" type="number" min="0" max="${maxQty}" value="${qtyVal}" ${active?"":"disabled"}></div></td>
+      <td><div class="input" style="padding:8px 10px"><input id="wQty_${t.id}" type="number" min="0" ${maxAttr} value="${qtyVal}" ${active?"":"disabled"}></div></td>
       <td class="mono">${soldVal.toLocaleString('en-US')}</td>
     `;
     tbody.appendChild(tr);
@@ -3338,7 +3363,7 @@ function renderEventSettings(ev){
   $("#setLocationText").value = ev.locationText || "";
   $("#setLocationUrl").value = ev.locationUrl || "";
 
-  const url = ev.ownerLogoUrl || "";
+  const url = ev.ownerLogoDataUrl || ev.design?.ownerLogoDataUrl || ev.ownerLogoUrl || "";
   const img = $("#ownerLogoPreview");
   const fb = $("#ownerLogoFallback");
   if(img){
@@ -3399,9 +3424,8 @@ function renderDesignStudio(ev){
 
   // file upload previews
   wireFileInput("#dsBanner", (dataUrl)=>{ ev.design.bannerDataUrl = dataUrl; ev.bannerDataUrl = dataUrl; saveData(); schedulePublicSync(ev, "design"); updatePreview(); toast("Banner updated","Preview updated."); });
-  wireFileInput("#dsLogo", (dataUrl)=>{ ev.design.logoDataUrl = dataUrl; ev.logoDataUrl = dataUrl; saveData(); schedulePublicSync(ev, "design");
-  wireFileInput("#dsOwnerLogo", (dataUrl)=>{ ev.design.ownerLogoDataUrl = dataUrl; ev.ownerLogoDataUrl = dataUrl; saveData(); schedulePublicSync(ev, "design"); updatePreview(); toast("Owner logo updated","Preview updated."); });
- updatePreview(); toast("Logo updated","Preview updated."); });
+  wireFileInput("#dsLogo", (dataUrl)=>{ ev.design.logoDataUrl = dataUrl; ev.logoDataUrl = dataUrl; saveData(); schedulePublicSync(ev, "design"); updatePreview(); toast("Logo updated","Preview updated."); });
+  wireFileInput("#dsOwnerLogo", (dataUrl)=>{ ev.design.ownerLogoDataUrl = dataUrl; ev.ownerLogoDataUrl = dataUrl; ev.ownerLogoUrl = ""; saveData(); schedulePublicSync(ev, "design"); updatePreview(); toast("Owner logo updated","Preview updated."); });
   wireFileInput("#dsBg", (dataUrl)=>{ ev.design.bgDataUrl = dataUrl; saveData(); schedulePublicSync(ev, "design"); updatePreview(); toast("Background updated","Preview updated."); });
 
   // preview mode buttons
@@ -4545,37 +4569,7 @@ on("#btnToggleSide","click", ()=>{
     }
   });
 
-  on("#btnOwnerLogoUpload","click", async ()=>{
-    const ev = currentEvent();
-    if(!ev || isReadOnly()) return;
-    const file = $("#ownerLogoFile")?.files?.[0];
-    if(!file){ toast("Missing file","Choose an image first."); return; }
-    try{
-      const dataUrl = await fileToDataUrl(file);
-      // upload (or store URL if already a URL)
-      const url = await uploadDataUrlIfNeeded(dataUrl, `publicEvents/${ev.id}/ownerLogo`);
-      ev.ownerLogoUrl = url;
-      addActivity(ev, "Branding updated", "Owner logo uploaded", "info");
-      saveData();
-      schedulePublicSync(ev, "owner-logo");
-      renderLinks(ev);
-      toast("Uploaded", "Owner logo uploaded.");
-    }catch(err){
-      console.error(err);
-      toast("Error", "Failed to upload owner logo.");
-    }
-  });
 
-  on("#btnOwnerLogoClear","click", async ()=>{
-    const ev = currentEvent();
-    if(!ev || isReadOnly()) return;
-    ev.ownerLogoUrl = "";
-    addActivity(ev, "Branding updated", "Owner logo removed", "warn");
-    saveData();
-    schedulePublicSync(ev, "owner-logo-clear");
-    renderLinks(ev);
-    toast("Removed", "Owner logo removed.");
-  });
 
 
 // global search
