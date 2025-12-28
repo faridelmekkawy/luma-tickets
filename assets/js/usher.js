@@ -493,12 +493,14 @@
         return;
       }
 
-      const preferred = cameras.find((camera) => /back|rear|environment/i.test(camera.label || "")) || cameras[0];
-      activeCameraId = activeCameraId || preferred?.id || cameras[0]?.id;
-      const activeCamera = cameras.find((camera) => camera.id === activeCameraId) || preferred;
-      debugState.cameraLabel = activeCamera?.label || "Camera";
+      const preferred = cameras.find((camera) => /back|rear|environment/i.test(camera.label || ""));
+      activeCameraId = activeCameraId || preferred?.id || null;
+      const activeCamera = activeCameraId
+        ? cameras.find((camera) => camera.id === activeCameraId)
+        : preferred;
+      debugState.cameraLabel = activeCamera?.label || "Back Camera";
       await html5QrCode.start(
-        { deviceId: { exact: activeCameraId } },
+        activeCameraId ? { deviceId: { exact: activeCameraId } } : { facingMode: "environment" },
         {
           fps: 30,
           qrbox: calcQrbox(),
