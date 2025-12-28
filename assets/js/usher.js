@@ -6,8 +6,6 @@
     getFirestore, doc, getDoc, collection, query, where, limit,
     getDocs, updateDoc, addDoc, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-  import QrScanner from "https://unpkg.com/qr-scanner@1.4.2/qr-scanner.min.js";
-
   /******************************************************************
    * 2) CONFIG — PASTE YOUR FIREBASE CONFIG HERE
    ******************************************************************/
@@ -447,16 +445,24 @@
   }
 
   /******************************************************************
-   * 7) QR SCANNING (qr-scanner)
+   * 7) QR SCANNING (html5-qrcode)
    ******************************************************************/
-  let qrScanner = null;
+  let html5QrCode = null;
+  let activeCameraId = null;
+
+  function calcQrbox(){
+    const el = $("qrRegion");
+    if(!el) return { width: 260, height: 260 };
+    const size = Math.floor(Math.min(el.clientWidth || 320, el.clientHeight || 320) * 0.72);
+    return { width: size, height: size };
+  }
 
   async function startScanner(){
-    if(qrScanner) return;
-    const videoEl = $("qrVideo");
-    if(!videoEl){
-      alert("Scanner video missing.");
-      debugState.lastError = "Video element missing";
+    if(html5QrCode) return;
+    const regionEl = $("qrRegion");
+    if(!regionEl){
+      alert("Scanner region missing.");
+      debugState.lastError = "Scanner region missing";
       updateDebugPanel();
       return;
     }
@@ -468,45 +474,18 @@
       return;
     }
 
-    QrScanner.WORKER_PATH = "https://unpkg.com/qr-scanner@1.4.2/qr-scanner-worker.min.js";
-    qrScanner = new QrScanner(
-      videoEl,
-      async (result) => {
-        if(state.verifying) return;
+    if(typeof Html5Qrcode === "undefined"){
+      setScanStatus("Scanner library not loaded yet.", true);
+      debugState.lastError = "html5-qrcode missing";
+      updateDebugPanel();
+      return;
+    }
 
-        const decodedText = typeof result === "string" ? result : result?.data;
-        debugState.lastRaw = decodedText || "—";
-        if(!decodedText) return;
-
-        const t = nowMs();
-        if(t - state.lastScanAt < 900) return;
-        state.lastScanAt = t;
-
-        const ticketId = parseTicketIdFromQR(decodedText);
-        debugState.lastTicketId = ticketId || "—";
-        debugState.lastError = ticketId ? "—" : "Could not parse ticketId";
-        updateDebugPanel();
-        if(!ticketId) return;
-
-        if(state.scannedTicketId) return;
-
-        state.scannedTicketId = ticketId;
-        setHint(false);
-        setVerifyCardVisible(true);
-        setDigitsUI();
-        await loadScanPreview(ticketId);
-      },
-      {
-        preferredCamera: "environment",
-        highlightScanRegion: true,
-        highlightCodeOutline: true,
-        maxScansPerSecond: 12
-      }
-    );
+    html5QrCode = new Html5Qrcode("qrRegion");
 
     try{
-      const hasCamera = await QrScanner.hasCamera();
-      if(!hasCamera){
+      const cameras = await Html5Qrcode.getCameras();
+      if(!cameras || !cameras.length){
         setScanStatus("No camera detected on this device.", true);
         debugState.lastError = "No camera detected";
         updateDebugPanel();
@@ -514,7 +493,40 @@
         return;
       }
 
-      await qrScanner.start();
+      const preferred = cameras.find((camera) => /back|rear|environment/i.test(camera.label || "")) || cameras[0];
+      activeCameraId = activeCameraId || preferred?.id || cameras[0]?.id;
+      const activeCamera = cameras.find((camera) => camera.id === activeCameraId) || preferred;
+      debugState.cameraLabel = activeCamera?.label || "Camera";
+      await html5QrCode.start(
+        { deviceId: { exact: activeCameraId } },
+        {
+          fps: 30,
+          qrbox: calcQrbox(),
+          experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+        },
+        async (decodedText) => {
+          if(state.verifying) return;
+          debugState.lastRaw = decodedText || "—";
+          if(!decodedText) return;
+
+          const t = nowMs();
+          if(t - state.lastScanAt < 900) return;
+          state.lastScanAt = t;
+
+          const ticketId = parseTicketIdFromQR(decodedText);
+          debugState.lastTicketId = ticketId || "—";
+          debugState.lastError = ticketId ? "—" : "Could not parse ticketId";
+          updateDebugPanel();
+          if(!ticketId) return;
+          if(state.scannedTicketId) return;
+
+          state.scannedTicketId = ticketId;
+          setHint(false);
+          setVerifyCardVisible(true);
+          setDigitsUI();
+          await loadScanPreview(ticketId);
+        }
+      );
       state.scanning = true;
       debugState.lastError = "—";
       setScanStatus("Scanning… hold the QR steady inside the frame.");
@@ -531,22 +543,22 @@
 
   async function stopScanner(){
     try{
-      if(qrScanner){
-        await qrScanner.stop();
-        qrScanner.destroy();
+      if(html5QrCode){
+        await html5QrCode.stop().catch(()=>{});
+        await html5QrCode.clear().catch(()=>{});
       }
     }catch(_e){}
-    qrScanner = null;
+    html5QrCode = null;
     state.scanning = false;
     updateDebugPanel();
   }
 
   async function populateCameraSelect(){
     const selectEl = $("cameraSelect");
-    if(!selectEl || !qrScanner) return;
+    if(!selectEl || !html5QrCode) return;
 
     try{
-      const cameras = await QrScanner.listCameras(true);
+      const cameras = await Html5Qrcode.getCameras();
       if(!cameras.length){
         selectEl.innerHTML = `<option value="">No camera available</option>`;
         selectEl.disabled = true;
@@ -566,7 +578,7 @@
       const preferred = cameras.find((camera) => /back|rear|environment/i.test(camera.label || "")) || cameras[0];
       if(preferred?.id){
         selectEl.value = preferred.id;
-        await qrScanner.setCamera(preferred.id);
+        activeCameraId = preferred.id;
         debugState.cameraLabel = preferred.label || `Camera ${cameras.indexOf(preferred) + 1}`;
       }
       updateDebugPanel();
@@ -774,11 +786,13 @@
   });
 
   $("cameraSelect").addEventListener("change", async (e)=>{
-    if(!qrScanner) return;
+    if(!html5QrCode) return;
     const cameraId = e.target.value;
     if(!cameraId) return;
     try{
-      await qrScanner.setCamera(cameraId);
+      activeCameraId = cameraId;
+      await stopScanner();
+      await startScanner();
       setScanStatus("Camera switched. Keep the QR steady.");
       debugState.cameraLabel = e.target.selectedOptions?.[0]?.textContent || "—";
       updateDebugPanel();

@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="../assets/css/usher.css">
 
   <!-- QR scanner (fast + battle-tested) -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
 </head>
 
 <body>
@@ -109,7 +110,7 @@
       <div class="cardBody">
         <div class="scanWrap">
           <div class="scanBox">
-            <video id="qrVideo" muted playsinline autoplay></video>
+            <div id="qrRegion"></div>
             <div class="scanHint" id="scanHint">
               <div class="big">Scan Dynamic QR</div>
               <div class="small">Point the camera at the QR. After scan, you will enter the last 4 digits manually.</div>
