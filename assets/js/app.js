@@ -158,8 +158,10 @@ function normalizeOrderDoc(id, o){
                  rawStatus ? rawStatus[0].toUpperCase()+rawStatus.slice(1) : "Paid";
 
   const amount = Number(o?.total ?? o?.amount ?? o?.price ?? 0) || 0;
-  const qty = Number(o?.qty ?? o?.quantity ?? o?.count ?? 1) || 1;
-  const unitPrice = Number(o?.unitPrice ?? (qty ? amount/qty : amount) ?? 0) || 0;
+  const ticketsArray = Array.isArray(o?.tickets) ? o.tickets : [];
+  const qtyFromTickets = ticketsArray.reduce((s,t)=>s+(Number(t?.quantity ?? t?.qty ?? 0) || 0),0);
+  const qtyRaw = Number(o?.qty ?? o?.quantity ?? o?.count ?? 0) || qtyFromTickets || 0;
+  const unitPrice = Number(o?.unitPrice ?? (qtyRaw ? amount/qtyRaw : amount) ?? 0) || 0;
   const customer = (o?.name || o?.Name || o?.customer || o?.customerName || o?.fullName || o?.buyerName || "").toString();
   const contact = {
     phone: (o?.phone || o?.Phone || o?.contact?.phone || o?.buyerPhone || "").toString(),
@@ -182,7 +184,15 @@ function normalizeOrderDoc(id, o){
         tierName: t.tierName || t.name || "",
         qty: Number(t.qty ?? t.quantity ?? 1) || 1
       }))
-    : (tierId ? [{ tierId, tierName: o?.tierName || o?.tier?.name || "", qty }] : []);
+    : (ticketsArray.length
+      ? ticketsArray.map(t=>({
+          tierId: t.tierId || t.id || "",
+          tierName: t.tierName || t.name || "",
+          qty: Number(t.quantity ?? t.qty ?? 1) || 1
+        }))
+      : (tierId ? [{ tierId, tierName: o?.tierName || o?.tier?.name || "", qty: qtyRaw || 1 }] : []));
+  const qtyFromTiers = tiers.reduce((s,t)=>s+(Number(t.qty)||0),0);
+  const qty = (qtyRaw && qtyRaw >= qtyFromTiers) ? qtyRaw : (qtyFromTiers || 1);
 
   return {
     id,
@@ -1632,7 +1642,8 @@ function enrichOrdersForEvent(ev, orders){
         qty: Number(it.qty || 1) || 1
       };
     });
-    const qty = o.qty || tiers.reduce((s,it)=>s+it.qty,0) || 1;
+    const qtyFromTiers = tiers.reduce((s,it)=>s+it.qty,0);
+    const qty = (Number(o.qty) && Number(o.qty) >= qtyFromTiers) ? Number(o.qty) : (qtyFromTiers || 1);
     return {
       ...o,
       qty,
@@ -1664,11 +1675,17 @@ function refreshEventFromOrders(ev, orders){
     const contact = o.contact || {};
     const items = (o.tiers && o.tiers.length) ? o.tiers : (o.tierId ? [{ tierId:o.tierId, tierName:o.tierName || "", qty:o.qty || 1 }] : []);
     const checkedIn = !!(o.checkedIn || o.checkedInAt);
+    const checkedInTicketId = o.checkedInTicketId || o.ticketId || "";
     const checkinTime = o.checkedInAt?.toDate?.() || (typeof o.checkedInAt === "string" ? new Date(o.checkedInAt) : null);
+    const checkinIso = (checkinTime && !isNaN(checkinTime.getTime())) ? checkinTime.toISOString() : "";
+    const totalQty = items.reduce((s,it)=>s+(Number(it.qty)||0),0);
+    const applyOrderCheckin = checkedIn && totalQty <= 1;
     for(const it of items){
       for(let i=0;i<(Number(it.qty)||1);i++){
         const id = o.ticketId || `${o.id}-${it.tierId || "tier"}-${i+1}`;
         const prev = existing.get(id);
+        const matchesTicket = checkedInTicketId && checkedInTicketId === id;
+        const shouldCheckIn = applyOrderCheckin || matchesTicket;
         attendees.push({
           id,
           name,
@@ -1677,10 +1694,10 @@ function refreshEventFromOrders(ev, orders){
           waveName: o.waveName || "",
           tierId: it.tierId || "",
           tierName: it.tierName || "",
-          status: checkedIn ? "Checked-in" : (prev?.status || "Not checked-in"),
-          checkinTime: checkedIn ? (checkinTime ? checkinTime.toISOString() : (o.checkedInAt || "")) : (prev?.checkinTime || ""),
-          gateId: checkedIn ? (o.checkedInGate || prev?.gateId || "") : (prev?.gateId || ""),
-          gateName: checkedIn ? (o.checkedInGate || prev?.gateName || "") : (prev?.gateName || ""),
+          status: shouldCheckIn ? "Checked-in" : (prev?.status || "Not checked-in"),
+          checkinTime: shouldCheckIn ? (checkinIso || (typeof o.checkedInAt === "string" ? o.checkedInAt : "")) : (prev?.checkinTime || ""),
+          gateId: shouldCheckIn ? (o.checkedInGate || prev?.gateId || "") : (prev?.gateId || ""),
+          gateName: shouldCheckIn ? (o.checkedInGate || prev?.gateName || "") : (prev?.gateName || ""),
           orderId: o.id || o.orderId || ""
         });
       }
@@ -2878,9 +2895,13 @@ function markCheckin(ev, attendeeId){
   saveData();
   schedulePublicSync(ev, "checkin");
   if(window.__firebaseReady && updateDoc && a.orderId){
+    const order = (ev.orders || []).find(o=>o.id===a.orderId || o.orderId===a.orderId);
+    const orderQty = order?.qty || order?.tiers?.reduce?.((s,it)=>s+(Number(it.qty)||0),0) || 1;
+    const singleTicket = orderQty <= 1;
     const ref = doc(db, "events", ev.id, "orders", a.orderId);
     updateDoc(ref, {
-      checkedIn: true,
+      ...(singleTicket ? { checkedIn: true } : {}),
+      checkedInTicketId: a.id || "",
       checkedInAt: serverTimestamp(),
       checkedInGate: a.gateName || "",
       checkedInBy: auth?.currentUser?.uid || "",
@@ -4906,14 +4927,16 @@ async function start(){
   }
 }
 
-window.addEventListener("error", ()=>{
+function handleGlobalError(){
+  if(auth?.currentUser || state.user){
+    toast("Something went wrong", "We hit a temporary error. Please refresh if something looks off.");
+    return;
+  }
   document.getElementById("auth")?.classList.remove("hidden");
   document.getElementById("dash")?.classList.add("hidden");
-});
-window.addEventListener("unhandledrejection", ()=>{
-  document.getElementById("auth")?.classList.remove("hidden");
-  document.getElementById("dash")?.classList.add("hidden");
-});
+}
+window.addEventListener("error", handleGlobalError);
+window.addEventListener("unhandledrejection", handleGlobalError);
 /* ---------- Misc buttons for hub/workspace ---------- */
 
 $("#btnCreateEvent2")?.addEventListener?.("click", ()=>{});
