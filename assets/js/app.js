@@ -158,7 +158,9 @@ function normalizeOrderDoc(id, o){
                  rawStatus ? rawStatus[0].toUpperCase()+rawStatus.slice(1) : "Paid";
 
   const amount = Number(o?.total ?? o?.amount ?? o?.price ?? 0) || 0;
-  const qtyRaw = Number(o?.qty ?? o?.quantity ?? o?.count ?? 0) || 0;
+  const ticketsArray = Array.isArray(o?.tickets) ? o.tickets : [];
+  const qtyFromTickets = ticketsArray.reduce((s,t)=>s+(Number(t?.quantity ?? t?.qty ?? 0) || 0),0);
+  const qtyRaw = Number(o?.qty ?? o?.quantity ?? o?.count ?? 0) || qtyFromTickets || 0;
   const unitPrice = Number(o?.unitPrice ?? (qtyRaw ? amount/qtyRaw : amount) ?? 0) || 0;
   const customer = (o?.name || o?.Name || o?.customer || o?.customerName || o?.fullName || o?.buyerName || "").toString();
   const contact = {
@@ -182,7 +184,13 @@ function normalizeOrderDoc(id, o){
         tierName: t.tierName || t.name || "",
         qty: Number(t.qty ?? t.quantity ?? 1) || 1
       }))
-    : (tierId ? [{ tierId, tierName: o?.tierName || o?.tier?.name || "", qty: qtyRaw || 1 }] : []);
+    : (ticketsArray.length
+      ? ticketsArray.map(t=>({
+          tierId: t.tierId || t.id || "",
+          tierName: t.tierName || t.name || "",
+          qty: Number(t.quantity ?? t.qty ?? 1) || 1
+        }))
+      : (tierId ? [{ tierId, tierName: o?.tierName || o?.tier?.name || "", qty: qtyRaw || 1 }] : []));
   const qtyFromTiers = tiers.reduce((s,t)=>s+(Number(t.qty)||0),0);
   const qty = (qtyRaw && qtyRaw >= qtyFromTiers) ? qtyRaw : (qtyFromTiers || 1);
 
