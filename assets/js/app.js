@@ -1669,6 +1669,7 @@ function refreshEventFromOrders(ev, orders){
     const checkedIn = !!(o.checkedIn || o.checkedInAt);
     const checkedInTicketId = o.checkedInTicketId || o.ticketId || "";
     const checkinTime = o.checkedInAt?.toDate?.() || (typeof o.checkedInAt === "string" ? new Date(o.checkedInAt) : null);
+    const checkinIso = (checkinTime && !isNaN(checkinTime.getTime())) ? checkinTime.toISOString() : "";
     const totalQty = items.reduce((s,it)=>s+(Number(it.qty)||0),0);
     const applyOrderCheckin = checkedIn && totalQty <= 1;
     for(const it of items){
@@ -1686,7 +1687,7 @@ function refreshEventFromOrders(ev, orders){
           tierId: it.tierId || "",
           tierName: it.tierName || "",
           status: shouldCheckIn ? "Checked-in" : (prev?.status || "Not checked-in"),
-          checkinTime: shouldCheckIn ? (checkinTime ? checkinTime.toISOString() : (o.checkedInAt || "")) : (prev?.checkinTime || ""),
+          checkinTime: shouldCheckIn ? (checkinIso || (typeof o.checkedInAt === "string" ? o.checkedInAt : "")) : (prev?.checkinTime || ""),
           gateId: shouldCheckIn ? (o.checkedInGate || prev?.gateId || "") : (prev?.gateId || ""),
           gateName: shouldCheckIn ? (o.checkedInGate || prev?.gateName || "") : (prev?.gateName || ""),
           orderId: o.id || o.orderId || ""
