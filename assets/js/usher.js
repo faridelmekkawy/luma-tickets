@@ -245,6 +245,16 @@
     return digits.slice(-4);
   }
 
+  function orderTicketCount(order){
+    if(!order) return 1;
+    const qtyRaw = Number(order?.qty ?? order?.quantity ?? order?.count ?? 0) || 0;
+    const tickets = Array.isArray(order?.tickets) ? order.tickets : [];
+    const tiers = Array.isArray(order?.tiers) ? order.tiers : [];
+    const qtyFromTickets = tickets.reduce((s,t)=>s+(Number(t?.quantity ?? t?.qty ?? 0) || 0),0);
+    const qtyFromTiers = tiers.reduce((s,t)=>s+(Number(t?.qty ?? t?.quantity ?? 0) || 0),0);
+    return qtyRaw || qtyFromTickets || qtyFromTiers || 1;
+  }
+
   async function writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome, reason}){
     // Recommended log collection for both approvals and failures
     try{
@@ -346,6 +356,9 @@
       }
 
       const order = orderSnap.data() || {};
+      const orderQty = orderTicketCount(order);
+      const checkedInTicketId = order.checkedInTicketId || order.ticketId || "";
+      const isOrderTicketChecked = checkedInTicketId && checkedInTicketId === ticketId;
 
       // Must be paid
       if(String(order.status || "").toLowerCase() !== "paid"){
@@ -356,7 +369,7 @@
       }
 
       // If order already checked in (double defense)
-      if(order.checkedIn === true || order.checkedInAt){
+      if(order.checkedIn === true || (order.checkedInAt && orderQty <= 1) || isOrderTicketChecked){
         const usedGate = order.checkedInGate || "Unknown gate";
         const usedTime = order.checkedInAt?.toDate?.() || null;
         await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"denied", reason:"Already checked-in"});
@@ -404,7 +417,8 @@
       });
 
       await updateDoc(orderRef, {
-        checkedIn: true,
+        ...(orderQty <= 1 ? { checkedIn: true } : {}),
+        checkedInTicketId: ticketId || "",
         checkedInAt: serverTimestamp(),
         checkedInGate: gateName,
         checkedInBy: staff?.id || "",
