@@ -517,6 +517,7 @@ async function syncEventToPublic(ev){
       desc: t.desc || "",
       capacity: Number(t.baseCap||t.capacity||0),
       color: t.color || "#2563eb",
+      inviteOnly: !!t.inviteOnly,
       rules: Array.isArray(t.rules) ? t.rules : (typeof t.rulesText==="string" ? t.rulesText.split(/\n+/).map(s=>s.trim()).filter(Boolean) : [])
     })) : [],
     waves: Array.isArray(ev.waves) ? ev.waves : [],
@@ -2193,9 +2194,10 @@ function renderTiers(ev){
     const cap = Number(t.baseCap || t.capacity || 0);
     const sold = sales[t.id] || 0;
     const remaining = cap ? Math.max(cap - sold, 0) : 0;
+    const inviteChip = t.inviteOnly ? ` <span class="chip warn">Invite only</span>` : "";
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><b>${escapeHtml(t.name)}</b></td>
+      <td><b>${escapeHtml(t.name)}</b>${inviteChip}</td>
       <td class="muted">${escapeHtml(t.desc)}</td>
       <td class="mono">${cap.toLocaleString('en-US')}</td>
       <td class="mono">${sold.toLocaleString('en-US')}</td>
@@ -2251,6 +2253,14 @@ function tierModal(eventId, tierId=null){
           <div class="input"><textarea id="mTierRules" rows="4" placeholder="e.g.&#10;• ID required&#10;• No re-entry&#10;• Doors close at 1:00 AM">${escapeHtml((Array.isArray(editing?.rules)? editing.rules.join("\n") : (editing?.rulesText||"")))}</textarea></div>
           <div class="muted2 small">These appear as bullet points in ticket view + receipt.</div>
         </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Availability</label>
+          <label class="chip" style="cursor:pointer;display:inline-flex;gap:8px;align-items:center">
+            <input type="checkbox" id="mTierInviteOnly" ${editing?.inviteOnly ? "checked" : ""} style="accent-color: var(--brand)">
+            Invitation-only (not sold in waves)
+          </label>
+          <div class="muted2 small">Use this for VIP or comped tiers that should only be issued via invite.</div>
+        </div>
       </div>
     `,
     footButtons: [
@@ -2262,20 +2272,32 @@ function tierModal(eventId, tierId=null){
         const color = ($("#mTierColor")?.value || "#2563eb").trim();
         const rulesText = $("#mTierRules")?.value || "";
         const rules = rulesText.split(/\n+/).map(s=>s.trim().replace(/^[-•\s]+/,"")).filter(Boolean);
+        const inviteOnly = !!$("#mTierInviteOnly")?.checked;
         if(!name){ toast("Missing name","Please enter a tier name."); return; }
 
+        let tierId = "";
         if(editing){
           editing.name = name;
           editing.baseCap = cap;
           editing.desc = desc;
           editing.color = color;
           editing.rules = rules;
+          editing.inviteOnly = inviteOnly;
+          tierId = editing.id;
           addActivity(ev, "Ticketing updated", `Tier edited — ${name}`, "info");
         }else{
-          const id = uid("T-");
-          ev.tiers.push({id, name, desc, baseCap:cap, color, rules});
+          tierId = uid("T-");
+          ev.tiers.push({id: tierId, name, desc, baseCap:cap, color, rules, inviteOnly});
           // make it available for pricing in waves later (no automatic activation)
           addActivity(ev, "Ticketing updated", `Tier added — ${name}`, "info");
+        }
+        if(inviteOnly){
+          for(const w of (ev.waves || [])){
+            w.tiersActive = (w.tiersActive || []).filter(x=>x!==tierId);
+            if(w.pricing) delete w.pricing[tierId];
+            if(w.qty) delete w.qty[tierId];
+            if(w.sold) delete w.sold[tierId];
+          }
         }
         saveData();
         schedulePublicSync(ev, "ticketing");
@@ -2383,7 +2405,8 @@ function waveModal(eventId, waveId=null){
   const nextIndex = ev.waves.length + (editing ? 0 : 1);
   const defaultName = editing?.name || `Wave ${nextIndex}`;
 
-  const tierOptions = ev.tiers.map(t=>{
+  const sellableTiers = ev.tiers.filter(t=>!t.inviteOnly);
+  const tierOptions = sellableTiers.map(t=>{
     const checked = editing?.tiersActive?.includes(t.id) ? "checked" : "";
     return `
       <label class="chip" style="cursor:pointer">
@@ -2391,6 +2414,9 @@ function waveModal(eventId, waveId=null){
         ${escapeHtml(t.name)}
       </label>`;
   }).join(" ");
+  const tierOptionsFallback = ev.tiers.length
+    ? `<span class="muted small">All tiers are invitation-only.</span>`
+    : `<span class="muted small">Create tiers first.</span>`;
 
   // pricing rows placeholder (rendered after modal opens)
   openModal({
@@ -2416,7 +2442,7 @@ function waveModal(eventId, waveId=null){
         </div>
         <div class="field" style="grid-column:1/-1">
           <label>Active tiers in this wave</label>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">${tierOptions || `<span class="muted small">Create tiers first.</span>`}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">${tierOptions || tierOptionsFallback}</div>
         </div>
       </div>
 
@@ -2513,6 +2539,7 @@ function waveModal(eventId, waveId=null){
     return Math.max(base - usedByWaves, 0);
   };
   for(const t of ev.tiers){
+    if(t.inviteOnly) continue;
     const active = editing?.tiersActive?.includes(t.id) || false;
     const priceVal = editing?.pricing?.[t.id] ?? 0;
     const qtyVal = editing?.qty?.[t.id] ?? 0;
