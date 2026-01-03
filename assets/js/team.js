@@ -74,7 +74,6 @@ function showPanel(role){
     $("panelViewer").classList.remove("hidden");
     $("panelFinance").classList.remove("hidden");
     $("panelOps").classList.remove("hidden");
-    $("panelDesign").classList.remove("hidden");
   }
   if(role === "Ops Manager") $("panelOps").classList.remove("hidden");
   if(role === "Design") $("panelDesign").classList.remove("hidden");
@@ -237,6 +236,9 @@ async function staffLogin(eventId, username, pin){
   if(staff.pin !== pin) throw new Error("Incorrect PIN.");
   if(staff.role === "Usher" || staff.role === "Manual Desk"){
     throw new Error("Use the usher or manual desk link for this role.");
+  }
+  if(staff.role === "Design"){
+    throw new Error("Design access is restricted to owners.");
   }
   return staff;
 }
