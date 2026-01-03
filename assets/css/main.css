@@ -439,6 +439,11 @@
     .kpi .label{font-size:11px;color:var(--muted2)}
     .kpi .value{font-size:20px;font-weight:800;letter-spacing:.2px}
     .kpi .sub{font-size:11px;color:var(--muted)}
+    .kpiGrid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+      gap:10px;
+    }
     .badge{
       display:inline-flex;align-items:center;gap:8px;
       padding:7px 10px;border-radius:999px;
@@ -453,6 +458,29 @@
     .badge.warn{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.10);color:#92400e}
     .badge.danger{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#991b1b}
     .badge.info{border-color:rgba(37,99,235,.35);background:rgba(37,99,235,.10);color:#1e3a8a}
+
+    body.embed-design .sidebar,
+    body.embed-design .topbar,
+    body.embed-design #subTabs,
+    body.embed-design #btnBackHub,
+    body.embed-design #btnTopEventSettings,
+    body.embed-design #btnEditEvent,
+    body.embed-design #btnDuplicateEvent,
+    body.embed-design #btnDeleteEvent,
+    body.embed-design #tab-overview,
+    body.embed-design #tab-ticketing,
+    body.embed-design #tab-orders,
+    body.embed-design #tab-customers,
+    body.embed-design #tab-staff,
+    body.embed-design #tab-analytics,
+    body.embed-design #tab-incidents,
+    body.embed-design #tab-links,
+    body.embed-design #tab-settings{
+      display:none !important;
+    }
+    body.embed-design #tab-design{
+      display:block !important;
+    }
 
     .btn{
       display:inline-flex;align-items:center;justify-content:center;gap:10px;
@@ -735,6 +763,11 @@
       border-radius:10px;
       font-size:11px;
     }
+    .rowActions.compact.tight .btn.sm{
+      padding:4px 6px;
+      border-radius:9px;
+      font-size:10px;
+    }
     .chip{
       display:inline-flex;align-items:center;gap:8px;
       padding:6px 10px;border-radius:999px;
@@ -781,6 +814,7 @@
     .drawerHead p{margin:6px 0 0;color:var(--muted);font-size:12px}
     .drawerBody{overflow:auto;padding-right:2px}
     .kv{display:grid;grid-template-columns: 1fr 1.2fr; gap:10px; margin:10px 0}
+    .kvList{display:grid;gap:10px}
     .kv div{
       padding:10px;border-radius:14px;border:1px solid var(--stroke);
       background:var(--panel2);

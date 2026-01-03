@@ -218,6 +218,48 @@ function normalizeOrderDoc(id, o){
   };
 }
 
+function normalizeInviteDoc(id, invite){
+  const createdTs = invite?.createdAt;
+  let createdDate = null;
+  try{
+    if(createdTs?.toDate) createdDate = createdTs.toDate();
+    else if(typeof createdTs === "string") createdDate = new Date(createdTs);
+    else if(typeof createdTs?.seconds === "number") createdDate = new Date(createdTs.seconds*1000);
+  }catch(_){}
+  const createdAt = (createdDate && !isNaN(createdDate.getTime())) ? createdDate.toISOString() : (invite?.createdAt || new Date().toISOString());
+
+  const checkinTs = invite?.checkedInAt || invite?.redeemedAt;
+  let checkinDate = null;
+  try{
+    if(checkinTs?.toDate) checkinDate = checkinTs.toDate();
+    else if(typeof checkinTs === "string") checkinDate = new Date(checkinTs);
+    else if(typeof checkinTs?.seconds === "number") checkinDate = new Date(checkinTs.seconds*1000);
+  }catch(_){}
+  const checkinAt = (checkinDate && !isNaN(checkinDate.getTime())) ? checkinDate.toISOString() : (invite?.checkedInAt || invite?.redeemedAt || "");
+
+  const statusRaw = (invite?.status || "").toString().trim().toLowerCase();
+  const hasCheckin = !!(invite?.checkedInAt || invite?.redeemedAt);
+  const status = (statusRaw === "redeemed" || hasCheckin) ? "Checked-in" : "Not checked-in";
+
+  const recipient = invite?.recipient || {};
+  return {
+    id: id || invite?.inviteToken || "",
+    inviteToken: invite?.inviteToken || id || "",
+    createdAt,
+    status,
+    tierId: invite?.tierId || "",
+    name: recipient?.name || invite?.name || "",
+    contact: {
+      phone: recipient?.phone || invite?.phone || "",
+      email: recipient?.email || invite?.email || ""
+    },
+    checkinAt,
+    checkinGate: invite?.checkedInGate || invite?.redeemedGate || "",
+    checkedInBy: invite?.checkedInBy || invite?.redeemedBy || "",
+    checkedInByUsername: invite?.checkedInByUsername || invite?.redeemedByUsername || ""
+  };
+}
+
 function normalizeScanLogDoc(id, log){
   const ts = log?.createdAt;
   let dt = null;
@@ -252,6 +294,8 @@ function normalizeScanLogDoc(id, log){
 async function hydrateAllOrders(){
   state.ordersByEvent = state.ordersByEvent || {};
   state.ordersUnsubs = state.ordersUnsubs || {};
+  state.invitesByEvent = state.invitesByEvent || {};
+  state.invitesUnsubs = state.invitesUnsubs || {};
 
   if(!db) return;
   const evs = data?.events || [];
@@ -259,6 +303,7 @@ async function hydrateAllOrders(){
     if(!ev?.id) return;
     await ensureOrdersListener(ev.id);
     await ensureScanLogsListener(ev.id);
+    await ensureInvitesListener(ev.id);
   }));
 }
 
@@ -280,7 +325,7 @@ async function ensureOrdersListener(eventId){
 
       // Mirror into data.events for existing UI helpers
       const ev = (data?.events||[]).find(x=>x.id===eventId);
-      if(ev) refreshEventFromOrders(ev, list);
+      if(ev) refreshEventFromOrders(ev, list, state.invitesByEvent?.[eventId] || []);
 
       // Light refresh if user is on analytics or inside this event
       if(state.route==="analytics" || (state.route==="event" && state.activeEventId===eventId)){
@@ -335,6 +380,43 @@ async function ensureScanLogsListener(eventId){
     state.scanLogsUnsubs[eventId] = unsub;
   }catch(err){
     console.warn("[ScanLogs] could not attach listener", eventId, err);
+  }
+}
+
+async function ensureInvitesListener(eventId){
+  if(!window.__firebaseReady || typeof onSnapshot !== "function"){
+    console.warn("[Invites] Firebase not ready; skipping realtime listener.");
+    return;
+  }
+
+  if(state.invitesUnsubs?.[eventId]) return;
+  try{
+    const col = publicEventInvitesCol(eventId);
+    const unsub = onSnapshot(col, (snap)=>{
+      const list = snap.docs.map(d=> normalizeInviteDoc(d.id, d.data()));
+      list.sort((a,b)=> (b.createdAt||"").localeCompare(a.createdAt||""));
+      state.invitesByEvent[eventId] = list;
+
+      const ev = (data?.events||[]).find(x=>x.id===eventId);
+      if(ev){
+        refreshEventFromOrders(ev, state.ordersByEvent?.[eventId] || ev.orders || [], list);
+      }
+
+      if(state.route==="analytics" || (state.route==="event" && state.activeEventId===eventId)){
+        try{ renderAll(); }catch(e){ console.warn(e); }
+      }
+      if(state.route==="hub"){
+        try{ renderHub(); }catch(e){ console.warn(e); }
+      }
+      if(state.route==="notifications"){
+        try{ renderAttentionPage(); }catch(e){ console.warn(e); }
+      }
+    }, (err)=>{
+      console.warn("[Invites listener] failed:", err);
+    });
+    state.invitesUnsubs[eventId] = unsub;
+  }catch(err){
+    console.warn("[Invites] could not attach listener", eventId, err);
   }
 }
 
@@ -517,6 +599,7 @@ async function syncEventToPublic(ev){
       desc: t.desc || "",
       capacity: Number(t.baseCap||t.capacity||0),
       color: t.color || "#2563eb",
+      inviteOnly: !!t.inviteOnly,
       rules: Array.isArray(t.rules) ? t.rules : (typeof t.rulesText==="string" ? t.rulesText.split(/\n+/).map(s=>s.trim()).filter(Boolean) : [])
     })) : [],
     waves: Array.isArray(ev.waves) ? ev.waves : [],
@@ -656,6 +739,8 @@ function loadNavState(uid){
 
 const ROLES = ["Usher","Manual Desk","Finance","Design","Viewer","Ops Manager"];
 
+const embedMode = new URLSearchParams(location.search).get("embed") || "";
+
 let state = {
   uiWired: false,
   user: null,
@@ -667,7 +752,10 @@ let state = {
   simulateOn: false,
   designPreview: { mode:"mobile" },
   scanLogsByEvent: {},
-  scanLogsUnsubs: {}
+  scanLogsUnsubs: {},
+  invitesByEvent: {},
+  invitesUnsubs: {},
+  embedMode
 };
 
 /* ---------- Data ---------- */
@@ -1654,7 +1742,7 @@ function enrichOrdersForEvent(ev, orders){
   });
 }
 
-function refreshEventFromOrders(ev, orders){
+function refreshEventFromOrders(ev, orders, invites=null){
   if(!ev) return;
   const enriched = enrichOrdersForEvent(ev, orders || ev.orders || []);
   ev.orders = enriched;
@@ -1702,6 +1790,28 @@ function refreshEventFromOrders(ev, orders){
         });
       }
     }
+  }
+  const inviteList = Array.isArray(invites) ? invites : (state.invitesByEvent?.[ev.id] || []);
+  for(const inv of inviteList){
+    const inviteId = `invite:${inv.inviteToken || inv.id}`;
+    if(existing.has(inviteId)) continue;
+    const tierName = ev.tiers.find(t=>t.id===inv.tierId)?.name || inv.tierId || "—";
+    const checkedIn = !!(inv.checkinAt || inv.status==="Checked-in");
+    attendees.push({
+      id: inviteId,
+      inviteToken: inv.inviteToken || inv.id || "",
+      name: inv.name || "—",
+      contact: inv.contact || {},
+      waveId: "invite",
+      waveName: "Invite",
+      tierId: inv.tierId || "",
+      tierName,
+      status: checkedIn ? "Checked-in" : "Not checked-in",
+      checkinTime: checkedIn ? (inv.checkinAt || "") : "",
+      gateId: "",
+      gateName: checkedIn ? (inv.checkinGate || "") : "",
+      orderId: ""
+    });
   }
   ev.attendees = attendees;
 }
@@ -1950,7 +2060,11 @@ function renderEventWorkspace(){
     return;
   } // <--- Ensure this brace correctly closes the IF block
 
-  refreshEventFromOrders(ev);
+  refreshEventFromOrders(ev, state.ordersByEvent?.[ev.id] || ev.orders || [], state.invitesByEvent?.[ev.id] || []);
+  if(state.embedMode === "design"){
+    state.activeTab = "design";
+    document.body.classList.add("embed-design");
+  }
   $$("#subTabs .subTab").forEach(b=>b.classList.toggle("active", b.dataset.tab===state.activeTab));
   if(!state.activeTab) state.activeTab = "overview";
   switchTab(state.activeTab);
@@ -2042,6 +2156,7 @@ function renderEventWorkspace(){
   // customers
   renderAttendeeFilters(ev);
   renderAttendeesTable(ev);
+  renderInviteTierKpis(ev);
 
   // staff & gates
   renderGates(ev);
@@ -2062,6 +2177,9 @@ function renderEventWorkspace(){
 }
 
 function switchTab(tab){
+  if(state.embedMode === "design" && tab !== "design"){
+    tab = "design";
+  }
   state.activeTab = tab;
   const tabs = ["overview","ticketing","orders","customers","staff","design","analytics","incidents","links","settings"];
   for(const t of tabs){
@@ -2193,9 +2311,10 @@ function renderTiers(ev){
     const cap = Number(t.baseCap || t.capacity || 0);
     const sold = sales[t.id] || 0;
     const remaining = cap ? Math.max(cap - sold, 0) : 0;
+    const inviteChip = t.inviteOnly ? ` <span class="chip warn">Invite only</span>` : "";
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><b>${escapeHtml(t.name)}</b></td>
+      <td><b>${escapeHtml(t.name)}</b>${inviteChip}</td>
       <td class="muted">${escapeHtml(t.desc)}</td>
       <td class="mono">${cap.toLocaleString('en-US')}</td>
       <td class="mono">${sold.toLocaleString('en-US')}</td>
@@ -2251,6 +2370,14 @@ function tierModal(eventId, tierId=null){
           <div class="input"><textarea id="mTierRules" rows="4" placeholder="e.g.&#10;• ID required&#10;• No re-entry&#10;• Doors close at 1:00 AM">${escapeHtml((Array.isArray(editing?.rules)? editing.rules.join("\n") : (editing?.rulesText||"")))}</textarea></div>
           <div class="muted2 small">These appear as bullet points in ticket view + receipt.</div>
         </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Availability</label>
+          <label class="chip" style="cursor:pointer;display:inline-flex;gap:8px;align-items:center">
+            <input type="checkbox" id="mTierInviteOnly" ${editing?.inviteOnly ? "checked" : ""} style="accent-color: var(--brand)">
+            Invitation-only (not sold in waves)
+          </label>
+          <div class="muted2 small">Use this for VIP or comped tiers that should only be issued via invite.</div>
+        </div>
       </div>
     `,
     footButtons: [
@@ -2262,20 +2389,32 @@ function tierModal(eventId, tierId=null){
         const color = ($("#mTierColor")?.value || "#2563eb").trim();
         const rulesText = $("#mTierRules")?.value || "";
         const rules = rulesText.split(/\n+/).map(s=>s.trim().replace(/^[-•\s]+/,"")).filter(Boolean);
+        const inviteOnly = !!$("#mTierInviteOnly")?.checked;
         if(!name){ toast("Missing name","Please enter a tier name."); return; }
 
+        let tierId = "";
         if(editing){
           editing.name = name;
           editing.baseCap = cap;
           editing.desc = desc;
           editing.color = color;
           editing.rules = rules;
+          editing.inviteOnly = inviteOnly;
+          tierId = editing.id;
           addActivity(ev, "Ticketing updated", `Tier edited — ${name}`, "info");
         }else{
-          const id = uid("T-");
-          ev.tiers.push({id, name, desc, baseCap:cap, color, rules});
+          tierId = uid("T-");
+          ev.tiers.push({id: tierId, name, desc, baseCap:cap, color, rules, inviteOnly});
           // make it available for pricing in waves later (no automatic activation)
           addActivity(ev, "Ticketing updated", `Tier added — ${name}`, "info");
+        }
+        if(inviteOnly){
+          for(const w of (ev.waves || [])){
+            w.tiersActive = (w.tiersActive || []).filter(x=>x!==tierId);
+            if(w.pricing) delete w.pricing[tierId];
+            if(w.qty) delete w.qty[tierId];
+            if(w.sold) delete w.sold[tierId];
+          }
         }
         saveData();
         schedulePublicSync(ev, "ticketing");
@@ -2383,7 +2522,8 @@ function waveModal(eventId, waveId=null){
   const nextIndex = ev.waves.length + (editing ? 0 : 1);
   const defaultName = editing?.name || `Wave ${nextIndex}`;
 
-  const tierOptions = ev.tiers.map(t=>{
+  const sellableTiers = ev.tiers.filter(t=>!t.inviteOnly);
+  const tierOptions = sellableTiers.map(t=>{
     const checked = editing?.tiersActive?.includes(t.id) ? "checked" : "";
     return `
       <label class="chip" style="cursor:pointer">
@@ -2391,6 +2531,9 @@ function waveModal(eventId, waveId=null){
         ${escapeHtml(t.name)}
       </label>`;
   }).join(" ");
+  const tierOptionsFallback = ev.tiers.length
+    ? `<span class="muted small">All tiers are invitation-only.</span>`
+    : `<span class="muted small">Create tiers first.</span>`;
 
   // pricing rows placeholder (rendered after modal opens)
   openModal({
@@ -2416,7 +2559,7 @@ function waveModal(eventId, waveId=null){
         </div>
         <div class="field" style="grid-column:1/-1">
           <label>Active tiers in this wave</label>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">${tierOptions || `<span class="muted small">Create tiers first.</span>`}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">${tierOptions || tierOptionsFallback}</div>
         </div>
       </div>
 
@@ -2513,6 +2656,7 @@ function waveModal(eventId, waveId=null){
     return Math.max(base - usedByWaves, 0);
   };
   for(const t of ev.tiers){
+    if(t.inviteOnly) continue;
     const active = editing?.tiersActive?.includes(t.id) || false;
     const priceVal = editing?.pricing?.[t.id] ?? 0;
     const qtyVal = editing?.qty?.[t.id] ?? 0;
@@ -2568,7 +2712,8 @@ function renderOrdersFilters(ev){
   const waveSel = $("#ordWave");
   const tierSel = $("#ordTier");
   if(waveSel.options.length===0){
-    waveSel.innerHTML = `<option value="">All</option>` + ev.waves.map(w=>`<option value="${w.id}">${escapeHtml(w.name)}</option>`).join("");
+    const inviteOption = (state.invitesByEvent?.[ev.id] || []).length ? `<option value="invite">Invite</option>` : "";
+    waveSel.innerHTML = `<option value="">All</option>` + inviteOption + ev.waves.map(w=>`<option value="${w.id}">${escapeHtml(w.name)}</option>`).join("");
   }
   if(tierSel.options.length===0){
     tierSel.innerHTML = `<option value="">All</option>` + ev.tiers.map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join("");
@@ -2808,6 +2953,15 @@ function renderAttendeeFilters(ev){
   if(waveSel.options.length===0){
     waveSel.innerHTML = `<option value="">All</option>` + ev.waves.map(w=>`<option value="${w.id}">${escapeHtml(w.name)}</option>`).join("");
   }
+  if((state.invitesByEvent?.[ev.id] || []).length){
+    const hasInvite = Array.from(waveSel.options).some(opt=>opt.value === "invite");
+    if(!hasInvite){
+      const opt = document.createElement("option");
+      opt.value = "invite";
+      opt.textContent = "Invite";
+      waveSel.appendChild(opt);
+    }
+  }
   if(tierSel.options.length===0){
     tierSel.innerHTML = `<option value="">All</option>` + ev.tiers.map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join("");
   }
@@ -2831,8 +2985,7 @@ function renderAttendeesTable(ev){
     list = list.filter(a =>
       (a.name||"").toLowerCase().includes(q) ||
       (a.contact?.phone||"").toLowerCase().includes(q) ||
-      (a.contact?.email||"").toLowerCase().includes(q) ||
-      (a.id||"").toLowerCase().includes(q)
+      (a.contact?.email||"").toLowerCase().includes(q)
     );
   }
 
@@ -2854,7 +3007,7 @@ function renderAttendeesTable(ev){
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><b>${escapeHtml(a.name)}</b><div class="muted2 small mono">${escapeHtml(a.id)}</div></td>
+      <td><b>${escapeHtml(a.name)}</b></td>
       <td class="muted">
         <div>${escapeHtml(a.contact?.phone || "—")}</div>
         <div class="muted2 small">${escapeHtml(a.contact?.email || "—")}</div>
@@ -2881,6 +3034,45 @@ function renderAttendeesTable(ev){
   }
 }
 
+function renderInviteTierKpis(ev){
+  const wrap = $("#inviteTierKpis");
+  if(!wrap) return;
+  const invites = state.invitesByEvent?.[ev.id] || [];
+  const counts = new Map();
+  for(const t of (ev.tiers || [])){
+    counts.set(t.id, 0);
+  }
+  for(const inv of invites){
+    if(!inv.tierId) continue;
+    counts.set(inv.tierId, (counts.get(inv.tierId) || 0) + 1);
+  }
+  const total = invites.length;
+  const cards = (ev.tiers || []).map(t=>{
+    const count = counts.get(t.id) || 0;
+    return `
+      <div class="kpi">
+        <div class="label">${escapeHtml(t.name)}</div>
+        <div class="value">${count.toLocaleString("en-US")}</div>
+        <div class="sub">Invites</div>
+      </div>
+    `;
+  }).join("") || `<div class="muted small">No tiers yet.</div>`;
+
+  wrap.innerHTML = `
+    <div class="card" style="box-shadow:none">
+      <div class="cardHead" style="padding-bottom:0">
+        <div>
+          <h3 style="font-size:13px;margin:0">Invites by tier</h3>
+          <p class="muted small" style="margin-top:6px">Total invites: ${total.toLocaleString("en-US")}</p>
+        </div>
+      </div>
+      <div class="cardBody">
+        <div class="kpiGrid">${cards}</div>
+      </div>
+    </div>
+  `;
+}
+
 function markCheckin(ev, attendeeId){
   const a = ev.attendees.find(x=>x.id===attendeeId);
   if(!a || a.status==="Checked-in") return;
@@ -2894,7 +3086,16 @@ function markCheckin(ev, attendeeId){
 
   saveData();
   schedulePublicSync(ev, "checkin");
-  if(window.__firebaseReady && updateDoc && a.orderId){
+  if(window.__firebaseReady && updateDoc && a.inviteToken){
+    const inviteRef = doc(db, "events", ev.id, "invites", a.inviteToken);
+    updateDoc(inviteRef, {
+      status: "redeemed",
+      checkedInAt: serverTimestamp(),
+      checkedInGate: a.gateName || "",
+      checkedInBy: auth?.currentUser?.uid || "",
+      checkedInByUsername: state.user?.name || state.user?.email || ""
+    }).catch(()=>{});
+  }else if(window.__firebaseReady && updateDoc && a.orderId){
     const order = (ev.orders || []).find(o=>o.id===a.orderId || o.orderId===a.orderId);
     const orderQty = order?.qty || order?.tiers?.reduce?.((s,it)=>s+(Number(it.qty)||0),0) || 1;
     const singleTicket = orderQty <= 1;
@@ -3033,29 +3234,15 @@ function renderStaff(ev){
       <td class="muted2">${escapeHtml(gateName)}</td>
       <td>${stChip}</td>
       <td>
-        <div class="rowActions compact">
-          <button class="btn sm" data-a="edit"><svg width="14" height="14"><use href="#i-edit"/></svg> Edit</button>
-          <button class="btn sm" data-a="pin"><svg width="14" height="14"><use href="#i-lock"/></svg> Reset PIN</button>
-          <button class="btn sm" data-a="disable">${s.disabled ? "Enable" : "Disable"}</button>
-          <button class="btn sm" data-a="gate">Reassign gate</button>
-          <button class="btn sm danger" data-a="del"><svg width="14" height="14"><use href="#i-trash"/></svg> Delete</button>
+        <div class="rowActions">
+          <button class="btn sm" data-a="manage"><svg width="14" height="14"><use href="#i-edit"/></svg> Manage</button>
         </div>
       </td>
     `;
 
-    const editBtn = tr.querySelector('[data-a="edit"]');
-    const pinBtn = tr.querySelector('[data-a="pin"]');
-    const disBtn = tr.querySelector('[data-a="disable"]');
-    const gateBtn = tr.querySelector('[data-a="gate"]');
-    const delBtn = tr.querySelector('[data-a="del"]');
-
-    [editBtn,pinBtn,disBtn,gateBtn,delBtn].forEach(lockIfReadOnly);
-
-    editBtn.addEventListener("click", ()=> staffModal(ev.id, s.id));
-    pinBtn.addEventListener("click", ()=> resetPinModal(ev.id, s.id));
-    disBtn.addEventListener("click", ()=> toggleStaffModal(ev.id, s.id));
-    gateBtn.addEventListener("click", ()=> reassignGateModal(ev.id, s.id));
-    delBtn.addEventListener("click", ()=> deleteStaffModal(ev.id, s.id));
+    const manageBtn = tr.querySelector('[data-a="manage"]');
+    lockIfReadOnly(manageBtn);
+    manageBtn.addEventListener("click", ()=> staffActionsModal(ev.id, s.id));
 
     body.appendChild(tr);
   }
@@ -3065,6 +3252,50 @@ function renderStaff(ev){
       <div class="hint"><b>No staff yet</b>. Add ushers, manual desk, finance, design, or viewers.</div>
     </td></tr>`;
   }
+}
+
+function staffActionsModal(eventId, staffId){
+  const ev = data.events.find(e=>e.id===eventId);
+  const s = ev?.staff.find(x=>x.id===staffId);
+  if(!ev || !s) return;
+  const gateName = s.gate ? (ev.gates.find(g=>g.id===s.gate)?.name || "—") : "—";
+
+  openModal({
+    title: `${s.full}`,
+    desc: `Manage staff access for ${s.username}.`,
+    bodyHtml: `
+      <div class="kvList">
+        <div class="kv"><span>Role</span><b>${escapeHtml(s.role)}</b></div>
+        <div class="kv"><span>Username</span><b class="mono">${escapeHtml(s.username)}</b></div>
+        <div class="kv"><span>Gate</span><b>${escapeHtml(gateName)}</b></div>
+        <div class="kv"><span>Status</span><b>${s.disabled ? "Disabled" : "Active"}</b></div>
+      </div>
+      <div class="hr"></div>
+      <div class="rowActions">
+        <button class="btn sm" id="staffEdit"><svg width="14" height="14"><use href="#i-edit"/></svg> Edit</button>
+        <button class="btn sm" id="staffPin"><svg width="14" height="14"><use href="#i-lock"/></svg> Reset PIN</button>
+        <button class="btn sm" id="staffDisable">${s.disabled ? "Enable" : "Disable"}</button>
+        <button class="btn sm" id="staffGate">Reassign gate</button>
+        <button class="btn sm danger" id="staffDelete"><svg width="14" height="14"><use href="#i-trash"/></svg> Delete</button>
+      </div>
+    `,
+    footButtons: [
+      {label:"Close", kind:"ghost", onClick: closeModal}
+    ]
+  });
+
+  const editBtn = $("#staffEdit");
+  const pinBtn = $("#staffPin");
+  const disBtn = $("#staffDisable");
+  const gateBtn = $("#staffGate");
+  const delBtn = $("#staffDelete");
+  [editBtn,pinBtn,disBtn,gateBtn,delBtn].forEach(lockIfReadOnly);
+
+  editBtn?.addEventListener("click", ()=>{ closeModal(); staffModal(ev.id, s.id); });
+  pinBtn?.addEventListener("click", ()=>{ closeModal(); resetPinModal(ev.id, s.id); });
+  disBtn?.addEventListener("click", ()=>{ closeModal(); toggleStaffModal(ev.id, s.id); });
+  gateBtn?.addEventListener("click", ()=>{ closeModal(); reassignGateModal(ev.id, s.id); });
+  delBtn?.addEventListener("click", ()=>{ closeModal(); deleteStaffModal(ev.id, s.id); });
 }
 
 function staffModal(eventId, staffId=null){
@@ -3375,6 +3606,7 @@ function renderLinks(ev){
   if(!ev) return;
   const base = location.origin && location.origin.startsWith("http") ? location.origin : "https://luma.tickets";
   $("#linkUsher").value = `${base}/usher?event=${encodeURIComponent(ev.id)}`;
+  $("#linkTeam").value = `${base}/team?event=${encodeURIComponent(ev.id)}`;
   $("#linkDesk").value = `${base}/manual-desk?event=${encodeURIComponent(ev.id)}`;
 }
 
@@ -4026,7 +4258,7 @@ function renderAttentionPage(){
 /* ---------- Exports ---------- */
 
 function downloadText(filename, text){
-  const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+  const blob = new Blob([text], {type:"text/csv;charset=utf-8"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = filename;
@@ -4044,16 +4276,33 @@ function toCSV(rows){
   return rows.map(r=> r.map(esc).join(",")).join("\n");
 }
 
+function resolveTierNameForEvent(ev, tierId, tierName){
+  if(tierName) return tierName;
+  if(!tierId) return "";
+  return ev.tiers.find(t=>t.id===tierId)?.name || tierId;
+}
+
+function resolveWaveNameForEvent(ev, waveId, waveName){
+  if(waveName) return waveName;
+  if(!waveId) return "";
+  return ev.waves.find(w=>w.id===waveId)?.name || waveId;
+}
+
 function exportOrders(ev){
   const rows = [["Order ID","Customer Name","Phone","Email","Event","Wave","Tier(s)","Qty","Amount","Status","Timestamp"]];
   for(const o of ev.orders){
+    const waveName = resolveWaveNameForEvent(ev, o.waveId, o.waveName);
+    const tiersText = (o.tiers||[]).map(t=>{
+      const tName = resolveTierNameForEvent(ev, t.tierId, t.tierName);
+      return `${tName} x${t.qty}`;
+    }).join(" | ");
     rows.push([
       o.id, o.customer,
       o.contact?.phone||"",
       o.contact?.email||"",
       ev.name,
-      o.waveName||o.waveId||"",
-      (o.tiers||[]).map(t=>`${t.tierName} x${t.qty}`).join(" | "),
+      waveName,
+      tiersText,
       o.qty, o.amount, o.status, o.timestamp
     ]);
   }
@@ -4065,14 +4314,16 @@ function exportAttendees(ev, onlyCheckins=false){
   const rows = [["Name","Phone","Email","Ticket Code","Event","Wave","Tier","Status","Check-in Time","Gate","Order ID"]];
   for(const a of ev.attendees){
     if(onlyCheckins && a.status!=="Checked-in") continue;
+    const waveName = resolveWaveNameForEvent(ev, a.waveId, a.waveName);
+    const tierName = resolveTierNameForEvent(ev, a.tierId, a.tierName);
     rows.push([
       a.name,
       a.contact?.phone||"",
       a.contact?.email||"",
-      a.id,
+      a.inviteToken ? "" : a.id,
       ev.name,
-      a.waveName||a.waveId||"",
-      a.tierName||a.tierId||"",
+      waveName || "",
+      tierName || "",
       a.status,
       a.checkinTime,
       a.gateName,
@@ -4590,6 +4841,15 @@ on("#btnToggleSide","click", ()=>{
     }
   });
 
+  // exports
+  on("#btnExportOrders","click", ()=>{ const ev=currentEvent(); if(ev) exportOrders(ev); });
+  on("#btnExportAtt","click", ()=>{ const ev=currentEvent(); if(ev) exportAttendees(ev, false); });
+  on("#btnExportCheckins","click", ()=>{ const ev=currentEvent(); if(ev) exportAttendees(ev, true); });
+  on("#btnExportFinance","click", ()=>{ const ev=currentEvent(); if(ev) exportFinance(ev); });
+  on("#btnExportFinance2","click", ()=>{ const ev=currentEvent(); if(ev) exportFinance(ev); });
+  on("#btnExportIncidents","click", ()=>{ const ev=currentEvent(); if(ev) exportIncidents(ev); });
+  on("#btnExportAllFinance","click", ()=> exportAllFinance());
+
 
 
 
@@ -4758,6 +5018,7 @@ on("#btnToggleSide","click", ()=>{
 
   // links copy
   on("#copyUsher","click", ()=> copyText(document.getElementById("linkUsher")?.value || "", "Usher link copied"));
+  on("#copyTeam","click", ()=> copyText(document.getElementById("linkTeam")?.value || "", "Team link copied"));
   on("#copyDesk","click", ()=> copyText(document.getElementById("linkDesk")?.value || "", "Manual Desk link copied"));
 
   // attention page clear
