@@ -106,14 +106,6 @@ function renderEventMeta(){
     logo.src = logoUrl;
     logo.style.display = logoUrl ? "block" : "none";
   }
-  const designFrame = $("designStudioFrame");
-  const designLink = $("designStudioLink");
-  if(designFrame || designLink){
-    const base = location.origin && location.origin.startsWith("http") ? location.origin : "https://luma.tickets";
-    const url = `${base}/index.html#event:${encodeURIComponent(state.eventId)}?tab=design`;
-    if(designFrame) designFrame.src = url;
-    if(designLink) designLink.href = url;
-  }
 }
 
 function renderFinance(){
