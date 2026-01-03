@@ -116,6 +116,42 @@
                 <div class="value" id="finCheckins">0</div>
               </div>
             </div>
+            <div class="hr"></div>
+            <h4>Tier performance</h4>
+            <div class="tableWrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tier</th><th>Sold</th><th>Remaining</th><th>Revenue</th>
+                  </tr>
+                </thead>
+                <tbody id="finTierBody"></tbody>
+              </table>
+            </div>
+            <div class="hr"></div>
+            <h4>Breakdown by wave</h4>
+            <div class="tableWrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Wave</th><th>Sold</th><th>Revenue</th>
+                  </tr>
+                </thead>
+                <tbody id="finWaveBody"></tbody>
+              </table>
+            </div>
+            <div class="hr"></div>
+            <h4>Orders</h4>
+            <div class="tableWrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Order</th><th>Customer</th><th>Qty</th><th>Amount</th><th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="finOrdersBody"></tbody>
+              </table>
+            </div>
           </div>
 
           <div class="panel hidden" id="panelViewer">
@@ -139,11 +175,34 @@
 
           <div class="panel hidden" id="panelOps">
             <h3>Gate Activity</h3>
+            <div class="kpis">
+              <div class="kpi">
+                <div class="label">Entries approved</div>
+                <div class="value" id="opsApproved">0</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Denied</div>
+                <div class="value" id="opsDenied">0</div>
+              </div>
+            </div>
+            <div class="hr"></div>
+            <h4>By staff</h4>
             <div class="tableWrap">
               <table>
                 <thead>
                   <tr>
-                    <th>Time</th><th>Gate</th><th>Staff</th><th>Outcome</th><th>Notes</th>
+                    <th>Staff</th><th>Approved</th><th>Denied</th>
+                  </tr>
+                </thead>
+                <tbody id="opsStaffBody"></tbody>
+              </table>
+            </div>
+            <div class="hr"></div>
+            <div class="tableWrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Time</th><th>Gate</th><th>Staff</th><th>Guest</th><th>Phone</th><th>Outcome</th><th>Notes</th>
                   </tr>
                 </thead>
                 <tbody id="opsBody"></tbody>
@@ -156,6 +215,19 @@
             <div class="summary">
               <div><b>Headline:</b> <span id="designHeadline">—</span></div>
               <div><b>Email text:</b> <span id="designEmail">—</span></div>
+            </div>
+            <div class="hr"></div>
+            <h4>Branding</h4>
+            <div class="summary">
+              <div><b>Primary:</b> <span id="designPrimary">—</span></div>
+              <div><b>Accent:</b> <span id="designAccent">—</span></div>
+              <div><b>Font:</b> <span id="designFont">—</span></div>
+            </div>
+            <div class="hr"></div>
+            <h4>Assets</h4>
+            <div class="assetRow">
+              <img id="designBanner" alt="Banner preview"/>
+              <img id="designLogo" alt="Logo preview"/>
             </div>
           </div>
         </div>

@@ -65,6 +65,7 @@ input{
   font-size:12px;color:var(--muted);display:flex;gap:6px;
 }
 .panel{margin-top:16px}
+.hr{height:1px;background:var(--stroke);margin:16px 0}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:12px}
 .kpi{border:1px solid var(--stroke);border-radius:12px;padding:12px;background:#fff}
 .kpi .label{font-size:11px;color:var(--muted)}
@@ -74,4 +75,9 @@ input{
 table{width:100%;border-collapse:collapse;font-size:12px}
 th,td{padding:10px 12px;border-bottom:1px solid var(--stroke);text-align:left}
 th{background:#f8fafc;font-size:11px;color:var(--muted)}
+.assetRow{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+.assetRow img{
+  width:220px;height:120px;object-fit:cover;
+  border-radius:12px;border:1px solid var(--stroke);background:#f1f5f9;
+}
 .hidden{display:none}

@@ -439,6 +439,11 @@
     .kpi .label{font-size:11px;color:var(--muted2)}
     .kpi .value{font-size:20px;font-weight:800;letter-spacing:.2px}
     .kpi .sub{font-size:11px;color:var(--muted)}
+    .kpiGrid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+      gap:10px;
+    }
     .badge{
       display:inline-flex;align-items:center;gap:8px;
       padding:7px 10px;border-radius:999px;
@@ -786,6 +791,7 @@
     .drawerHead p{margin:6px 0 0;color:var(--muted);font-size:12px}
     .drawerBody{overflow:auto;padding-right:2px}
     .kv{display:grid;grid-template-columns: 1fr 1.2fr; gap:10px; margin:10px 0}
+    .kvList{display:grid;gap:10px}
     .kv div{
       padding:10px;border-radius:14px;border:1px solid var(--stroke);
       background:var(--panel2);

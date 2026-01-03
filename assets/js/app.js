@@ -2057,7 +2057,7 @@ function renderEventWorkspace(){
     return;
   } // <--- Ensure this brace correctly closes the IF block
 
-  refreshEventFromOrders(ev);
+  refreshEventFromOrders(ev, state.ordersByEvent?.[ev.id] || ev.orders || [], state.invitesByEvent?.[ev.id] || []);
   $$("#subTabs .subTab").forEach(b=>b.classList.toggle("active", b.dataset.tab===state.activeTab));
   if(!state.activeTab) state.activeTab = "overview";
   switchTab(state.activeTab);
@@ -2149,6 +2149,7 @@ function renderEventWorkspace(){
   // customers
   renderAttendeeFilters(ev);
   renderAttendeesTable(ev);
+  renderInviteTierKpis(ev);
 
   // staff & gates
   renderGates(ev);
@@ -3023,6 +3024,45 @@ function renderAttendeesTable(ev){
   }
 }
 
+function renderInviteTierKpis(ev){
+  const wrap = $("#inviteTierKpis");
+  if(!wrap) return;
+  const invites = state.invitesByEvent?.[ev.id] || [];
+  const counts = new Map();
+  for(const t of (ev.tiers || [])){
+    counts.set(t.id, 0);
+  }
+  for(const inv of invites){
+    if(!inv.tierId) continue;
+    counts.set(inv.tierId, (counts.get(inv.tierId) || 0) + 1);
+  }
+  const total = invites.length;
+  const cards = (ev.tiers || []).map(t=>{
+    const count = counts.get(t.id) || 0;
+    return `
+      <div class="kpi">
+        <div class="label">${escapeHtml(t.name)}</div>
+        <div class="value">${count.toLocaleString("en-US")}</div>
+        <div class="sub">Invites</div>
+      </div>
+    `;
+  }).join("") || `<div class="muted small">No tiers yet.</div>`;
+
+  wrap.innerHTML = `
+    <div class="card" style="box-shadow:none">
+      <div class="cardHead" style="padding-bottom:0">
+        <div>
+          <h3 style="font-size:13px;margin:0">Invites by tier</h3>
+          <p class="muted small" style="margin-top:6px">Total invites: ${total.toLocaleString("en-US")}</p>
+        </div>
+      </div>
+      <div class="cardBody">
+        <div class="kpiGrid">${cards}</div>
+      </div>
+    </div>
+  `;
+}
+
 function markCheckin(ev, attendeeId){
   const a = ev.attendees.find(x=>x.id===attendeeId);
   if(!a || a.status==="Checked-in") return;
@@ -3184,29 +3224,15 @@ function renderStaff(ev){
       <td class="muted2">${escapeHtml(gateName)}</td>
       <td>${stChip}</td>
       <td>
-        <div class="rowActions compact tight">
-          <button class="btn sm" data-a="edit"><svg width="14" height="14"><use href="#i-edit"/></svg> Edit</button>
-          <button class="btn sm" data-a="pin"><svg width="14" height="14"><use href="#i-lock"/></svg> Reset PIN</button>
-          <button class="btn sm" data-a="disable">${s.disabled ? "Enable" : "Disable"}</button>
-          <button class="btn sm" data-a="gate">Reassign gate</button>
-          <button class="btn sm danger" data-a="del"><svg width="14" height="14"><use href="#i-trash"/></svg> Delete</button>
+        <div class="rowActions">
+          <button class="btn sm" data-a="manage"><svg width="14" height="14"><use href="#i-edit"/></svg> Manage</button>
         </div>
       </td>
     `;
 
-    const editBtn = tr.querySelector('[data-a="edit"]');
-    const pinBtn = tr.querySelector('[data-a="pin"]');
-    const disBtn = tr.querySelector('[data-a="disable"]');
-    const gateBtn = tr.querySelector('[data-a="gate"]');
-    const delBtn = tr.querySelector('[data-a="del"]');
-
-    [editBtn,pinBtn,disBtn,gateBtn,delBtn].forEach(lockIfReadOnly);
-
-    editBtn.addEventListener("click", ()=> staffModal(ev.id, s.id));
-    pinBtn.addEventListener("click", ()=> resetPinModal(ev.id, s.id));
-    disBtn.addEventListener("click", ()=> toggleStaffModal(ev.id, s.id));
-    gateBtn.addEventListener("click", ()=> reassignGateModal(ev.id, s.id));
-    delBtn.addEventListener("click", ()=> deleteStaffModal(ev.id, s.id));
+    const manageBtn = tr.querySelector('[data-a="manage"]');
+    lockIfReadOnly(manageBtn);
+    manageBtn.addEventListener("click", ()=> staffActionsModal(ev.id, s.id));
 
     body.appendChild(tr);
   }
@@ -3216,6 +3242,50 @@ function renderStaff(ev){
       <div class="hint"><b>No staff yet</b>. Add ushers, manual desk, finance, design, or viewers.</div>
     </td></tr>`;
   }
+}
+
+function staffActionsModal(eventId, staffId){
+  const ev = data.events.find(e=>e.id===eventId);
+  const s = ev?.staff.find(x=>x.id===staffId);
+  if(!ev || !s) return;
+  const gateName = s.gate ? (ev.gates.find(g=>g.id===s.gate)?.name || "—") : "—";
+
+  openModal({
+    title: `${s.full}`,
+    desc: `Manage staff access for ${s.username}.`,
+    bodyHtml: `
+      <div class="kvList">
+        <div class="kv"><span>Role</span><b>${escapeHtml(s.role)}</b></div>
+        <div class="kv"><span>Username</span><b class="mono">${escapeHtml(s.username)}</b></div>
+        <div class="kv"><span>Gate</span><b>${escapeHtml(gateName)}</b></div>
+        <div class="kv"><span>Status</span><b>${s.disabled ? "Disabled" : "Active"}</b></div>
+      </div>
+      <div class="hr"></div>
+      <div class="rowActions">
+        <button class="btn sm" id="staffEdit"><svg width="14" height="14"><use href="#i-edit"/></svg> Edit</button>
+        <button class="btn sm" id="staffPin"><svg width="14" height="14"><use href="#i-lock"/></svg> Reset PIN</button>
+        <button class="btn sm" id="staffDisable">${s.disabled ? "Enable" : "Disable"}</button>
+        <button class="btn sm" id="staffGate">Reassign gate</button>
+        <button class="btn sm danger" id="staffDelete"><svg width="14" height="14"><use href="#i-trash"/></svg> Delete</button>
+      </div>
+    `,
+    footButtons: [
+      {label:"Close", kind:"ghost", onClick: closeModal}
+    ]
+  });
+
+  const editBtn = $("#staffEdit");
+  const pinBtn = $("#staffPin");
+  const disBtn = $("#staffDisable");
+  const gateBtn = $("#staffGate");
+  const delBtn = $("#staffDelete");
+  [editBtn,pinBtn,disBtn,gateBtn,delBtn].forEach(lockIfReadOnly);
+
+  editBtn?.addEventListener("click", ()=>{ closeModal(); staffModal(ev.id, s.id); });
+  pinBtn?.addEventListener("click", ()=>{ closeModal(); resetPinModal(ev.id, s.id); });
+  disBtn?.addEventListener("click", ()=>{ closeModal(); toggleStaffModal(ev.id, s.id); });
+  gateBtn?.addEventListener("click", ()=>{ closeModal(); reassignGateModal(ev.id, s.id); });
+  delBtn?.addEventListener("click", ()=>{ closeModal(); deleteStaffModal(ev.id, s.id); });
 }
 
 function staffModal(eventId, staffId=null){
@@ -4760,6 +4830,15 @@ on("#btnToggleSide","click", ()=>{
       toast("No changes", "Nothing to save.");
     }
   });
+
+  // exports
+  on("#btnExportOrders","click", ()=>{ const ev=currentEvent(); if(ev) exportOrders(ev); });
+  on("#btnExportAtt","click", ()=>{ const ev=currentEvent(); if(ev) exportAttendees(ev, false); });
+  on("#btnExportCheckins","click", ()=>{ const ev=currentEvent(); if(ev) exportAttendees(ev, true); });
+  on("#btnExportFinance","click", ()=>{ const ev=currentEvent(); if(ev) exportFinance(ev); });
+  on("#btnExportFinance2","click", ()=>{ const ev=currentEvent(); if(ev) exportFinance(ev); });
+  on("#btnExportIncidents","click", ()=>{ const ev=currentEvent(); if(ev) exportIncidents(ev); });
+  on("#btnExportAllFinance","click", ()=> exportAllFinance());
 
 
 
