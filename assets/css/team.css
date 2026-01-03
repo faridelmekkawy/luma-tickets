@@ -1,0 +1,77 @@
+:root{
+  color-scheme: light;
+  --bg:#f6f7fb;
+  --panel:#ffffff;
+  --stroke:#e5e7eb;
+  --muted:#64748b;
+  --ink:#0f172a;
+  --brand:#2563eb;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+}
+.app{max-width:980px;margin:0 auto;padding:24px}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;margin-bottom:20px;
+}
+.brand{display:flex;gap:12px;align-items:center}
+.mark{width:34px;height:34px;border-radius:12px;background:var(--brand)}
+.titles .h{font-weight:700}
+.titles .s{font-size:12px;color:var(--muted)}
+.lumaLogo{width:44px;height:44px;border-radius:12px}
+.card{
+  background:var(--panel);
+  border:1px solid var(--stroke);
+  border-radius:14px;
+  box-shadow:0 12px 30px rgba(15,23,42,.08);
+}
+.cardHead{padding:18px 18px 0}
+.cardBody{padding:18px}
+.eventHead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.row{display:flex;gap:12px}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+input{
+  width:100%;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid var(--stroke);
+  font-size:14px;
+}
+.btn{
+  width:100%;
+  padding:10px 14px;
+  border-radius:10px;
+  border:1px solid var(--brand);
+  background:var(--brand);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+}
+.btn.secondary{
+  background:#fff;color:var(--brand);
+}
+.miniMeta{
+  display:flex;gap:10px;flex-wrap:wrap;
+  padding:12px 18px;border-top:1px solid var(--stroke);
+  border-bottom:1px solid var(--stroke);background:#f8fafc;
+}
+.chip{
+  padding:6px 10px;border-radius:999px;border:1px solid var(--stroke);
+  font-size:12px;color:var(--muted);display:flex;gap:6px;
+}
+.panel{margin-top:16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:12px}
+.kpi{border:1px solid var(--stroke);border-radius:12px;padding:12px;background:#fff}
+.kpi .label{font-size:11px;color:var(--muted)}
+.kpi .value{font-size:16px;font-weight:700;margin-top:6px}
+.summary{display:grid;gap:6px;font-size:13px;color:var(--muted)}
+.tableWrap{max-height:360px;overflow:auto;margin-top:10px;border:1px solid var(--stroke);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--stroke);text-align:left}
+th{background:#f8fafc;font-size:11px;color:var(--muted)}
+.hidden{display:none}

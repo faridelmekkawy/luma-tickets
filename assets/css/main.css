@@ -735,6 +735,11 @@
       border-radius:10px;
       font-size:11px;
     }
+    .rowActions.compact.tight .btn.sm{
+      padding:4px 6px;
+      border-radius:9px;
+      font-size:10px;
+    }
     .chip{
       display:inline-flex;align-items:center;gap:8px;
       padding:6px 10px;border-radius:999px;

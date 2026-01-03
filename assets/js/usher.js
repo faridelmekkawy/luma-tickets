@@ -335,6 +335,87 @@
       }
 
       const orderId = code.orderId;
+      const inviteToken = code.inviteToken || code.inviteId || code.invite?.token || "";
+      if(!orderId && inviteToken){
+        const inviteRef = doc(db, "events", eventId, "invites", inviteToken);
+        const inviteSnap = await getDoc(inviteRef);
+        if(!inviteSnap.exists()){
+          await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Invite not found"});
+          showResult({ok:false, reason:"Invite Not Found", gateName, when:new Date()});
+          setVerifying(false);
+          return;
+        }
+
+        const invite = inviteSnap.data() || {};
+        const alreadyRedeemed = invite.redeemedAt || invite.checkedInAt;
+        if(alreadyRedeemed){
+          const usedGate = invite.redeemedGate || invite.checkedInGate || "Unknown gate";
+          const usedTime = invite.redeemedAt?.toDate?.() || invite.checkedInAt?.toDate?.();
+          await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Already checked-in"});
+          showResult({
+            ok:false,
+            reason:"Already checked-in",
+            customerName: invite?.recipient?.name || "",
+            tierId: invite.tierId || code.tierId,
+            waveId: code.waveId,
+            gateName,
+            when:new Date(),
+            usedWhereWhen: {gate: usedGate, time: usedTime || null}
+          });
+          setVerifying(false);
+          return;
+        }
+
+        const phone = invite?.recipient?.phone || "";
+        const p4 = last4(phone);
+        if(p4 && String(p4) !== String(state.digits)){
+          await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Wrong digits"});
+          showResult({
+            ok:false,
+            reason:"Wrong digits",
+            customerName: invite?.recipient?.name || "",
+            tierId: invite.tierId || code.tierId,
+            waveId: code.waveId,
+            gateName,
+            when:new Date()
+          });
+          setVerifying(false);
+          return;
+        }
+
+        const lockedAt = new Date();
+        await updateDoc(codeRef, {
+          redeemedAt: serverTimestamp(),
+          redeemedGate: gateName,
+          redeemedBy: staff?.id || "",
+          redeemedByUsername: staff?.username || ""
+        });
+        await updateDoc(inviteRef, {
+          status: "redeemed",
+          redeemedAt: serverTimestamp(),
+          redeemedGate: gateName,
+          redeemedBy: staff?.id || "",
+          redeemedByUsername: staff?.username || "",
+          checkedInAt: serverTimestamp(),
+          checkedInGate: gateName,
+          checkedInBy: staff?.id || "",
+          checkedInByUsername: staff?.username || ""
+        });
+        await writeScanLog({eventId, staff, gateName, ticketId, outcome:"approved", reason:"Invite redeemed"});
+
+        showResult({
+          ok:true,
+          customerName: invite?.recipient?.name || "",
+          tierId: invite.tierId || code.tierId || "—",
+          tierName: "",
+          waveId: code.waveId || "—",
+          gateName,
+          when: lockedAt
+        });
+        setVerifying(false);
+        return;
+      }
+
       if(!orderId){
         await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Order missing on code"});
         showResult({ok:false, reason:"Invalid Ticket Data", gateName, when:new Date()});

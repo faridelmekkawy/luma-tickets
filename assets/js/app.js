@@ -218,6 +218,48 @@ function normalizeOrderDoc(id, o){
   };
 }
 
+function normalizeInviteDoc(id, invite){
+  const createdTs = invite?.createdAt;
+  let createdDate = null;
+  try{
+    if(createdTs?.toDate) createdDate = createdTs.toDate();
+    else if(typeof createdTs === "string") createdDate = new Date(createdTs);
+    else if(typeof createdTs?.seconds === "number") createdDate = new Date(createdTs.seconds*1000);
+  }catch(_){}
+  const createdAt = (createdDate && !isNaN(createdDate.getTime())) ? createdDate.toISOString() : (invite?.createdAt || new Date().toISOString());
+
+  const checkinTs = invite?.checkedInAt || invite?.redeemedAt;
+  let checkinDate = null;
+  try{
+    if(checkinTs?.toDate) checkinDate = checkinTs.toDate();
+    else if(typeof checkinTs === "string") checkinDate = new Date(checkinTs);
+    else if(typeof checkinTs?.seconds === "number") checkinDate = new Date(checkinTs.seconds*1000);
+  }catch(_){}
+  const checkinAt = (checkinDate && !isNaN(checkinDate.getTime())) ? checkinDate.toISOString() : (invite?.checkedInAt || invite?.redeemedAt || "");
+
+  const statusRaw = (invite?.status || "").toString().trim().toLowerCase();
+  const hasCheckin = !!(invite?.checkedInAt || invite?.redeemedAt);
+  const status = (statusRaw === "redeemed" || hasCheckin) ? "Checked-in" : "Not checked-in";
+
+  const recipient = invite?.recipient || {};
+  return {
+    id: id || invite?.inviteToken || "",
+    inviteToken: invite?.inviteToken || id || "",
+    createdAt,
+    status,
+    tierId: invite?.tierId || "",
+    name: recipient?.name || invite?.name || "",
+    contact: {
+      phone: recipient?.phone || invite?.phone || "",
+      email: recipient?.email || invite?.email || ""
+    },
+    checkinAt,
+    checkinGate: invite?.checkedInGate || invite?.redeemedGate || "",
+    checkedInBy: invite?.checkedInBy || invite?.redeemedBy || "",
+    checkedInByUsername: invite?.checkedInByUsername || invite?.redeemedByUsername || ""
+  };
+}
+
 function normalizeScanLogDoc(id, log){
   const ts = log?.createdAt;
   let dt = null;
@@ -252,6 +294,8 @@ function normalizeScanLogDoc(id, log){
 async function hydrateAllOrders(){
   state.ordersByEvent = state.ordersByEvent || {};
   state.ordersUnsubs = state.ordersUnsubs || {};
+  state.invitesByEvent = state.invitesByEvent || {};
+  state.invitesUnsubs = state.invitesUnsubs || {};
 
   if(!db) return;
   const evs = data?.events || [];
@@ -259,6 +303,7 @@ async function hydrateAllOrders(){
     if(!ev?.id) return;
     await ensureOrdersListener(ev.id);
     await ensureScanLogsListener(ev.id);
+    await ensureInvitesListener(ev.id);
   }));
 }
 
@@ -280,7 +325,7 @@ async function ensureOrdersListener(eventId){
 
       // Mirror into data.events for existing UI helpers
       const ev = (data?.events||[]).find(x=>x.id===eventId);
-      if(ev) refreshEventFromOrders(ev, list);
+      if(ev) refreshEventFromOrders(ev, list, state.invitesByEvent?.[eventId] || []);
 
       // Light refresh if user is on analytics or inside this event
       if(state.route==="analytics" || (state.route==="event" && state.activeEventId===eventId)){
@@ -335,6 +380,43 @@ async function ensureScanLogsListener(eventId){
     state.scanLogsUnsubs[eventId] = unsub;
   }catch(err){
     console.warn("[ScanLogs] could not attach listener", eventId, err);
+  }
+}
+
+async function ensureInvitesListener(eventId){
+  if(!window.__firebaseReady || typeof onSnapshot !== "function"){
+    console.warn("[Invites] Firebase not ready; skipping realtime listener.");
+    return;
+  }
+
+  if(state.invitesUnsubs?.[eventId]) return;
+  try{
+    const col = publicEventInvitesCol(eventId);
+    const unsub = onSnapshot(col, (snap)=>{
+      const list = snap.docs.map(d=> normalizeInviteDoc(d.id, d.data()));
+      list.sort((a,b)=> (b.createdAt||"").localeCompare(a.createdAt||""));
+      state.invitesByEvent[eventId] = list;
+
+      const ev = (data?.events||[]).find(x=>x.id===eventId);
+      if(ev){
+        refreshEventFromOrders(ev, state.ordersByEvent?.[eventId] || ev.orders || [], list);
+      }
+
+      if(state.route==="analytics" || (state.route==="event" && state.activeEventId===eventId)){
+        try{ renderAll(); }catch(e){ console.warn(e); }
+      }
+      if(state.route==="hub"){
+        try{ renderHub(); }catch(e){ console.warn(e); }
+      }
+      if(state.route==="notifications"){
+        try{ renderAttentionPage(); }catch(e){ console.warn(e); }
+      }
+    }, (err)=>{
+      console.warn("[Invites listener] failed:", err);
+    });
+    state.invitesUnsubs[eventId] = unsub;
+  }catch(err){
+    console.warn("[Invites] could not attach listener", eventId, err);
   }
 }
 
@@ -668,7 +750,9 @@ let state = {
   simulateOn: false,
   designPreview: { mode:"mobile" },
   scanLogsByEvent: {},
-  scanLogsUnsubs: {}
+  scanLogsUnsubs: {},
+  invitesByEvent: {},
+  invitesUnsubs: {}
 };
 
 /* ---------- Data ---------- */
@@ -1655,7 +1739,7 @@ function enrichOrdersForEvent(ev, orders){
   });
 }
 
-function refreshEventFromOrders(ev, orders){
+function refreshEventFromOrders(ev, orders, invites=null){
   if(!ev) return;
   const enriched = enrichOrdersForEvent(ev, orders || ev.orders || []);
   ev.orders = enriched;
@@ -1703,6 +1787,28 @@ function refreshEventFromOrders(ev, orders){
         });
       }
     }
+  }
+  const inviteList = Array.isArray(invites) ? invites : (state.invitesByEvent?.[ev.id] || []);
+  for(const inv of inviteList){
+    const inviteId = `invite:${inv.inviteToken || inv.id}`;
+    if(existing.has(inviteId)) continue;
+    const tierName = ev.tiers.find(t=>t.id===inv.tierId)?.name || inv.tierId || "—";
+    const checkedIn = !!(inv.checkinAt || inv.status==="Checked-in");
+    attendees.push({
+      id: inviteId,
+      inviteToken: inv.inviteToken || inv.id || "",
+      name: inv.name || "—",
+      contact: inv.contact || {},
+      waveId: "invite",
+      waveName: "Invite",
+      tierId: inv.tierId || "",
+      tierName,
+      status: checkedIn ? "Checked-in" : "Not checked-in",
+      checkinTime: checkedIn ? (inv.checkinAt || "") : "",
+      gateId: "",
+      gateName: checkedIn ? (inv.checkinGate || "") : "",
+      orderId: ""
+    });
   }
   ev.attendees = attendees;
 }
@@ -2595,7 +2701,8 @@ function renderOrdersFilters(ev){
   const waveSel = $("#ordWave");
   const tierSel = $("#ordTier");
   if(waveSel.options.length===0){
-    waveSel.innerHTML = `<option value="">All</option>` + ev.waves.map(w=>`<option value="${w.id}">${escapeHtml(w.name)}</option>`).join("");
+    const inviteOption = (state.invitesByEvent?.[ev.id] || []).length ? `<option value="invite">Invite</option>` : "";
+    waveSel.innerHTML = `<option value="">All</option>` + inviteOption + ev.waves.map(w=>`<option value="${w.id}">${escapeHtml(w.name)}</option>`).join("");
   }
   if(tierSel.options.length===0){
     tierSel.innerHTML = `<option value="">All</option>` + ev.tiers.map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join("");
@@ -2835,6 +2942,15 @@ function renderAttendeeFilters(ev){
   if(waveSel.options.length===0){
     waveSel.innerHTML = `<option value="">All</option>` + ev.waves.map(w=>`<option value="${w.id}">${escapeHtml(w.name)}</option>`).join("");
   }
+  if((state.invitesByEvent?.[ev.id] || []).length){
+    const hasInvite = Array.from(waveSel.options).some(opt=>opt.value === "invite");
+    if(!hasInvite){
+      const opt = document.createElement("option");
+      opt.value = "invite";
+      opt.textContent = "Invite";
+      waveSel.appendChild(opt);
+    }
+  }
   if(tierSel.options.length===0){
     tierSel.innerHTML = `<option value="">All</option>` + ev.tiers.map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join("");
   }
@@ -2858,8 +2974,7 @@ function renderAttendeesTable(ev){
     list = list.filter(a =>
       (a.name||"").toLowerCase().includes(q) ||
       (a.contact?.phone||"").toLowerCase().includes(q) ||
-      (a.contact?.email||"").toLowerCase().includes(q) ||
-      (a.id||"").toLowerCase().includes(q)
+      (a.contact?.email||"").toLowerCase().includes(q)
     );
   }
 
@@ -2881,7 +2996,7 @@ function renderAttendeesTable(ev){
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><b>${escapeHtml(a.name)}</b><div class="muted2 small mono">${escapeHtml(a.id)}</div></td>
+      <td><b>${escapeHtml(a.name)}</b></td>
       <td class="muted">
         <div>${escapeHtml(a.contact?.phone || "—")}</div>
         <div class="muted2 small">${escapeHtml(a.contact?.email || "—")}</div>
@@ -2921,7 +3036,16 @@ function markCheckin(ev, attendeeId){
 
   saveData();
   schedulePublicSync(ev, "checkin");
-  if(window.__firebaseReady && updateDoc && a.orderId){
+  if(window.__firebaseReady && updateDoc && a.inviteToken){
+    const inviteRef = doc(db, "events", ev.id, "invites", a.inviteToken);
+    updateDoc(inviteRef, {
+      status: "redeemed",
+      checkedInAt: serverTimestamp(),
+      checkedInGate: a.gateName || "",
+      checkedInBy: auth?.currentUser?.uid || "",
+      checkedInByUsername: state.user?.name || state.user?.email || ""
+    }).catch(()=>{});
+  }else if(window.__firebaseReady && updateDoc && a.orderId){
     const order = (ev.orders || []).find(o=>o.id===a.orderId || o.orderId===a.orderId);
     const orderQty = order?.qty || order?.tiers?.reduce?.((s,it)=>s+(Number(it.qty)||0),0) || 1;
     const singleTicket = orderQty <= 1;
@@ -3060,7 +3184,7 @@ function renderStaff(ev){
       <td class="muted2">${escapeHtml(gateName)}</td>
       <td>${stChip}</td>
       <td>
-        <div class="rowActions compact">
+        <div class="rowActions compact tight">
           <button class="btn sm" data-a="edit"><svg width="14" height="14"><use href="#i-edit"/></svg> Edit</button>
           <button class="btn sm" data-a="pin"><svg width="14" height="14"><use href="#i-lock"/></svg> Reset PIN</button>
           <button class="btn sm" data-a="disable">${s.disabled ? "Enable" : "Disable"}</button>
@@ -3402,6 +3526,7 @@ function renderLinks(ev){
   if(!ev) return;
   const base = location.origin && location.origin.startsWith("http") ? location.origin : "https://luma.tickets";
   $("#linkUsher").value = `${base}/usher?event=${encodeURIComponent(ev.id)}`;
+  $("#linkTeam").value = `${base}/team?event=${encodeURIComponent(ev.id)}`;
   $("#linkDesk").value = `${base}/manual-desk?event=${encodeURIComponent(ev.id)}`;
 }
 
@@ -4053,7 +4178,7 @@ function renderAttentionPage(){
 /* ---------- Exports ---------- */
 
 function downloadText(filename, text){
-  const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+  const blob = new Blob([text], {type:"text/csv;charset=utf-8"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = filename;
@@ -4071,16 +4196,33 @@ function toCSV(rows){
   return rows.map(r=> r.map(esc).join(",")).join("\n");
 }
 
+function resolveTierNameForEvent(ev, tierId, tierName){
+  if(tierName) return tierName;
+  if(!tierId) return "";
+  return ev.tiers.find(t=>t.id===tierId)?.name || tierId;
+}
+
+function resolveWaveNameForEvent(ev, waveId, waveName){
+  if(waveName) return waveName;
+  if(!waveId) return "";
+  return ev.waves.find(w=>w.id===waveId)?.name || waveId;
+}
+
 function exportOrders(ev){
   const rows = [["Order ID","Customer Name","Phone","Email","Event","Wave","Tier(s)","Qty","Amount","Status","Timestamp"]];
   for(const o of ev.orders){
+    const waveName = resolveWaveNameForEvent(ev, o.waveId, o.waveName);
+    const tiersText = (o.tiers||[]).map(t=>{
+      const tName = resolveTierNameForEvent(ev, t.tierId, t.tierName);
+      return `${tName} x${t.qty}`;
+    }).join(" | ");
     rows.push([
       o.id, o.customer,
       o.contact?.phone||"",
       o.contact?.email||"",
       ev.name,
-      o.waveName||o.waveId||"",
-      (o.tiers||[]).map(t=>`${t.tierName} x${t.qty}`).join(" | "),
+      waveName,
+      tiersText,
       o.qty, o.amount, o.status, o.timestamp
     ]);
   }
@@ -4092,14 +4234,16 @@ function exportAttendees(ev, onlyCheckins=false){
   const rows = [["Name","Phone","Email","Ticket Code","Event","Wave","Tier","Status","Check-in Time","Gate","Order ID"]];
   for(const a of ev.attendees){
     if(onlyCheckins && a.status!=="Checked-in") continue;
+    const waveName = resolveWaveNameForEvent(ev, a.waveId, a.waveName);
+    const tierName = resolveTierNameForEvent(ev, a.tierId, a.tierName);
     rows.push([
       a.name,
       a.contact?.phone||"",
       a.contact?.email||"",
-      a.id,
+      a.inviteToken ? "" : a.id,
       ev.name,
-      a.waveName||a.waveId||"",
-      a.tierName||a.tierId||"",
+      waveName || "",
+      tierName || "",
       a.status,
       a.checkinTime,
       a.gateName,
@@ -4785,6 +4929,7 @@ on("#btnToggleSide","click", ()=>{
 
   // links copy
   on("#copyUsher","click", ()=> copyText(document.getElementById("linkUsher")?.value || "", "Usher link copied"));
+  on("#copyTeam","click", ()=> copyText(document.getElementById("linkTeam")?.value || "", "Team link copied"));
   on("#copyDesk","click", ()=> copyText(document.getElementById("linkDesk")?.value || "", "Manual Desk link copied"));
 
   // attention page clear

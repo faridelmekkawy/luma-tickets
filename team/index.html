@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://firebasestorage.googleapis.com; connect-src 'self' https://firestore.googleapis.com https://www.googleapis.com https://firebasestorage.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://www.gstatic.com; media-src 'self' blob:; worker-src 'self' blob:; base-uri 'self'">
+  <title>Luma Tickets — Team Portal</title>
+  <link rel="stylesheet" href="../assets/css/team.css">
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="mark"></div>
+        <div class="titles">
+          <div class="h" id="topTitle">Team Portal</div>
+          <div class="s" id="topSub">Luma Tickets • Staff access</div>
+        </div>
+      </div>
+      <img
+        class="lumaLogo"
+        src="https://firebasestorage.googleapis.com/v0/b/events-339ce.firebasestorage.app/o/ChatGPT%20Image%20Dec%2023%2C%202025%2C%2012_55_43%20PM.png?alt=media&token=0facde2f-570c-4004-9e7b-d0d10aca94c3"
+        alt="Luma logo"
+      />
+    </div>
+
+    <div class="view" id="viewLogin">
+      <div class="card">
+        <div class="cardHead">
+          <h2>Team Login</h2>
+          <p>Use your assigned <b>username</b> and <b>PIN</b>. This link is event-specific.</p>
+        </div>
+        <div class="cardBody">
+          <div class="row">
+            <div>
+              <label>Event ID (from link)</label>
+              <input id="eventIdInput" type="text" disabled/>
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="row">
+            <div>
+              <label>Username</label>
+              <input id="username" inputmode="text" autocomplete="username" placeholder="e.g. finance01"/>
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="row">
+            <div>
+              <label>PIN</label>
+              <input id="pin" inputmode="numeric" autocomplete="current-password" placeholder="••••" maxlength="10"/>
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+          <button class="btn" id="btnLogin">Login</button>
+          <div style="height:10px"></div>
+          <button class="btn secondary" id="btnClearLogin">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="view hidden" id="viewTeam">
+      <div class="card">
+        <div class="cardHead">
+          <div class="eventHead">
+            <div>
+              <h2 id="eventName">Event</h2>
+              <p id="eventMeta">Staff portal</p>
+            </div>
+            <button class="btn secondary" id="btnLogout">Sign out</button>
+          </div>
+        </div>
+
+        <div class="miniMeta">
+          <div class="chip">
+            <div class="k">Signed in</div>
+            <div class="v" id="staffName">—</div>
+          </div>
+          <div class="chip">
+            <div class="k">Role</div>
+            <div class="v" id="staffRole">—</div>
+          </div>
+          <div class="chip">
+            <div class="k">Status</div>
+            <div class="v" id="eventStatus">—</div>
+          </div>
+        </div>
+
+        <div class="cardBody">
+          <div class="panel hidden" id="panelFinance">
+            <h3>Finance Summary</h3>
+            <div class="kpis">
+              <div class="kpi">
+                <div class="label">Gross</div>
+                <div class="value" id="finGross">EGP 0</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Refunds</div>
+                <div class="value" id="finRefunds">EGP 0</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Net</div>
+                <div class="value" id="finNet">EGP 0</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Tickets sold</div>
+                <div class="value" id="finSold">0</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Check-ins</div>
+                <div class="value" id="finCheckins">0</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel hidden" id="panelViewer">
+            <h3>Event Overview</h3>
+            <div class="summary">
+              <div><b>Date:</b> <span id="viewDate">—</span></div>
+              <div><b>Venue:</b> <span id="viewVenue">—</span></div>
+              <div><b>City:</b> <span id="viewCity">—</span></div>
+            </div>
+            <div class="kpis">
+              <div class="kpi">
+                <div class="label">Tickets sold</div>
+                <div class="value" id="viewSold">0</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Check-ins</div>
+                <div class="value" id="viewCheckins">0</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel hidden" id="panelOps">
+            <h3>Gate Activity</h3>
+            <div class="tableWrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Time</th><th>Gate</th><th>Staff</th><th>Outcome</th><th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody id="opsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel hidden" id="panelDesign">
+            <h3>Design Notes</h3>
+            <div class="summary">
+              <div><b>Headline:</b> <span id="designHeadline">—</span></div>
+              <div><b>Email text:</b> <span id="designEmail">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../assets/js/team.js"></script>
+</body>
+</html>
