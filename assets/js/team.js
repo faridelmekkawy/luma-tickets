@@ -105,6 +105,11 @@ function renderEventMeta(){
     logo.src = logoUrl;
     logo.style.display = logoUrl ? "block" : "none";
   }
+  const designFrame = $("designStudioFrame");
+  if(designFrame){
+    const base = location.origin && location.origin.startsWith("http") ? location.origin : "https://luma.tickets";
+    designFrame.src = `${base}/index.html?embed=design#event:${encodeURIComponent(state.eventId)}?tab=design`;
+  }
 }
 
 function renderFinance(){
@@ -236,9 +241,6 @@ async function staffLogin(eventId, username, pin){
   if(staff.pin !== pin) throw new Error("Incorrect PIN.");
   if(staff.role === "Usher" || staff.role === "Manual Desk"){
     throw new Error("Use the usher or manual desk link for this role.");
-  }
-  if(staff.role === "Design"){
-    throw new Error("Design access is restricted to owners.");
   }
   return staff;
 }

@@ -459,6 +459,29 @@
     .badge.danger{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#991b1b}
     .badge.info{border-color:rgba(37,99,235,.35);background:rgba(37,99,235,.10);color:#1e3a8a}
 
+    body.embed-design .sidebar,
+    body.embed-design .topbar,
+    body.embed-design #subTabs,
+    body.embed-design #btnBackHub,
+    body.embed-design #btnTopEventSettings,
+    body.embed-design #btnEditEvent,
+    body.embed-design #btnDuplicateEvent,
+    body.embed-design #btnDeleteEvent,
+    body.embed-design #tab-overview,
+    body.embed-design #tab-ticketing,
+    body.embed-design #tab-orders,
+    body.embed-design #tab-customers,
+    body.embed-design #tab-staff,
+    body.embed-design #tab-analytics,
+    body.embed-design #tab-incidents,
+    body.embed-design #tab-links,
+    body.embed-design #tab-settings{
+      display:none !important;
+    }
+    body.embed-design #tab-design{
+      display:block !important;
+    }
+
     .btn{
       display:inline-flex;align-items:center;justify-content:center;gap:10px;
       padding:10px 12px;

@@ -739,6 +739,8 @@ function loadNavState(uid){
 
 const ROLES = ["Usher","Manual Desk","Finance","Design","Viewer","Ops Manager"];
 
+const embedMode = new URLSearchParams(location.search).get("embed") || "";
+
 let state = {
   uiWired: false,
   user: null,
@@ -752,7 +754,8 @@ let state = {
   scanLogsByEvent: {},
   scanLogsUnsubs: {},
   invitesByEvent: {},
-  invitesUnsubs: {}
+  invitesUnsubs: {},
+  embedMode
 };
 
 /* ---------- Data ---------- */
@@ -2058,6 +2061,10 @@ function renderEventWorkspace(){
   } // <--- Ensure this brace correctly closes the IF block
 
   refreshEventFromOrders(ev, state.ordersByEvent?.[ev.id] || ev.orders || [], state.invitesByEvent?.[ev.id] || []);
+  if(state.embedMode === "design"){
+    state.activeTab = "design";
+    document.body.classList.add("embed-design");
+  }
   $$("#subTabs .subTab").forEach(b=>b.classList.toggle("active", b.dataset.tab===state.activeTab));
   if(!state.activeTab) state.activeTab = "overview";
   switchTab(state.activeTab);
@@ -2170,6 +2177,9 @@ function renderEventWorkspace(){
 }
 
 function switchTab(tab){
+  if(state.embedMode === "design" && tab !== "design"){
+    tab = "design";
+  }
   state.activeTab = tab;
   const tabs = ["overview","ticketing","orders","customers","staff","design","analytics","incidents","links","settings"];
   for(const t of tabs){
