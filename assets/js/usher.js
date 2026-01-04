@@ -35,7 +35,8 @@
     scannedTicketId: null,
     scannedCodeDoc: null, // ticket-codes doc data
     scannedOrderDoc: null,// orders doc data
-    digits: ""
+    digits: "",
+    scanMode: "camera" // camera | hardware | wedge
   };
 
   const debugState = {
@@ -55,6 +56,27 @@
   function getParam(name){
     const u = new URL(location.href);
     return u.searchParams.get(name);
+  }
+
+  function resolveScanMode(){
+    const rawMode = (getParam("scan") || "").toLowerCase();
+    if(rawMode === "camera") return "camera";
+    if(rawMode === "wedge") return "wedge";
+    if(["hardware", "native", "urovo", "intent"].includes(rawMode)) return "hardware";
+    if(window.LumaNativeScanner?.startScan || window.NativeScanner?.startScan || window.UROVOScanner?.startScan){
+      return "hardware";
+    }
+    return "camera";
+  }
+
+  function getNativeScanner(){
+    return (
+      window.LumaNativeScanner ||
+      window.NativeScanner ||
+      window.UROVOScanner ||
+      window.Capacitor?.Plugins?.LumaNativeScanner ||
+      null
+    );
   }
 
   function fmtTime(d){
@@ -107,14 +129,32 @@
     state.scannedOrderDoc = null;
     clearDigits();
     setScanMeta({name:"—", tier:"—"});
-    setHint(true);
+    refreshScanHints();
     setVerifyCardVisible(false);
     setVerifying(false);
     $("btnVerify").disabled = true;
+    focusWedgeInput();
   }
 
   function setHint(show){
     $("scanHint").classList.toggle("hidden", !show);
+  }
+
+  function setHardwareHint(show){
+    $("hardwareHint").classList.toggle("hidden", !show);
+  }
+
+  function refreshScanHints(){
+    const isCamera = state.scanMode === "camera";
+    setHint(isCamera);
+    setHardwareHint(!isCamera);
+  }
+
+  function focusWedgeInput(){
+    if(state.scanMode === "camera") return;
+    const wedgeInput = $("wedgeInput");
+    if(!wedgeInput) return;
+    wedgeInput.focus();
   }
 
   function setScanStatus(message, isError = false){
@@ -150,6 +190,70 @@
   function setVerifying(value){
     state.verifying = value;
     updateDebugPanel();
+  }
+
+  function applyScanMode(){
+    const isCamera = state.scanMode === "camera";
+    const hardwareAvailable = Boolean(getNativeScanner()) || state.scanMode !== "camera";
+    $("cameraControl").classList.toggle("hidden", !isCamera);
+    $("restartControl").classList.toggle("hidden", !isCamera);
+    $("hardwareControl").classList.toggle("hidden", !isCamera || !hardwareAvailable);
+    refreshScanHints();
+
+    if(!isCamera){
+      stopScanner();
+      $("scanStatus").textContent = "Hardware scanner ready.";
+    }
+  }
+
+  function handleDecodedText(decodedText, source = "camera"){
+    if(state.verifying) return;
+    if(!decodedText) return;
+
+    debugState.lastRaw = decodedText || "—";
+
+    const t = nowMs();
+    if(t - state.lastScanAt < 900) return;
+    state.lastScanAt = t;
+
+    const ticketId = parseTicketIdFromQR(decodedText);
+    debugState.lastTicketId = ticketId || "—";
+    debugState.lastError = ticketId ? "—" : "Could not parse ticketId";
+    debugState.cameraLabel = source === "camera" ? (debugState.cameraLabel || "Camera") : source;
+    updateDebugPanel();
+    if(!ticketId) return;
+    if(state.scannedTicketId) return;
+
+    state.scannedTicketId = ticketId;
+    setHint(false);
+    setHardwareHint(false);
+    setVerifyCardVisible(true);
+    setDigitsUI();
+    loadScanPreview(ticketId);
+  }
+
+  async function requestHardwareScan(){
+    const scanner = getNativeScanner();
+    if(scanner?.startScan){
+      try{
+        await scanner.startScan();
+        return;
+      }catch(e){
+        setScanStatus(e?.message || "Unable to start hardware scan.", true);
+        return;
+      }
+    }
+    setScanStatus("Hardware scanner not available.", true);
+  }
+
+  function initNativeScanner(){
+    const scanner = getNativeScanner();
+    if(!scanner) return;
+    if(scanner.addListener){
+      scanner.addListener("scan", (payload) => {
+        handleDecodedText(payload?.value || payload?.text || "", "hardware");
+      });
+    }
   }
 
   function showResult({ok, reason, customerName, tierId, tierName, waveId, gateName, when, usedWhereWhen}){
@@ -539,6 +643,7 @@
   }
 
   async function startScanner(){
+    if(state.scanMode !== "camera") return;
     if(html5QrCode) return;
     const regionEl = $("qrRegion");
     if(!regionEl){
@@ -586,26 +691,7 @@
           experimentalFeatures: { useBarCodeDetectorIfSupported: true }
         },
         async (decodedText) => {
-          if(state.verifying) return;
-          debugState.lastRaw = decodedText || "—";
-          if(!decodedText) return;
-
-          const t = nowMs();
-          if(t - state.lastScanAt < 900) return;
-          state.lastScanAt = t;
-
-          const ticketId = parseTicketIdFromQR(decodedText);
-          debugState.lastTicketId = ticketId || "—";
-          debugState.lastError = ticketId ? "—" : "Could not parse ticketId";
-          updateDebugPanel();
-          if(!ticketId) return;
-          if(state.scannedTicketId) return;
-
-          state.scannedTicketId = ticketId;
-          setHint(false);
-          setVerifyCardVisible(true);
-          setDigitsUI();
-          await loadScanPreview(ticketId);
+          handleDecodedText(decodedText, "camera");
         }
       );
       state.scanning = true;
@@ -742,6 +828,7 @@
   function showScan(){
     $("viewLogin").classList.add("hidden");
     $("viewScan").classList.remove("hidden");
+    focusWedgeInput();
   }
 
   function saveSession(){
@@ -807,6 +894,7 @@
       saveSession();
       showScan();
 
+      applyScanMode();
       await startScanner();
       hardResetForNextScan();
 
@@ -859,11 +947,36 @@
     await startScanner();
   });
 
+  $("btnHardwareScan").addEventListener("click", async ()=>{
+    await requestHardwareScan();
+    focusWedgeInput();
+  });
+
+  $("btnHardwareMode").addEventListener("click", ()=>{
+    state.scanMode = "hardware";
+    applyScanMode();
+    focusWedgeInput();
+  });
+
   $("btnToggleDebug").addEventListener("click", ()=>{
     debugState.enabled = !debugState.enabled;
     setDebugVisible(debugState.enabled);
     $("btnToggleDebug").textContent = debugState.enabled ? "Hide Diagnostics" : "Show Diagnostics";
     updateDebugPanel();
+  });
+
+  $("wedgeInput").addEventListener("keydown", (e)=>{
+    if(e.key !== "Enter") return;
+    const value = e.target.value.trim();
+    if(value){
+      handleDecodedText(value, "wedge");
+    }
+    e.target.value = "";
+    e.preventDefault();
+  });
+
+  $("wedgeInput").addEventListener("blur", ()=>{
+    setTimeout(focusWedgeInput, 50);
   });
 
   $("cameraSelect").addEventListener("change", async (e)=>{
@@ -898,9 +1011,26 @@
 
   async function init(){
     initNet();
+    initNativeScanner();
 
     state.eventId = getParam("event");
     $("eventIdInput").value = state.eventId || "(missing)";
+
+    state.scanMode = resolveScanMode();
+    applyScanMode();
+    window.onHardwareScan = (decodedText) => {
+      handleDecodedText(decodedText, "hardware");
+      focusWedgeInput();
+    };
+    window.setScanMode = (mode) => {
+      if(!mode) return;
+      const normalized = String(mode).toLowerCase();
+      if(["camera", "hardware", "wedge"].includes(normalized)){
+        state.scanMode = normalized;
+        applyScanMode();
+        focusWedgeInput();
+      }
+    };
 
     if(!state.eventId){
       alert("Missing event parameter. Use: /usher?event=EVENT_ID");
@@ -925,6 +1055,7 @@
         setEventLogo(state.event);
 
         showScan();
+        applyScanMode();
         await startScanner();
         hardResetForNextScan();
       }catch(_e){

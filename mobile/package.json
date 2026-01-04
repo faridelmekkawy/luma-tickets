@@ -1,0 +1,20 @@
+{
+  "name": "luma-usher-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync:web": "node ./scripts/sync-web.mjs",
+    "cap:sync": "npm run sync:web && npx cap sync",
+    "cap:android": "npm run sync:web && npx cap open android",
+    "cap:ios": "npm run sync:web && npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/ios": "^6.0.0"
+  }
+}

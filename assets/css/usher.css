@@ -301,6 +301,9 @@
       pointer-events:none;
       padding:18px;
     }
+    .scanHint.hardware{
+      pointer-events:auto;
+    }
     .scanHint .big{
       font-weight:900;
       letter-spacing:.4px;
@@ -311,6 +314,19 @@
       font-size:12px;
       line-height:1.35;
       max-width: 320px;
+    }
+    .scanHintActions{
+      margin-top:6px;
+      width:100%;
+      display:flex;
+      justify-content:center;
+    }
+    .wedgeInput{
+      position:absolute;
+      opacity:0;
+      width:1px;
+      height:1px;
+      pointer-events:none;
     }
 
     /* Keypad */
