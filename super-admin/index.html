@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:;">
+  <title>Luma Tickets — Super Admin</title>
+  <link rel="icon" href="data:,"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/super-admin.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div>
+          <h1>Super Admin</h1>
+          <p>Global control center</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="active">Overview <span>Live</span></button>
+        <button>Organizations <span>62</span></button>
+        <button>Events <span>238</span></button>
+        <button>Tickets <span>54k</span></button>
+        <button>Payments <span>$8.2M</span></button>
+        <button>Moderation <span>9</span></button>
+        <button>Ops Overrides <span>5</span></button>
+      </nav>
+
+      <div class="status">
+        <h3>System health</h3>
+        <p>All services operational · Last incident 11 days ago</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="search">
+          <input type="search" placeholder="Search orgs, events, tickets, users, or orders"/>
+          <button>Global Search</button>
+        </div>
+        <div class="user-meta">
+          <div class="user-chip">Super Admin · SSO Verified</div>
+          <div class="user-chip">Override Mode: Enabled</div>
+        </div>
+      </header>
+
+      <section class="grid cols-4">
+        <div class="card">
+          <h3>Gross volume</h3>
+          <p>Across all orgs (30 days)</p>
+          <div class="metric">$8.24M <span>▲ 12.4%</span></div>
+        </div>
+        <div class="card">
+          <h3>Active events</h3>
+          <p>Live or upcoming</p>
+          <div class="metric">238 <span>▲ 9.1%</span></div>
+        </div>
+        <div class="card">
+          <h3>Check-in velocity</h3>
+          <p>Guest scans per minute</p>
+          <div class="metric">1,420 <span>▲ 5.6%</span></div>
+        </div>
+        <div class="card">
+          <h3>Refund exposure</h3>
+          <p>Open disputes + refunds</p>
+          <div class="metric">$184k <span>▼ 3.2%</span></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="card">
+          <h3>Revenue concentration</h3>
+          <p>Top orgs by volume</p>
+          <div class="chart">
+            <div class="bar" style="height: 82%" data-label="Luma Labs"></div>
+            <div class="bar" style="height: 68%" data-label="Nightwave"></div>
+            <div class="bar" style="height: 54%" data-label="City Arts"></div>
+            <div class="bar" style="height: 48%" data-label="Moonbeam"></div>
+            <div class="bar" style="height: 40%" data-label="Collective"></div>
+          </div>
+          <div class="badge-row">
+            <span class="badge">Geo: 12 regions</span>
+            <span class="badge">ARPU $128</span>
+            <span class="badge">90-day trend +14%</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Friction watchlist</h3>
+          <p>Operational hotspots</p>
+          <div class="override-list">
+            <div class="override">
+              <div>
+                <strong>Late scan spikes</strong>
+                <p class="muted">4 venues above threshold</p>
+              </div>
+              <div class="pill red">High</div>
+            </div>
+            <div class="override">
+              <div>
+                <strong>Payment retries</strong>
+                <p class="muted">Processor latency in EU-West</p>
+              </div>
+              <div class="pill">Monitor</div>
+            </div>
+            <div class="override">
+              <div>
+                <strong>Seat map mismatch</strong>
+                <p class="muted">2 events need manual override</p>
+              </div>
+              <div class="pill green">Managed</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="card">
+          <h3>Org control matrix</h3>
+          <p>View, edit, or override permissions</p>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Organization</th>
+                <th>Status</th>
+                <th>Flags</th>
+                <th>Owner</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Luma Labs</td>
+                <td><span class="pill green">Healthy</span></td>
+                <td>VIP override, Auto-payout</td>
+                <td>Alicia M.</td>
+                <td>Edit · Override · Suspend</td>
+              </tr>
+              <tr>
+                <td>Nightwave</td>
+                <td><span class="pill">Watch</span></td>
+                <td>Chargeback risk</td>
+                <td>Marcus T.</td>
+                <td>Edit · Override · Audit</td>
+              </tr>
+              <tr>
+                <td>City Arts Collective</td>
+                <td><span class="pill red">Escalated</span></td>
+                <td>Refund queue, support hold</td>
+                <td>Sandra L.</td>
+                <td>Edit · Override · Lock</td>
+              </tr>
+              <tr>
+                <td>Moonbeam Global</td>
+                <td><span class="pill green">Healthy</span></td>
+                <td>3 events live</td>
+                <td>Priya K.</td>
+                <td>Edit · Override · Review</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3>Override controls</h3>
+          <p>Immediate global actions</p>
+          <div class="actions">
+            <button class="primary">Force sync all check-ins</button>
+            <button>Disable ticket transfers</button>
+            <button>Pause payouts for flagged orgs</button>
+            <button class="danger">Emergency shutdown</button>
+          </div>
+          <div class="override-list" style="margin-top: 18px;">
+            <div class="override">
+              <div>
+                <strong>Guest list visibility</strong>
+                <p class="muted">Override hidden guest lists</p>
+              </div>
+              <div class="toggle" aria-hidden="true"></div>
+            </div>
+            <div class="override">
+              <div>
+                <strong>Instant refunds</strong>
+                <p class="muted">Enable no-approval refunds</p>
+              </div>
+              <div class="toggle" aria-hidden="true"></div>
+            </div>
+            <div class="override">
+              <div>
+                <strong>Manual ticket edits</strong>
+                <p class="muted">Permit on-the-fly ticket changes</p>
+              </div>
+              <div class="toggle" aria-hidden="true"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="card">
+          <h3>Audit stream</h3>
+          <p>Recent super admin activity</p>
+          <div class="audit-item">
+            <time>2m ago</time>
+            <div>
+              <strong>Override approved</strong>
+              <p class="muted">Enabled instant refund for Nightwave / Order #24819</p>
+            </div>
+          </div>
+          <div class="audit-item">
+            <time>18m ago</time>
+            <div>
+              <strong>Role escalated</strong>
+              <p class="muted">Granted org owner access to City Arts Collective</p>
+            </div>
+          </div>
+          <div class="audit-item">
+            <time>1h ago</time>
+            <div>
+              <strong>Ticket override</strong>
+              <p class="muted">Adjusted VIP allocation for Moonbeam Global</p>
+            </div>
+          </div>
+          <div class="audit-item">
+            <time>3h ago</time>
+            <div>
+              <strong>Event moderation</strong>
+              <p class="muted">Paused ticket sales for "Sunset Rooftop" pending review</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Super admin notes</h3>
+          <p>Coordination across support and ops</p>
+          <div class="badge-row">
+            <span class="badge">Staff on-call: 6</span>
+            <span class="badge">Support backlog: 42</span>
+            <span class="badge">SLA: 97%</span>
+          </div>
+          <p style="margin-top: 16px; color: var(--muted); font-size: 13px; line-height: 1.5;">
+            Use this space to document weekly risks, escalation contacts, and cross-org commitments.
+            Every override is logged and exportable to compliance.
+          </p>
+        </div>
+      </section>
+
+      <div class="footer">Super Admin Console · All actions audited · v3.9.0</div>
+    </main>
+  </div>
+</body>
+</html>
