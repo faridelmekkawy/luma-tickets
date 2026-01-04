@@ -109,21 +109,31 @@
 
       <div class="cardBody">
         <div class="scanWrap">
-          <div class="scanBox">
+          <div class="scanBox" id="scanBox">
             <div id="qrRegion"></div>
             <div class="scanHint" id="scanHint">
               <div class="big">Scan Dynamic QR</div>
               <div class="small">Point the camera at the QR. After scan, you will enter the last 4 digits manually.</div>
             </div>
+            <div class="scanHint hardware hidden" id="hardwareHint">
+              <div class="big">Scanner Ready</div>
+              <div class="small">Press the hardware scan trigger, or tap Scan if available.</div>
+              <div class="scanHintActions">
+                <button class="btn" id="btnHardwareScan" type="button">Scan</button>
+              </div>
+            </div>
           </div>
 
           <div class="scanControls">
-            <div class="control">
+            <div class="control" id="cameraControl">
               <label for="cameraSelect">Camera</label>
               <select id="cameraSelect"></select>
             </div>
-            <div class="control">
+            <div class="control" id="restartControl">
               <button class="btn secondary" id="btnRestartScanner">Restart Scanner</button>
+            </div>
+            <div class="control hidden" id="hardwareControl">
+              <button class="btn secondary" id="btnHardwareMode">Use Hardware Scanner</button>
             </div>
             <div class="control">
               <button class="btn secondary" id="btnToggleDebug">Show Diagnostics</button>
@@ -160,6 +170,8 @@
               <span class="value" id="dbgLastError">—</span>
             </div>
           </div>
+
+          <input id="wedgeInput" class="wedgeInput" inputmode="none" autocomplete="off" autocapitalize="off" aria-hidden="true"/>
 
           <!-- Digits + keypad -->
           <div class="verifyModal hidden" id="verifyModal">
