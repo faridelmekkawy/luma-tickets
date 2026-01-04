@@ -89,6 +89,10 @@ body {
   cursor: pointer;
 }
 
+.nav button:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .nav button.active {
   background: rgba(91, 124, 255, 0.15);
   border-color: rgba(91, 124, 255, 0.4);
@@ -123,6 +127,14 @@ body {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.page {
+  transition: opacity 0.2s ease;
 }
 
 .topbar {
@@ -280,6 +292,30 @@ body {
 .table th {
   color: var(--muted);
   font-weight: 500;
+}
+
+.search-results {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.search-item {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel-soft);
+}
+
+.search-item strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.search-item span {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .pill {
