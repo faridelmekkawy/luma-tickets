@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://www.googleapis.com https://firebasestorage.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://www.gstatic.com;">
   <title>Luma Tickets — Super Admin</title>
   <link rel="icon" href="data:,"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -54,22 +54,22 @@
         <div class="card">
           <h3>Gross volume</h3>
           <p>Across all orgs (30 days)</p>
-          <div class="metric">$8.24M <span>▲ 12.4%</span></div>
+          <div class="metric" id="metricGross">$0</div>
         </div>
         <div class="card">
           <h3>Active events</h3>
           <p>Live or upcoming</p>
-          <div class="metric">238 <span>▲ 9.1%</span></div>
+          <div class="metric" id="metricEvents">0</div>
         </div>
         <div class="card">
           <h3>Check-in velocity</h3>
           <p>Guest scans per minute</p>
-          <div class="metric">1,420 <span>▲ 5.6%</span></div>
+          <div class="metric" id="metricCheckins">0</div>
         </div>
         <div class="card">
           <h3>Refund exposure</h3>
           <p>Open disputes + refunds</p>
-          <div class="metric">$184k <span>▼ 3.2%</span></div>
+          <div class="metric" id="metricRefunds">$0</div>
         </div>
       </section>
 
@@ -77,45 +77,21 @@
         <div class="card">
           <h3>Revenue concentration</h3>
           <p>Top orgs by volume</p>
-          <div class="chart">
-            <div class="bar" style="height: 82%" data-label="Luma Labs"></div>
-            <div class="bar" style="height: 68%" data-label="Nightwave"></div>
-            <div class="bar" style="height: 54%" data-label="City Arts"></div>
-            <div class="bar" style="height: 48%" data-label="Moonbeam"></div>
-            <div class="bar" style="height: 40%" data-label="Collective"></div>
+          <div class="chart" id="revenueChart">
+            <div class="muted">Loading revenue data…</div>
           </div>
           <div class="badge-row">
-            <span class="badge">Geo: 12 regions</span>
-            <span class="badge">ARPU $128</span>
-            <span class="badge">90-day trend +14%</span>
+            <span class="badge" id="badgeOrgs">Orgs: —</span>
+            <span class="badge" id="badgeAvgOrder">Avg order: —</span>
+            <span class="badge" id="badgeTicketVolume">Tickets: —</span>
           </div>
         </div>
 
         <div class="card">
           <h3>Friction watchlist</h3>
           <p>Operational hotspots</p>
-          <div class="override-list">
-            <div class="override">
-              <div>
-                <strong>Late scan spikes</strong>
-                <p class="muted">4 venues above threshold</p>
-              </div>
-              <div class="pill red">High</div>
-            </div>
-            <div class="override">
-              <div>
-                <strong>Payment retries</strong>
-                <p class="muted">Processor latency in EU-West</p>
-              </div>
-              <div class="pill">Monitor</div>
-            </div>
-            <div class="override">
-              <div>
-                <strong>Seat map mismatch</strong>
-                <p class="muted">2 events need manual override</p>
-              </div>
-              <div class="pill green">Managed</div>
-            </div>
+          <div class="override-list" id="frictionList">
+            <div class="muted">Loading operational signals…</div>
           </div>
         </div>
       </section>
@@ -134,34 +110,9 @@
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="orgRows">
               <tr>
-                <td>Luma Labs</td>
-                <td><span class="pill green">Healthy</span></td>
-                <td>VIP override, Auto-payout</td>
-                <td>Alicia M.</td>
-                <td>Edit · Override · Suspend</td>
-              </tr>
-              <tr>
-                <td>Nightwave</td>
-                <td><span class="pill">Watch</span></td>
-                <td>Chargeback risk</td>
-                <td>Marcus T.</td>
-                <td>Edit · Override · Audit</td>
-              </tr>
-              <tr>
-                <td>City Arts Collective</td>
-                <td><span class="pill red">Escalated</span></td>
-                <td>Refund queue, support hold</td>
-                <td>Sandra L.</td>
-                <td>Edit · Override · Lock</td>
-              </tr>
-              <tr>
-                <td>Moonbeam Global</td>
-                <td><span class="pill green">Healthy</span></td>
-                <td>3 events live</td>
-                <td>Priya K.</td>
-                <td>Edit · Override · Review</td>
+                <td colspan="5" class="muted">Loading organizations…</td>
               </tr>
             </tbody>
           </table>
@@ -206,33 +157,8 @@
         <div class="card">
           <h3>Audit stream</h3>
           <p>Recent super admin activity</p>
-          <div class="audit-item">
-            <time>2m ago</time>
-            <div>
-              <strong>Override approved</strong>
-              <p class="muted">Enabled instant refund for Nightwave / Order #24819</p>
-            </div>
-          </div>
-          <div class="audit-item">
-            <time>18m ago</time>
-            <div>
-              <strong>Role escalated</strong>
-              <p class="muted">Granted org owner access to City Arts Collective</p>
-            </div>
-          </div>
-          <div class="audit-item">
-            <time>1h ago</time>
-            <div>
-              <strong>Ticket override</strong>
-              <p class="muted">Adjusted VIP allocation for Moonbeam Global</p>
-            </div>
-          </div>
-          <div class="audit-item">
-            <time>3h ago</time>
-            <div>
-              <strong>Event moderation</strong>
-              <p class="muted">Paused ticket sales for "Sunset Rooftop" pending review</p>
-            </div>
+          <div id="auditStream">
+            <div class="muted">Loading audit activity…</div>
           </div>
         </div>
 
@@ -254,5 +180,6 @@
       <div class="footer">Super Admin Console · All actions audited · v3.9.0</div>
     </main>
   </div>
+  <script type="module" src="../assets/js/super-admin.js"></script>
 </body>
 </html>
