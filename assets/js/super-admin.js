@@ -26,9 +26,12 @@ const fmtCurrency = (value) => `$${Number(value || 0).toLocaleString("en-US", { 
 
 const state = {
   events: new Map(),
+  profiles: new Map(),
   ordersByEvent: new Map(),
+  invitesByEvent: new Map(),
   logsByEvent: new Map(),
   unsubOrders: new Map(),
+  unsubInvites: new Map(),
   unsubLogs: new Map(),
   activePage: "overview"
 };
@@ -49,25 +52,40 @@ function resolveEventLabel(event) {
 }
 
 function resolveOwnerLabel(event) {
-  return event?.ownerName || event?.organizer || event?.host || event?.ownerLabel || "Owner team";
+  const ownerId = event?.ownerId || event?.ownerUid || event?.createdBy || "";
+  const profile = ownerId ? state.profiles.get(ownerId) : null;
+  return profile?.name || profile?.email || event?.ownerName || event?.organizer || event?.host || "Owner team";
 }
 
 function parseOrder(order) {
-  const amount = Number(order?.amount ?? order?.total ?? order?.price ?? 0) || 0;
-  const status = order?.status || "";
+  const amount = Number(order?.total ?? order?.amount ?? order?.price ?? 0) || 0;
+  const status = String(order?.status || "").toLowerCase();
   const qtyRaw = Number(order?.qty ?? order?.quantity ?? order?.count ?? 0) || 0;
   const tickets = Array.isArray(order?.tickets) ? order.tickets : [];
   const tiers = Array.isArray(order?.tiers) ? order.tiers : [];
   const qtyFromTickets = tickets.reduce((sum, t) => sum + (Number(t?.quantity ?? t?.qty ?? 0) || 0), 0);
   const qtyFromTiers = tiers.reduce((sum, t) => sum + (Number(t?.qty ?? t?.quantity ?? 0) || 0), 0);
   const qty = qtyRaw || qtyFromTickets || qtyFromTiers || 1;
-  const orderId = order?.orderId || order?.id || order?.code || "Order";
+  const name = order?.Name || order?.name || order?.fullName || "Guest";
   const email = order?.email || order?.buyerEmail || order?.customerEmail || "";
-  return { amount, status, qty, orderId, email };
+  const phone = order?.phone || "";
+  const checkedIn = !!order?.checkedIn;
+  const checkedInAt = order?.checkedInAt || null;
+  return { amount, status, qty, name, email, phone, checkedIn, checkedInAt };
+}
+
+function inviteCheckin(invite) {
+  const status = String(invite?.status || "").toLowerCase();
+  const redeemed = status === "redeemed" || !!invite?.redeemedAt;
+  return {
+    redeemed,
+    redeemedAt: invite?.redeemedAt || null,
+    name: invite?.recipient?.name || invite?.recipient?.email || "Guest"
+  };
 }
 
 function scanLogTime(log) {
-  const createdAt = log?.createdAt;
+  const createdAt = log?.createdAt || log?.time;
   if(!createdAt) return null;
   if(typeof createdAt.toDate === "function") return createdAt.toDate();
   if(typeof createdAt.seconds === "number") return new Date(createdAt.seconds * 1000);
@@ -132,6 +150,14 @@ function ensureEventListeners(eventId) {
   });
   state.unsubOrders.set(eventId, unsubOrders);
 
+  const invitesCol = collection(db, "events", eventId, "invites");
+  const unsubInvites = onSnapshot(invitesCol, snap => {
+    const invites = snap.docs.map(doc => doc.data());
+    state.invitesByEvent.set(eventId, invites);
+    renderAll();
+  });
+  state.unsubInvites.set(eventId, unsubInvites);
+
   const logsCol = collection(db, "events", eventId, "scanLogs");
   const logsQuery = query(logsCol, orderBy("createdAt", "desc"), limit(120));
   const unsubLogs = onSnapshot(logsQuery, snap => {
@@ -145,9 +171,12 @@ function ensureEventListeners(eventId) {
 function removeEventListeners(eventId) {
   state.unsubOrders.get(eventId)?.();
   state.unsubOrders.delete(eventId);
+  state.unsubInvites.get(eventId)?.();
+  state.unsubInvites.delete(eventId);
   state.unsubLogs.get(eventId)?.();
   state.unsubLogs.delete(eventId);
   state.ordersByEvent.delete(eventId);
+  state.invitesByEvent.delete(eventId);
   state.logsByEvent.delete(eventId);
 }
 
@@ -358,6 +387,19 @@ function handleSearch() {
   const needle = queryText.toLowerCase();
   const results = [];
 
+  state.profiles.forEach(profile => {
+    const name = profile.name || "";
+    const email = profile.email || "";
+    const phone = profile.phone || "";
+    const haystack = `${name} ${email} ${phone}`.toLowerCase();
+    if(haystack.includes(needle)) {
+      results.push({
+        title: name || email || "User profile",
+        detail: email || phone || "Profile" 
+      });
+    }
+  });
+
   for(const event of state.events.values()) {
     const eventName = resolveEventLabel(event);
     const ownerName = resolveOwnerLabel(event);
@@ -375,26 +417,11 @@ function handleSearch() {
     const eventName = resolveEventLabel(event);
     orders.forEach(order => {
       const parsed = parseOrder(order);
-      const haystack = `${parsed.orderId} ${parsed.email}`.toLowerCase();
+      const haystack = `${parsed.name} ${parsed.email} ${parsed.phone}`.toLowerCase();
       if(haystack.includes(needle)) {
         results.push({
-          title: `Order ${parsed.orderId}`,
-          detail: `${eventName} · ${parsed.email || "No email"} · ${parsed.status || "—"}`
-        });
-      }
-    });
-  }
-
-  for(const [eventId, logs] of state.logsByEvent.entries()) {
-    const event = state.events.get(eventId);
-    const eventName = resolveEventLabel(event);
-    logs.forEach(log => {
-      const ticket = log.ticketId || log.orderId || "";
-      if(!ticket) return;
-      if(ticket.toLowerCase().includes(needle)) {
-        results.push({
-          title: `Scan ${ticket}`,
-          detail: `${eventName} · ${log.outcome || "Scan"}`
+          title: parsed.name || parsed.email || "Order",
+          detail: `${eventName} · ${parsed.email || parsed.phone || "Order"} · ${parsed.status || "—"}`
         });
       }
     });
@@ -423,6 +450,7 @@ function renderAll() {
   events.forEach(event => {
     const eventId = event.id;
     const orders = state.ordersByEvent.get(eventId) || [];
+    const invites = state.invitesByEvent.get(eventId) || [];
     const logs = state.logsByEvent.get(eventId) || [];
 
     let eventGross = 0;
@@ -433,42 +461,56 @@ function renderAll() {
 
     orders.forEach(order => {
       const parsed = parseOrder(order);
-      if(parsed.status === "Paid" || parsed.status === "Refunded") {
+      if(parsed.status === "paid" || parsed.status === "refunded") {
         eventGross += parsed.amount;
       }
-      if(parsed.status === "Refunded") {
+      if(parsed.status === "refunded") {
         eventRefunds += parsed.amount;
       }
-      if(parsed.status === "Paid") {
+      if(parsed.status === "paid") {
         eventSold += parsed.qty;
       }
       totalOrders += 1;
 
-      if(parsed.status === "Paid") {
+      if(parsed.status === "paid") {
         ordersRows.push({
           eventName: resolveEventLabel(event),
-          orderLabel: parsed.orderId,
+          orderLabel: parsed.name || parsed.email || "Paid order",
           qty: parsed.qty,
           amount: parsed.amount,
-          status: parsed.status
+          status: "Paid"
         });
+      }
+
+      if(parsed.checkedIn) {
+        approvedCount += 1;
+        const checkedInDate = scanLogTime({ createdAt: parsed.checkedInAt });
+        if(checkedInDate && checkedInDate.getTime() >= oneHourAgo) {
+          checkinsLastHour += 1;
+        }
+      }
+    });
+
+    invites.forEach(invite => {
+      const inviteState = inviteCheckin(invite);
+      if(inviteState.redeemed) {
+        approvedCount += 1;
+        const redeemedDate = scanLogTime({ createdAt: inviteState.redeemedAt });
+        if(redeemedDate && redeemedDate.getTime() >= oneHourAgo) {
+          checkinsLastHour += 1;
+        }
       }
     });
 
     logs.forEach(log => {
-      if(log.outcome === "approved") approvedCount += 1;
-      if(log.outcome === "denied") deniedCount += 1;
-      const logTime = scanLogTime(log);
-      if(log.outcome === "approved" && logTime && logTime.getTime() >= oneHourAgo) {
-        checkinsLastHour += 1;
-      }
-      if(log.outcome === "denied") {
+      if(String(log.outcome || "").toLowerCase() === "denied") {
+        deniedCount += 1;
         moderationRows.push({
           eventName: resolveEventLabel(event),
           outcome: "Denied",
           reason: log.reason || "—",
-          when: formatRelativeTime(logTime),
-          ticket: log.ticketId || log.orderId || "—"
+          when: formatRelativeTime(scanLogTime(log)),
+          ticket: "Ticket scan"
         });
       }
     });
@@ -478,7 +520,7 @@ function renderAll() {
     totals.sold += eventSold;
     totals.checkins += approvedCount;
 
-    const ownerId = event.ownerId || event.ownerUid || "Unknown";
+    const ownerId = event.ownerId || event.ownerUid || event.createdBy || "Unknown";
     const ownerEntry = ownersMap.get(ownerId) || {
       id: ownerId,
       label: resolveOwnerLabel(event),
@@ -503,7 +545,7 @@ function renderAll() {
       auditItems.push({
         when: formatRelativeTime(logTime),
         title: logItem.outcome === "approved" ? "Check-in approved" : "Entry denied",
-        detail: `${resolveEventLabel(event)} · ${logItem.ticketId || logItem.orderId || "Scan"}`
+        detail: `${resolveEventLabel(event)} · ${logItem.outcome || "Scan"}`
       });
     }
 
@@ -577,6 +619,16 @@ async function initDashboard() {
   await loadFirebase();
   setupNav();
   initSearch();
+
+  const profilesCol = collection(db, "profiles");
+  onSnapshot(profilesCol, snap => {
+    const profiles = new Map();
+    snap.forEach(doc => {
+      profiles.set(doc.id, doc.data());
+    });
+    state.profiles = profiles;
+    renderAll();
+  });
 
   const eventsCol = collection(db, "events");
   onSnapshot(eventsCol, snap => {
