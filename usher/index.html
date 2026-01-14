@@ -113,7 +113,7 @@
             <div id="qrRegion"></div>
             <div class="scanHint" id="scanHint">
               <div class="big">Scan Dynamic QR</div>
-              <div class="small">Point the camera at the QR. After scan, you will enter the last 4 digits manually.</div>
+              <div class="small">Point the camera at the QR or type the code manually. After scan, you will enter the last 4 digits manually.</div>
             </div>
             <div class="scanHint hardware hidden" id="hardwareHint">
               <div class="big">Scanner Ready</div>
@@ -128,6 +128,13 @@
             <div class="control" id="cameraControl">
               <label for="cameraSelect">Camera</label>
               <select id="cameraSelect"></select>
+            </div>
+            <div class="control manualEntry" id="manualEntryControl">
+              <label for="manualTicketInput">Manual code entry</label>
+              <div class="manualEntryRow">
+                <input id="manualTicketInput" inputmode="text" autocomplete="off" autocapitalize="off" placeholder="Type ticket code or QR text"/>
+                <button class="btn secondary" id="btnManualTicket" type="button">Enter</button>
+              </div>
             </div>
             <div class="control" id="restartControl">
               <button class="btn secondary" id="btnRestartScanner">Restart Scanner</button>

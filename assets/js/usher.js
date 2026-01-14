@@ -133,6 +133,8 @@
     setVerifyCardVisible(false);
     setVerifying(false);
     $("btnVerify").disabled = true;
+    const manualInput = $("manualTicketInput");
+    if(manualInput) manualInput.value = "";
     focusWedgeInput();
   }
 
@@ -162,6 +164,24 @@
     if(!statusEl) return;
     statusEl.textContent = message;
     statusEl.classList.toggle("error", isError);
+  }
+
+  function submitManualEntry(){
+    if(state.verifying) return;
+    if(state.scannedTicketId) return;
+    const input = $("manualTicketInput");
+    if(!input) return;
+    const value = input.value.trim();
+    if(!value){
+      setScanStatus("Enter a ticket code to continue.", true);
+      input.focus();
+      return;
+    }
+    handleDecodedText(value, "manual");
+    input.value = "";
+    if(state.scannedTicketId){
+      setScanStatus("Code entered. Verify the last 4 digits.");
+    }
   }
 
   function setDebugVisible(show){
@@ -939,6 +959,17 @@
     closeResult();
     // allow new scan
     hardResetForNextScan();
+  });
+
+  $("btnManualTicket").addEventListener("click", ()=>{
+    submitManualEntry();
+    $("manualTicketInput")?.focus();
+  });
+
+  $("manualTicketInput").addEventListener("keydown", (e)=>{
+    if(e.key !== "Enter") return;
+    submitManualEntry();
+    e.preventDefault();
   });
 
   $("btnRestartScanner").addEventListener("click", async ()=>{
