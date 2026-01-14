@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://firebasestorage.googleapis.com; connect-src 'self' https://firestore.googleapis.com https://www.googleapis.com https://firebasestorage.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://www.gstatic.com; media-src 'self' blob:; worker-src 'self' blob:; base-uri 'self'">
+  <title>Luma Tickets — Manual Desk</title>
+  <link rel="stylesheet" href="../assets/css/manual-desk.css">
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark"></div>
+      <div class="titles">
+        <div class="h" id="topTitle">Manual Desk</div>
+        <div class="s" id="topSub">Luma Tickets • On-site Ops</div>
+      </div>
+    </div>
+    <img
+      class="lumaLogo"
+      src="https://firebasestorage.googleapis.com/v0/b/events-339ce.firebasestorage.app/o/ChatGPT%20Image%20Dec%2023%2C%202025%2C%2012_55_43%20PM.png?alt=media&token=0facde2f-570c-4004-9e7b-d0d10aca94c3"
+      alt="Luma logo"
+    />
+    <div class="statusPill" title="Network status">
+      <div class="dot" id="netDot"></div>
+      <div id="netText">Offline</div>
+    </div>
+  </div>
+
+  <div class="view" id="viewLogin">
+    <div class="card">
+      <div class="cardHead">
+        <h2>Manual Desk Login</h2>
+        <p>Use your assigned <b>username</b> and <b>PIN</b>. This link is event-specific.</p>
+      </div>
+      <div class="cardBody">
+        <div class="row">
+          <div>
+            <label>Event ID (from link)</label>
+            <input id="eventIdInput" type="text" disabled/>
+          </div>
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div class="row">
+          <div>
+            <label>Username</label>
+            <input id="username" inputmode="text" autocomplete="username" placeholder="e.g. desk01"/>
+          </div>
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div class="row">
+          <div>
+            <label>PIN</label>
+            <input id="pin" inputmode="numeric" autocomplete="current-password" placeholder="••••" maxlength="10"/>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <button class="btn" id="btnLogin">Login</button>
+
+        <div style="height:10px"></div>
+        <button class="btn secondary" id="btnClearLogin">Clear</button>
+
+        <div style="height:12px"></div>
+        <div style="color:var(--muted);font-size:12px;line-height:1.35">
+          Manual desk has full access to the guest list and can check in or undo check-ins with audit notes.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="view hidden" id="viewDesk">
+    <div class="card">
+      <div class="cardHead">
+        <div class="eventHead">
+          <div>
+            <h2 id="eventName">Event</h2>
+            <p id="eventMeta">Manual desk • Full guest list access</p>
+          </div>
+          <img class="eventLogo hidden" id="eventLogo" alt="Event logo"/>
+        </div>
+      </div>
+
+      <div class="miniMeta">
+        <div class="chip">
+          <div class="k">Signed in</div>
+          <div class="v" id="staffName">—</div>
+        </div>
+        <div class="chip">
+          <div class="k">Role</div>
+          <div class="v" id="staffRole">—</div>
+        </div>
+        <div class="chip">
+          <div class="k">Total guests</div>
+          <div class="v" id="countTotal">—</div>
+        </div>
+        <div class="chip">
+          <div class="k">Checked-in</div>
+          <div class="v" id="countChecked">—</div>
+        </div>
+        <div class="chip">
+          <div class="k">Remaining</div>
+          <div class="v" id="countRemaining">—</div>
+        </div>
+        <div class="chip">
+          <div class="k">Last sync</div>
+          <div class="v" id="lastSync">—</div>
+        </div>
+      </div>
+
+      <div class="cardBody">
+        <div class="controls">
+          <div class="control grow">
+            <label for="searchInput">Search guests</label>
+            <input id="searchInput" placeholder="Search name, order ID, phone, email, ticket ID"/>
+          </div>
+          <div class="control">
+            <label for="statusFilter">Payment</label>
+            <select id="statusFilter">
+              <option value="">All</option>
+              <option value="Paid">Paid</option>
+              <option value="Pending">Pending</option>
+              <option value="Refunded">Refunded</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div class="control">
+            <label for="checkinFilter">Check-in</label>
+            <select id="checkinFilter">
+              <option value="">All</option>
+              <option value="checked">Checked-in</option>
+              <option value="not">Not checked-in</option>
+            </select>
+          </div>
+          <div class="control">
+            <label for="tierFilter">Tier</label>
+            <select id="tierFilter">
+              <option value="">All</option>
+            </select>
+          </div>
+          <div class="control">
+            <label for="waveFilter">Wave</label>
+            <select id="waveFilter">
+              <option value="">All</option>
+            </select>
+          </div>
+          <div class="control">
+            <label>&nbsp;</label>
+            <button class="btn secondary" id="btnRefresh">Refresh</button>
+          </div>
+        </div>
+
+        <div class="contentGrid">
+          <div class="tablePanel">
+            <div class="tableWrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Guest</th>
+                    <th>Tier</th>
+                    <th>Wave</th>
+                    <th>Order ID</th>
+                    <th>Contact</th>
+                    <th>Status</th>
+                    <th>Check-in</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="ordersBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="detailPanel">
+            <div class="detailCard">
+              <div class="detailHead">
+                <div>
+                  <h3 id="detailName">Select a guest</h3>
+                  <p id="detailSub">Click a row to see details and take action.</p>
+                </div>
+                <span class="badge" id="detailStatus">—</span>
+              </div>
+              <div class="detailBody">
+                <div class="kv"><span>Order ID</span><b id="detailOrder">—</b></div>
+                <div class="kv"><span>Ticket ID</span><b id="detailTicket">—</b></div>
+                <div class="kv"><span>Tier</span><b id="detailTier">—</b></div>
+                <div class="kv"><span>Wave</span><b id="detailWave">—</b></div>
+                <div class="kv"><span>Quantity</span><b id="detailQty">—</b></div>
+                <div class="kv"><span>Phone</span><b id="detailPhone">—</b></div>
+                <div class="kv"><span>Email</span><b id="detailEmail">—</b></div>
+                <div class="kv"><span>Last check-in</span><b id="detailCheckin">—</b></div>
+
+                <div class="notes">
+                  <label for="deskNote">Manual desk note (optional)</label>
+                  <textarea id="deskNote" rows="3" placeholder="Add context for audit log..."></textarea>
+                </div>
+
+                <div class="detailActions">
+                  <button class="btn" id="btnCheckin" disabled>Check-in Guest</button>
+                  <button class="btn secondary" id="btnUndo" disabled>Undo Check-in</button>
+                  <button class="btn ghost" id="btnLogout">Logout</button>
+                </div>
+
+                <div class="hint">
+                  Use manual check-in for reissues, VIP overrides, or guests without QR access. All actions are logged.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="scanStatus" id="deskStatus">Ready.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Powered by <b>Luma</b>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <div class="toastTitle" id="toastTitle">Ready</div>
+  <div class="toastBody" id="toastBody">—</div>
+</div>
+
+<script type="module" src="../assets/js/manual-desk.js"></script>
+</body>
+</html>

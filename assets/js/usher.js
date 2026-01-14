@@ -6,8 +6,6 @@
     getFirestore, doc, getDoc, collection, query, where, limit,
     getDocs, updateDoc, addDoc, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-  import QrScanner from "https://unpkg.com/qr-scanner@1.4.2/qr-scanner.min.js";
-
   /******************************************************************
    * 2) CONFIG — PASTE YOUR FIREBASE CONFIG HERE
    ******************************************************************/
@@ -37,7 +35,16 @@
     scannedTicketId: null,
     scannedCodeDoc: null, // ticket-codes doc data
     scannedOrderDoc: null,// orders doc data
-    digits: ""
+    digits: "",
+    scanMode: "camera" // camera | hardware | wedge
+  };
+
+  const debugState = {
+    enabled: false,
+    lastRaw: "—",
+    lastTicketId: "—",
+    lastError: "—",
+    cameraLabel: "—"
   };
 
   /******************************************************************
@@ -49,6 +56,27 @@
   function getParam(name){
     const u = new URL(location.href);
     return u.searchParams.get(name);
+  }
+
+  function resolveScanMode(){
+    const rawMode = (getParam("scan") || "").toLowerCase();
+    if(rawMode === "camera") return "camera";
+    if(rawMode === "wedge") return "wedge";
+    if(["hardware", "native", "urovo", "intent"].includes(rawMode)) return "hardware";
+    if(window.LumaNativeScanner?.startScan || window.NativeScanner?.startScan || window.UROVOScanner?.startScan){
+      return "hardware";
+    }
+    return "camera";
+  }
+
+  function getNativeScanner(){
+    return (
+      window.LumaNativeScanner ||
+      window.NativeScanner ||
+      window.UROVOScanner ||
+      window.Capacitor?.Plugins?.LumaNativeScanner ||
+      null
+    );
   }
 
   function fmtTime(d){
@@ -88,20 +116,45 @@
     $("scanTier").textContent = tier || "—";
   }
 
+  function resolveTierName(tierId, tierName){
+    if(tierName) return tierName;
+    if(!tierId) return "—";
+    const tiers = state.event?.tiers || [];
+    return tiers.find(t => t.id === tierId)?.name || tierId;
+  }
+
   function hardResetForNextScan(){
     state.scannedTicketId = null;
     state.scannedCodeDoc = null;
     state.scannedOrderDoc = null;
     clearDigits();
     setScanMeta({name:"—", tier:"—"});
-    setHint(true);
+    refreshScanHints();
     setVerifyCardVisible(false);
-    state.verifying = false;
+    setVerifying(false);
     $("btnVerify").disabled = true;
+    focusWedgeInput();
   }
 
   function setHint(show){
     $("scanHint").classList.toggle("hidden", !show);
+  }
+
+  function setHardwareHint(show){
+    $("hardwareHint").classList.toggle("hidden", !show);
+  }
+
+  function refreshScanHints(){
+    const isCamera = state.scanMode === "camera";
+    setHint(isCamera);
+    setHardwareHint(!isCamera);
+  }
+
+  function focusWedgeInput(){
+    if(state.scanMode === "camera") return;
+    const wedgeInput = $("wedgeInput");
+    if(!wedgeInput) return;
+    wedgeInput.focus();
   }
 
   function setScanStatus(message, isError = false){
@@ -111,7 +164,99 @@
     statusEl.classList.toggle("error", isError);
   }
 
-  function showResult({ok, reason, customerName, tierId, waveId, gateName, when, usedWhereWhen}){
+  function setDebugVisible(show){
+    const panel = $("scanDebug");
+    if(!panel) return;
+    panel.classList.toggle("hidden", !show);
+  }
+
+  function setDebugValue(id, value){
+    const el = $(id);
+    if(!el) return;
+    el.textContent = value || "—";
+  }
+
+  function updateDebugPanel(){
+    if(!debugState.enabled) return;
+    setDebugValue("dbgSecure", window.isSecureContext ? "yes" : "no");
+    setDebugValue("dbgScanning", state.scanning ? "active" : "stopped");
+    setDebugValue("dbgVerifying", state.verifying ? "yes" : "no");
+    setDebugValue("dbgCamera", debugState.cameraLabel || "—");
+    setDebugValue("dbgLastRaw", debugState.lastRaw || "—");
+    setDebugValue("dbgTicketId", debugState.lastTicketId || "—");
+    setDebugValue("dbgLastError", debugState.lastError || "—");
+  }
+
+  function setVerifying(value){
+    state.verifying = value;
+    updateDebugPanel();
+  }
+
+  function applyScanMode(){
+    const isCamera = state.scanMode === "camera";
+    const hardwareAvailable = Boolean(getNativeScanner()) || state.scanMode !== "camera";
+    $("cameraControl").classList.toggle("hidden", !isCamera);
+    $("restartControl").classList.toggle("hidden", !isCamera);
+    $("hardwareControl").classList.toggle("hidden", !isCamera || !hardwareAvailable);
+    refreshScanHints();
+
+    if(!isCamera){
+      stopScanner();
+      $("scanStatus").textContent = "Hardware scanner ready.";
+    }
+  }
+
+  function handleDecodedText(decodedText, source = "camera"){
+    if(state.verifying) return;
+    if(!decodedText) return;
+
+    debugState.lastRaw = decodedText || "—";
+
+    const t = nowMs();
+    if(t - state.lastScanAt < 900) return;
+    state.lastScanAt = t;
+
+    const ticketId = parseTicketIdFromQR(decodedText);
+    debugState.lastTicketId = ticketId || "—";
+    debugState.lastError = ticketId ? "—" : "Could not parse ticketId";
+    debugState.cameraLabel = source === "camera" ? (debugState.cameraLabel || "Camera") : source;
+    updateDebugPanel();
+    if(!ticketId) return;
+    if(state.scannedTicketId) return;
+
+    state.scannedTicketId = ticketId;
+    setHint(false);
+    setHardwareHint(false);
+    setVerifyCardVisible(true);
+    setDigitsUI();
+    loadScanPreview(ticketId);
+  }
+
+  async function requestHardwareScan(){
+    const scanner = getNativeScanner();
+    if(scanner?.startScan){
+      try{
+        await scanner.startScan();
+        return;
+      }catch(e){
+        setScanStatus(e?.message || "Unable to start hardware scan.", true);
+        return;
+      }
+    }
+    setScanStatus("Hardware scanner not available.", true);
+  }
+
+  function initNativeScanner(){
+    const scanner = getNativeScanner();
+    if(!scanner) return;
+    if(scanner.addListener){
+      scanner.addListener("scan", (payload) => {
+        handleDecodedText(payload?.value || payload?.text || "", "hardware");
+      });
+    }
+  }
+
+  function showResult({ok, reason, customerName, tierId, tierName, waveId, gateName, when, usedWhereWhen}){
     const overlay = $("resultOverlay");
     overlay.style.display = "flex";
 
@@ -121,7 +266,7 @@
     $("resultSub").textContent = ok ? "Entry Locked" : (reason || "Not Allowed");
 
     $("rCustomer").textContent = customerName || "—";
-    $("rTier").textContent = tierId || "—";
+    $("rTier").textContent = resolveTierName(tierId, tierName);
     $("rWave").textContent = waveId || "—";
     $("rGate").textContent = gateName || "—";
     $("rTime").textContent = when ? fmtTime(when) : "—";
@@ -130,7 +275,7 @@
     if(!ok && usedWhereWhen){
       $("rGate").textContent = usedWhereWhen.gate || gateName || "—";
       $("rTime").textContent = usedWhereWhen.time ? fmtTime(usedWhereWhen.time) : $("rTime").textContent;
-      $("rTier").textContent = tierId || "—";
+      $("rTier").textContent = resolveTierName(tierId, tierName);
       $("rWave").textContent = waveId || "—";
       $("rCustomer").textContent = customerName || "—";
       $("resultSub").textContent = `Already checked-in`;
@@ -202,6 +347,16 @@
     return digits.slice(-4);
   }
 
+  function orderTicketCount(order){
+    if(!order) return 1;
+    const qtyRaw = Number(order?.qty ?? order?.quantity ?? order?.count ?? 0) || 0;
+    const tickets = Array.isArray(order?.tickets) ? order.tickets : [];
+    const tiers = Array.isArray(order?.tiers) ? order.tiers : [];
+    const qtyFromTickets = tickets.reduce((s,t)=>s+(Number(t?.quantity ?? t?.qty ?? 0) || 0),0);
+    const qtyFromTiers = tiers.reduce((s,t)=>s+(Number(t?.qty ?? t?.quantity ?? 0) || 0),0);
+    return qtyRaw || qtyFromTickets || qtyFromTiers || 1;
+  }
+
   async function writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome, reason}){
     // Recommended log collection for both approvals and failures
     try{
@@ -226,7 +381,7 @@
     if(!state.scannedTicketId) return;
     if(state.digits.length !== 4) return;
 
-    state.verifying = true;
+    setVerifying(true);
     $("btnVerify").disabled = true;
 
     const eventId = state.eventId;
@@ -243,7 +398,7 @@
       if(!codeSnap.exists()){
         await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Ticket code not found"});
         showResult({ok:false, reason:"Ticket Not Found", gateName, when:new Date()});
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
@@ -253,7 +408,7 @@
       if(String(codeEventId) !== String(eventId)){
         await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Wrong event"});
         showResult({ok:false, reason:"Wrong Event", gateName, when:new Date()});
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
@@ -270,7 +425,7 @@
           when:new Date(),
           usedWhereWhen: {gate: usedGate, time: usedTime || null}
         });
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
@@ -279,15 +434,96 @@
       if(exp && exp.getTime() < nowMs()){
         await writeScanLog({eventId, staff, gateName, ticketId, orderId: code.orderId, outcome:"denied", reason:"Expired QR"});
         showResult({ok:false, reason:"Expired QR", gateName, when:new Date()});
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
       const orderId = code.orderId;
+      const inviteToken = code.inviteToken || code.inviteId || code.invite?.token || "";
+      if(!orderId && inviteToken){
+        const inviteRef = doc(db, "events", eventId, "invites", inviteToken);
+        const inviteSnap = await getDoc(inviteRef);
+        if(!inviteSnap.exists()){
+          await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Invite not found"});
+          showResult({ok:false, reason:"Invite Not Found", gateName, when:new Date()});
+          setVerifying(false);
+          return;
+        }
+
+        const invite = inviteSnap.data() || {};
+        const alreadyRedeemed = invite.redeemedAt || invite.checkedInAt;
+        if(alreadyRedeemed){
+          const usedGate = invite.redeemedGate || invite.checkedInGate || "Unknown gate";
+          const usedTime = invite.redeemedAt?.toDate?.() || invite.checkedInAt?.toDate?.();
+          await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Already checked-in"});
+          showResult({
+            ok:false,
+            reason:"Already checked-in",
+            customerName: invite?.recipient?.name || "",
+            tierId: invite.tierId || code.tierId,
+            waveId: code.waveId,
+            gateName,
+            when:new Date(),
+            usedWhereWhen: {gate: usedGate, time: usedTime || null}
+          });
+          setVerifying(false);
+          return;
+        }
+
+        const phone = invite?.recipient?.phone || "";
+        const p4 = last4(phone);
+        if(p4 && String(p4) !== String(state.digits)){
+          await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Wrong digits"});
+          showResult({
+            ok:false,
+            reason:"Wrong digits",
+            customerName: invite?.recipient?.name || "",
+            tierId: invite.tierId || code.tierId,
+            waveId: code.waveId,
+            gateName,
+            when:new Date()
+          });
+          setVerifying(false);
+          return;
+        }
+
+        const lockedAt = new Date();
+        await updateDoc(codeRef, {
+          redeemedAt: serverTimestamp(),
+          redeemedGate: gateName,
+          redeemedBy: staff?.id || "",
+          redeemedByUsername: staff?.username || ""
+        });
+        await updateDoc(inviteRef, {
+          status: "redeemed",
+          redeemedAt: serverTimestamp(),
+          redeemedGate: gateName,
+          redeemedBy: staff?.id || "",
+          redeemedByUsername: staff?.username || "",
+          checkedInAt: serverTimestamp(),
+          checkedInGate: gateName,
+          checkedInBy: staff?.id || "",
+          checkedInByUsername: staff?.username || ""
+        });
+        await writeScanLog({eventId, staff, gateName, ticketId, outcome:"approved", reason:"Invite redeemed"});
+
+        showResult({
+          ok:true,
+          customerName: invite?.recipient?.name || "",
+          tierId: invite.tierId || code.tierId || "—",
+          tierName: "",
+          waveId: code.waveId || "—",
+          gateName,
+          when: lockedAt
+        });
+        setVerifying(false);
+        return;
+      }
+
       if(!orderId){
         await writeScanLog({eventId, staff, gateName, ticketId, outcome:"denied", reason:"Order missing on code"});
         showResult({ok:false, reason:"Invalid Ticket Data", gateName, when:new Date()});
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
@@ -298,22 +534,25 @@
       if(!orderSnap.exists()){
         await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"denied", reason:"Order not found"});
         showResult({ok:false, reason:"Order Not Found", gateName, when:new Date()});
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
       const order = orderSnap.data() || {};
+      const orderQty = orderTicketCount(order);
+      const checkedInTicketId = order.checkedInTicketId || order.ticketId || "";
+      const isOrderTicketChecked = checkedInTicketId && checkedInTicketId === ticketId;
 
       // Must be paid
       if(String(order.status || "").toLowerCase() !== "paid"){
         await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"denied", reason:"Unpaid order"});
         showResult({ok:false, reason:"Not Paid", gateName, when:new Date(), customerName: order.Name || order.name || ""});
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
       // If order already checked in (double defense)
-      if(order.checkedIn === true || order.checkedInAt){
+      if(order.checkedIn === true || (order.checkedInAt && orderQty <= 1) || isOrderTicketChecked){
         const usedGate = order.checkedInGate || "Unknown gate";
         const usedTime = order.checkedInAt?.toDate?.() || null;
         await writeScanLog({eventId, staff, gateName, ticketId, orderId, outcome:"denied", reason:"Already checked-in"});
@@ -322,12 +561,13 @@
           reason:"Already checked-in",
           customerName: order.Name || order.name || "",
           tierId: order.tierId || code.tierId,
+          tierName: order.tierName || "",
           waveId: order.waveId || code.waveId,
           gateName,
           when:new Date(),
           usedWhereWhen: {gate: usedGate, time: usedTime}
         });
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
@@ -340,11 +580,12 @@
           reason:"Wrong digits",
           customerName: order.Name || order.name || "",
           tierId: order.tierId || code.tierId,
+          tierName: order.tierName || "",
           waveId: order.waveId || code.waveId,
           gateName,
           when:new Date()
         });
-        state.verifying = false;
+        setVerifying(false);
         return;
       }
 
@@ -359,7 +600,8 @@
       });
 
       await updateDoc(orderRef, {
-        checkedIn: true,
+        ...(orderQty <= 1 ? { checkedIn: true } : {}),
+        checkedInTicketId: ticketId || "",
         checkedInAt: serverTimestamp(),
         checkedInGate: gateName,
         checkedInBy: staff?.id || "",
@@ -372,109 +614,123 @@
         ok:true,
         customerName: order.Name || order.name || "",
         tierId: order.tierId || code.tierId || "—",
+        tierName: order.tierName || "",
         waveId: order.waveId || code.waveId || "—",
         gateName,
         when: lockedAt
       });
 
-      state.verifying = false;
+      setVerifying(false);
 
     }catch(e){
       await writeScanLog({eventId, staff, gateName, ticketId, orderId: state.scannedCodeDoc?.orderId, outcome:"denied", reason:"System error"});
       showResult({ok:false, reason:"System error", gateName, when:new Date()});
-      state.verifying = false;
+      setVerifying(false);
     }
   }
 
   /******************************************************************
-   * 7) QR SCANNING (qr-scanner)
+   * 7) QR SCANNING (html5-qrcode)
    ******************************************************************/
-  let qrScanner = null;
+  let html5QrCode = null;
+  let activeCameraId = null;
+
+  function calcQrbox(){
+    const el = $("qrRegion");
+    if(!el) return { width: 260, height: 260 };
+    const size = Math.floor(Math.min(el.clientWidth || 320, el.clientHeight || 320) * 0.72);
+    return { width: size, height: size };
+  }
 
   async function startScanner(){
-    if(qrScanner) return;
-    const videoEl = $("qrVideo");
-    if(!videoEl){
-      alert("Scanner video missing.");
+    if(state.scanMode !== "camera") return;
+    if(html5QrCode) return;
+    const regionEl = $("qrRegion");
+    if(!regionEl){
+      alert("Scanner region missing.");
+      debugState.lastError = "Scanner region missing";
+      updateDebugPanel();
       return;
     }
 
     if(!window.isSecureContext){
       setScanStatus("Camera access requires HTTPS. Open the secure link for scanning.", true);
+      debugState.lastError = "Not in secure context (HTTPS required)";
+      updateDebugPanel();
       return;
     }
 
-    QrScanner.WORKER_PATH = "https://unpkg.com/qr-scanner@1.4.2/qr-scanner-worker.min.js";
-    qrScanner = new QrScanner(
-      videoEl,
-      async (result) => {
-        if(state.verifying) return;
+    if(typeof Html5Qrcode === "undefined"){
+      setScanStatus("Scanner library not loaded yet.", true);
+      debugState.lastError = "html5-qrcode missing";
+      updateDebugPanel();
+      return;
+    }
 
-        const decodedText = typeof result === "string" ? result : result?.data;
-        if(!decodedText) return;
-
-        const t = nowMs();
-        if(t - state.lastScanAt < 900) return;
-        state.lastScanAt = t;
-
-        const ticketId = parseTicketIdFromQR(decodedText);
-        if(!ticketId) return;
-
-        if(state.scannedTicketId) return;
-
-        state.scannedTicketId = ticketId;
-        setHint(false);
-        setVerifyCardVisible(true);
-        setDigitsUI();
-        await loadScanPreview(ticketId);
-      },
-      {
-        preferredCamera: "environment",
-        highlightScanRegion: true,
-        highlightCodeOutline: true,
-        maxScansPerSecond: 12
-      }
-    );
+    html5QrCode = new Html5Qrcode("qrRegion");
 
     try{
-      const hasCamera = await QrScanner.hasCamera();
-      if(!hasCamera){
+      const cameras = await Html5Qrcode.getCameras();
+      if(!cameras || !cameras.length){
         setScanStatus("No camera detected on this device.", true);
+        debugState.lastError = "No camera detected";
+        updateDebugPanel();
         await stopScanner();
         return;
       }
 
-      await qrScanner.start();
+      const preferred = cameras.find((camera) => /back|rear|environment/i.test(camera.label || "")) || cameras[0];
+      activeCameraId = activeCameraId || preferred?.id || cameras[0]?.id;
+      const activeCamera = cameras.find((camera) => camera.id === activeCameraId) || preferred;
+      debugState.cameraLabel = activeCamera?.label || "Camera";
+      await html5QrCode.start(
+        { deviceId: { exact: activeCameraId } },
+        {
+          fps: 30,
+          qrbox: calcQrbox(),
+          experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+        },
+        async (decodedText) => {
+          handleDecodedText(decodedText, "camera");
+        }
+      );
       state.scanning = true;
+      debugState.lastError = "—";
       setScanStatus("Scanning… hold the QR steady inside the frame.");
       await populateCameraSelect();
+      updateDebugPanel();
     }catch(e){
       const message = e?.message || "Camera permission needed to scan.";
       setScanStatus(message, true);
+      debugState.lastError = message;
+      updateDebugPanel();
       await stopScanner();
     }
   }
 
   async function stopScanner(){
     try{
-      if(qrScanner){
-        await qrScanner.stop();
-        qrScanner.destroy();
+      if(html5QrCode){
+        await html5QrCode.stop().catch(()=>{});
+        await html5QrCode.clear().catch(()=>{});
       }
     }catch(_e){}
-    qrScanner = null;
+    html5QrCode = null;
     state.scanning = false;
+    updateDebugPanel();
   }
 
   async function populateCameraSelect(){
     const selectEl = $("cameraSelect");
-    if(!selectEl || !qrScanner) return;
+    if(!selectEl || !html5QrCode) return;
 
     try{
-      const cameras = await QrScanner.listCameras(true);
+      const cameras = await Html5Qrcode.getCameras();
       if(!cameras.length){
         selectEl.innerHTML = `<option value="">No camera available</option>`;
         selectEl.disabled = true;
+        debugState.cameraLabel = "No camera";
+        updateDebugPanel();
         return;
       }
 
@@ -489,11 +745,15 @@
       const preferred = cameras.find((camera) => /back|rear|environment/i.test(camera.label || "")) || cameras[0];
       if(preferred?.id){
         selectEl.value = preferred.id;
-        await qrScanner.setCamera(preferred.id);
+        activeCameraId = preferred.id;
+        debugState.cameraLabel = preferred.label || `Camera ${cameras.indexOf(preferred) + 1}`;
       }
+      updateDebugPanel();
     }catch(_e){
       selectEl.innerHTML = `<option value="">Camera list unavailable</option>`;
       selectEl.disabled = true;
+      debugState.cameraLabel = "Unavailable";
+      updateDebugPanel();
     }
   }
 
@@ -529,7 +789,7 @@
       state.scannedOrderDoc = order;
       setScanMeta({
         name: order.Name || order.name || "—",
-        tier: order.tierId || code.tierId || "—"
+        tier: resolveTierName(order.tierId || code.tierId, order.tierName)
       });
     }catch(_e){
       showResult({ok:false, reason:"System error", gateName: state.staff?.gateName || "Gate", when:new Date()});
@@ -568,6 +828,7 @@
   function showScan(){
     $("viewLogin").classList.add("hidden");
     $("viewScan").classList.remove("hidden");
+    focusWedgeInput();
   }
 
   function saveSession(){
@@ -633,6 +894,7 @@
       saveSession();
       showScan();
 
+      applyScanMode();
       await startScanner();
       hardResetForNextScan();
 
@@ -685,13 +947,49 @@
     await startScanner();
   });
 
+  $("btnHardwareScan").addEventListener("click", async ()=>{
+    await requestHardwareScan();
+    focusWedgeInput();
+  });
+
+  $("btnHardwareMode").addEventListener("click", ()=>{
+    state.scanMode = "hardware";
+    applyScanMode();
+    focusWedgeInput();
+  });
+
+  $("btnToggleDebug").addEventListener("click", ()=>{
+    debugState.enabled = !debugState.enabled;
+    setDebugVisible(debugState.enabled);
+    $("btnToggleDebug").textContent = debugState.enabled ? "Hide Diagnostics" : "Show Diagnostics";
+    updateDebugPanel();
+  });
+
+  $("wedgeInput").addEventListener("keydown", (e)=>{
+    if(e.key !== "Enter") return;
+    const value = e.target.value.trim();
+    if(value){
+      handleDecodedText(value, "wedge");
+    }
+    e.target.value = "";
+    e.preventDefault();
+  });
+
+  $("wedgeInput").addEventListener("blur", ()=>{
+    setTimeout(focusWedgeInput, 50);
+  });
+
   $("cameraSelect").addEventListener("change", async (e)=>{
-    if(!qrScanner) return;
+    if(!html5QrCode) return;
     const cameraId = e.target.value;
     if(!cameraId) return;
     try{
-      await qrScanner.setCamera(cameraId);
+      activeCameraId = cameraId;
+      await stopScanner();
+      await startScanner();
       setScanStatus("Camera switched. Keep the QR steady.");
+      debugState.cameraLabel = e.target.selectedOptions?.[0]?.textContent || "—";
+      updateDebugPanel();
     }catch(_e){
       setScanStatus("Unable to switch camera.", true);
     }
@@ -713,9 +1011,26 @@
 
   async function init(){
     initNet();
+    initNativeScanner();
 
     state.eventId = getParam("event");
     $("eventIdInput").value = state.eventId || "(missing)";
+
+    state.scanMode = resolveScanMode();
+    applyScanMode();
+    window.onHardwareScan = (decodedText) => {
+      handleDecodedText(decodedText, "hardware");
+      focusWedgeInput();
+    };
+    window.setScanMode = (mode) => {
+      if(!mode) return;
+      const normalized = String(mode).toLowerCase();
+      if(["camera", "hardware", "wedge"].includes(normalized)){
+        state.scanMode = normalized;
+        applyScanMode();
+        focusWedgeInput();
+      }
+    };
 
     if(!state.eventId){
       alert("Missing event parameter. Use: /usher?event=EVENT_ID");
@@ -740,6 +1055,7 @@
         setEventLogo(state.event);
 
         showScan();
+        applyScanMode();
         await startScanner();
         hardResetForNextScan();
       }catch(_e){

@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://firebasestorage.googleapis.com https://*.googleusercontent.com; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://firebasestorage.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://www.gstatic.com; base-uri 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://firebasestorage.googleapis.com https://*.googleusercontent.com; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://firebasestorage.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://www.gstatic.com; base-uri 'self'">
   <title>Luma Tickets — Owner Dashboard</title>
   <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1155,6 +1155,9 @@
           </div>
 
           <div style="height:12px"></div>
+          <div id="inviteTierKpis"></div>
+
+          <div style="height:12px"></div>
           <div class="tableWrap" style="max-height:520px;overflow:auto">
             <table>
               <thead>
@@ -1471,6 +1474,21 @@
                     <div class="input">
                       <input id="linkUsher" readonly class="mono">
                       <button class="btn sm" id="copyUsher"><svg width="16" height="16"><use href="#i-copy"/></svg> Copy</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card" style="box-shadow:none">
+                  <div class="cardHead">
+                    <div>
+                      <h3 style="font-size:13px">Team Login Link</h3>
+                      <p>For finance, design, viewer, and ops manager roles.</p>
+                    </div>
+                  </div>
+                  <div class="cardBody">
+                    <div class="input">
+                      <input id="linkTeam" readonly class="mono">
+                      <button class="btn sm" id="copyTeam"><svg width="16" height="16"><use href="#i-copy"/></svg> Copy</button>
                     </div>
                   </div>
                 </div>
