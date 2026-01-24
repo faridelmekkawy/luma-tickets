@@ -1252,10 +1252,7 @@ const LEGAL_PAGES = {
   about: {
     title: "About Luma Tickets",
     body: `
-      <p>Luma Tickets is an event operations platform designed for organizers who need clarity, control, and reliability.</p>
-      <p>The dashboard helps event owners create events, sell tickets, manage capacities, track performance, and control on-site check-ins — all in one workspace.</p>
-      <p>From ticket tiers and waves to real-time sales tracking and access validation, Luma Tickets equips organizers to run secure events at scale.</p>
-      <p>Luma Tickets does not run events — it empowers the teams who do.</p>
+      <p><b>Mission:</b> Between ideas and impact.</p>
     `
   },
   faqs: {
@@ -1323,12 +1320,26 @@ function renderFooterLinks(){
     { key: "privacy", label: "Privacy Policy" },
     { key: "terms", label: "Terms of Service" }
   ];
+  const stripPhoneNumbers = (footer)=>{
+    const phonePattern = /(\+?\d[\d\s().-]{6,}\d)/g;
+    footer.querySelectorAll('a[href^="tel:"]').forEach(link=> link.remove());
+    const walker = document.createTreeWalker(footer, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    while(walker.nextNode()){
+      textNodes.push(walker.currentNode);
+    }
+    textNodes.forEach(node=>{
+      if(!node.textContent) return;
+      node.textContent = node.textContent.replace(phonePattern, "");
+    });
+  };
   document.querySelectorAll(".footer").forEach(footer=>{
     if(footer.querySelector(".footerLinks")) return;
     const wrap = document.createElement("div");
     wrap.className = "footerLinks";
     wrap.innerHTML = links.map(l => `<a href="#legal:${l.key}" data-legal="${l.key}">${l.label}</a>`).join("");
     footer.appendChild(wrap);
+    stripPhoneNumbers(footer);
   });
   document.querySelectorAll("[data-legal]").forEach(link=>{
     if(link.__legalWired) return;
