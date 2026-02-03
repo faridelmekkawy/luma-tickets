@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://www.googleapis.com https://firebasestorage.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://www.gstatic.com;">
+  <title>Luma Tickets — Super Admin</title>
+  <link rel="icon" href="data:,"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/super-admin.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div>
+          <h1>Super Admin</h1>
+          <p>Global control center</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="active" data-page="overview">Overview <span>Live</span></button>
+        <button data-page="organizations">Organizations</button>
+        <button data-page="events">Events</button>
+        <button data-page="tickets">Tickets</button>
+        <button data-page="payments">Payments</button>
+        <button data-page="moderation">Moderation</button>
+        <button data-page="overrides">Ops Overrides</button>
+      </nav>
+
+      <div class="status">
+        <h3>System health</h3>
+        <p>All services operational · Last incident 11 days ago</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="search">
+          <input id="globalSearchInput" type="search" placeholder="Search orgs, events, tickets, users, or orders"/>
+          <button id="globalSearchBtn">Global Search</button>
+        </div>
+        <div class="user-meta">
+          <div class="user-chip">Super Admin · SSO Verified</div>
+          <div class="user-chip">Override Mode: Guarded</div>
+        </div>
+      </header>
+
+      <section class="grid cols-4 page" data-page="overview">
+        <div class="card">
+          <h3>Gross volume</h3>
+          <p>Across all owners (rolling 30 days)</p>
+          <div class="metric" id="metricGross">$0</div>
+        </div>
+        <div class="card">
+          <h3>Active events</h3>
+          <p>Live or upcoming</p>
+          <div class="metric" id="metricEvents">0</div>
+        </div>
+        <div class="card">
+          <h3>Check-in velocity</h3>
+          <p>Avg scans per minute (last 60m)</p>
+          <div class="metric" id="metricCheckins">0</div>
+        </div>
+        <div class="card">
+          <h3>Refund exposure</h3>
+          <p>Total refunded volume (all time)</p>
+          <div class="metric" id="metricRefunds">$0</div>
+        </div>
+      </section>
+
+      <section class="section page" data-page="overview">
+        <div class="card">
+          <h3>Revenue concentration</h3>
+          <p>Top event owners by volume</p>
+          <div class="chart" id="revenueChart">
+            <div class="muted">Loading revenue data…</div>
+          </div>
+          <div class="badge-row">
+            <span class="badge" id="badgeOrgs">Orgs: —</span>
+            <span class="badge" id="badgeAvgOrder">Avg order: —</span>
+            <span class="badge" id="badgeTicketVolume">Tickets: —</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section page" data-page="overview">
+        <div class="card">
+          <h3>Owner control matrix</h3>
+          <p>View, edit, or override permissions by owner</p>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Owner</th>
+                <th>Status</th>
+                <th>Flags</th>
+                <th>Events</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="orgRows">
+              <tr>
+                <td colspan="5" class="muted">Loading owners…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3>Operational controls</h3>
+          <p>Documented, reversible actions (all actions are audited)</p>
+          <div class="actions">
+            <button class="primary">Force sync all check-ins</button>
+            <button>Pause ticket transfers</button>
+            <button>Hold payouts for flagged owners</button>
+            <button class="danger">Emergency pause (sales + scans)</button>
+          </div>
+          <div class="override-list" style="margin-top: 18px;">
+            <div class="override">
+              <div>
+                <strong>Guest list visibility</strong>
+                <p class="muted">Allow support to view hidden guest lists with audit trail</p>
+              </div>
+              <div class="toggle" aria-hidden="true"></div>
+            </div>
+            <div class="override">
+              <div>
+                <strong>Instant refunds</strong>
+                <p class="muted">Allow tier-1 support to issue refunds without escalation</p>
+              </div>
+              <div class="toggle" aria-hidden="true"></div>
+            </div>
+            <div class="override">
+              <div>
+                <strong>Manual ticket edits</strong>
+                <p class="muted">Permit emergency edits during live check-in windows</p>
+              </div>
+              <div class="toggle" aria-hidden="true"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section page" data-page="overview">
+        <div class="card">
+          <h3>Audit stream</h3>
+          <p>Recent super admin activity</p>
+          <div id="auditStream">
+            <div class="muted">Loading audit activity…</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section page hidden" data-page="organizations">
+        <div class="card">
+          <h3>Owners</h3>
+          <p>Sorted by gross volume</p>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Owner</th>
+                <th>Status</th>
+                <th>Gross</th>
+                <th>Refunds</th>
+                <th>Events</th>
+              </tr>
+            </thead>
+            <tbody id="ownersTable">
+              <tr><td colspan="5" class="muted">Loading owners…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section page hidden" data-page="events">
+        <div class="card">
+          <h3>Events</h3>
+          <p>Live data across all organizers</p>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Status</th>
+                <th>Owner</th>
+                <th>Gross</th>
+                <th>Check-ins</th>
+              </tr>
+            </thead>
+            <tbody id="eventsTable">
+              <tr><td colspan="5" class="muted">Loading events…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section page hidden" data-page="tickets">
+        <div class="card">
+          <h3>Tickets & Orders</h3>
+          <p>Recent paid orders</p>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Order</th>
+                <th>Qty</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="ticketsTable">
+              <tr><td colspan="5" class="muted">Loading orders…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section page hidden" data-page="payments">
+        <div class="card">
+          <h3>Payments</h3>
+          <p>Refund exposure by event</p>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Owner</th>
+                <th>Gross</th>
+                <th>Refunds</th>
+                <th>Net</th>
+              </tr>
+            </thead>
+            <tbody id="paymentsTable">
+              <tr><td colspan="5" class="muted">Loading payments…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section page hidden" data-page="moderation">
+        <div class="card">
+          <h3>Moderation</h3>
+          <p>Recent denied scans and incidents</p>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Outcome</th>
+                <th>Reason</th>
+                <th>When</th>
+                <th>Ticket/Order</th>
+              </tr>
+            </thead>
+            <tbody id="moderationTable">
+              <tr><td colspan="5" class="muted">Loading moderation feed…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section page hidden" data-page="overrides">
+        <div class="card">
+          <h3>Operational overrides</h3>
+          <p>Use with approval and audit trail</p>
+          <div class="actions">
+            <button class="primary">Trigger global check-in sync</button>
+            <button>Pause ticket transfers</button>
+            <button>Enable guest list override</button>
+            <button class="danger">Emergency pause (sales + scans)</button>
+          </div>
+          <p class="muted" style="margin-top: 16px;">
+            Overrides require justification notes and are logged to the audit stream.
+          </p>
+        </div>
+      </section>
+
+      <section class="section page hidden" data-page="search">
+        <div class="card">
+          <h3>Global search results</h3>
+          <p id="searchSummary" class="muted">Enter a query to see results.</p>
+          <div id="searchResults" class="search-results"></div>
+        </div>
+      </section>
+
+      <div class="footer">Super Admin Console · All actions audited · v3.9.0</div>
+    </main>
+  </div>
+  <script type="module" src="../assets/js/super-admin.js"></script>
+</body>
+</html>
