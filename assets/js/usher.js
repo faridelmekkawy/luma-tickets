@@ -699,12 +699,15 @@
         return;
       }
 
-      const preferred = cameras.find((camera) => /back|rear|environment/i.test(camera.label || "")) || cameras[0];
-      activeCameraId = activeCameraId || preferred?.id || cameras[0]?.id;
-      const activeCamera = cameras.find((camera) => camera.id === activeCameraId) || preferred;
-      debugState.cameraLabel = activeCamera?.label || "Camera";
+      const preferred = cameras.find((camera) => /back|rear|environment/i.test(camera.label || ""));
+      const selectedById = activeCameraId
+        ? cameras.find((camera) => camera.id === activeCameraId)
+        : null;
+      const activeCamera = selectedById || preferred || null;
+      activeCameraId = activeCamera?.id || null;
+      debugState.cameraLabel = activeCamera?.label || "Back Camera";
       await html5QrCode.start(
-        { deviceId: { exact: activeCameraId } },
+        activeCameraId ? { deviceId: { exact: activeCameraId } } : { facingMode: "environment" },
         {
           fps: 30,
           qrbox: calcQrbox(),
@@ -763,10 +766,14 @@
         .join("");
 
       const preferred = cameras.find((camera) => /back|rear|environment/i.test(camera.label || "")) || cameras[0];
-      if(preferred?.id){
-        selectEl.value = preferred.id;
-        activeCameraId = preferred.id;
-        debugState.cameraLabel = preferred.label || `Camera ${cameras.indexOf(preferred) + 1}`;
+      const selected = activeCameraId
+        ? cameras.find((camera) => camera.id === activeCameraId)
+        : null;
+      const target = selected || preferred;
+      if(target?.id){
+        selectEl.value = target.id;
+        activeCameraId = target.id;
+        debugState.cameraLabel = target.label || `Camera ${cameras.indexOf(target) + 1}`;
       }
       updateDebugPanel();
     }catch(_e){
